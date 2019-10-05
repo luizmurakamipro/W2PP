@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 #include <Windows.h>
@@ -348,7 +348,7 @@ BOOL CPSock::Receive()
 
 /*
 	 nRecvPosition = Final do ultimo pacote
-	 nProcPosition = ComeÃ§o do ultimo pacote
+	 nProcPosition = Começo do ultimo pacote
 */
 char* CPSock::ReadMessage(int *ErrorCode, int *ErrorType)
 {
@@ -514,6 +514,9 @@ BOOL CPSock::AddMessage(char *pMsg, int Size)
 {
 	char temp[256];
 	HEADER *pSMsg = (HEADER *)pMsg;
+
+	//if (pSMsg->ID < MAX_USER)
+	//	printf("SEND-> Code: %X - Size: %d - Index: %d \n", pSMsg->Type, pSMsg->Size, pSMsg->ID);
 
 	if(nSendPosition + Size >= SEND_BUFFER_SIZE)	
 	{	

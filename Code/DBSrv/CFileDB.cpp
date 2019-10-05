@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 #include <windows.h>
@@ -687,7 +687,7 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 			if(IdxName != 0)
 			{
-				Log("err, desconectado. conexÃ£o anterior finalizada.", m->AccountName, 0);
+				Log("err, desconectado. conexão anterior finalizada.", m->AccountName, 0);
 
 				if(m->DBNeedSave == 0)
 				{
@@ -917,7 +917,6 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 			mob = &pAccountList[Idx].File.Char[Slot];
 
-
 			mob->MobName[NAME_LENGTH-1] = 0;
 			mob->MobName[NAME_LENGTH-2] = 0;
 
@@ -941,7 +940,7 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 			for(int i = 0; i < len; i++)
 			{
-				if(m->MobName[i] == 'Ã­' && m->MobName[i + 1] == 'Ã­')
+				if(m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
 				{
 					SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
@@ -1179,6 +1178,9 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 			memcpy(&pAccountList[Idx].File.ShortSkill[Slot], m->ShortSkill, 16);
 
+		//	pAccountList[Idx].File.Char[Slot].SPX = m->MOB.SPX;
+			//pAccountList[Idx].File.Char[Slot].SPY = m->MOB.SPY;
+
 			pAccountList[Idx].File.Coin = m->Coin;
 
 			DBWriteAccount(&pAccountList[Idx].File);
@@ -1251,6 +1253,9 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 			pAccountList[Idx].File.Coin = m->Coin;
 			pAccountList[Idx].File.Donate = m->Donate;
+
+			//pAccountList[Idx].File.Char[Slot].SPX = m->MOB.SPX;
+			//pAccountList[Idx].File.Char[Slot].SPY = m->MOB.SPY;
 
 			DBWriteAccount(&pAccountList[Idx].File);
 			DBExportAccount(&pAccountList[Idx].File);
@@ -1430,10 +1435,15 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 		int Idx = GetIndex(conn, m->ID);
 
 		int Slot = 0;
+		int Slot1 = 0; //  24/02/2017
 
 		for (Slot = 0; Slot < MOB_PER_ACCOUNT; Slot++)
-		if (pAccountList[Idx].File.Char[Slot].MobName[0] == 0)
-			break;			   
+			if (pAccountList[Idx].File.Char[Slot].MobName[0] == 0)
+				break;
+
+		for (Slot1 = 0; Slot1 < MOB_PER_ACCOUNT; Slot1++)// oxablod 24/02/2017
+			if (pAccountList[Idx].File.Char[Slot1].MobName[Slot1] == m->MobName[NAME_LENGTH] > 2)
+				break;
 
 		if (Slot < 0 || Slot >= MOB_PER_ACCOUNT)
 		{
@@ -1505,7 +1515,7 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 		for (int i = 0; i < len; i++)
 		{
-			if (m->MobName[i] == 'Ã­' && m->MobName[i + 1] == 'Ã­')
+			if (m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
@@ -1549,12 +1559,199 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 		}
 
 		mob->Equip[0].sIndex = MortalFace + 5 + cls;
-		mob->BaseScore.Ac = 230;
+		mob->SpecialBonus = 112;
+
+		mob->Equip[0].stEffect[2].cEffect = 28;
+		mob->Equip[0].stEffect[2].cValue = ServerIndex + 1;
 
 		memset(&mob->Equip[1], 0, sizeof(STRUCT_ITEM)*(MAX_EQUIP - 1));
 		memset(&mob->Carry[0], 0, sizeof(STRUCT_ITEM)*(MAX_CARRY - 4));
 
 		extra->MortalFace = MortalFace;
+
+	//	mob->Carry[0].sIndex += 4011; // da 1 bi, eu acho, nem funfa mais kk
+
+		memcpy(mob->MobName, m->MobName, NAME_LENGTH);
+
+		int ret = DBWriteAccount(&pAccountList[Idx].File);
+
+		if (ret == 0)
+		{
+			SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
+
+			Log("err,newchar fail - create file", m->MobName, 0);
+
+			return TRUE;
+		}
+
+		char temp[256];
+
+		sprintf(temp, "create character [%s]", mob->MobName);
+
+		Log(temp, pAccountList[Idx].File.Info.AccountName, 0);
+
+		MSG_CNFNewCharacter sm;
+
+		sm.Type = _MSG_DBCNFNewCharacter;
+
+		DBGetSelChar(&sm.sel, &pAccountList[Idx].File);
+
+		sm.ID = m->ID;
+
+		SendDBSignalParm(conn, m->ID, _MSG_DBCNFArchCharacterSucess, Slot);
+		pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_CNFNewCharacter));
+
+	}	break;
+
+	case _MSG_DBCreateHardCoreCharacter:
+	{
+		MSG_DBCreateHardCoreCharacter *m = (MSG_DBCreateHardCoreCharacter*)Msg;
+
+		int cls = m->MobClass;
+		int CelestialFace = m->CelestialFace;
+		int cape = m->CelestialCape;
+		int quest1 = m->quest1;
+		int quest2 = m->quest2;
+		int skill0 = m->skill0;
+		int skill1 = m->skill1;
+		int skill2 = m->skill2;
+		int skill3 = m->skill3;
+		int learn = m->learn;
+		int classe = m->Class;
+
+		int Idx = GetIndex(conn, m->ID);
+
+		int Slot = 0;
+
+		for (Slot = 0; Slot < MOB_PER_ACCOUNT; Slot++)
+		if (pAccountList[Idx].File.Char[Slot].MobName[0] == 0)
+			break;			   
+
+		if (Slot < 0 || Slot >= MOB_PER_ACCOUNT)
+		{
+			Log("err,newchar  slot out of range", pAccountList[Idx].File.Info.AccountName, 0);
+
+			SendDBSignal(conn, m->ID, _MSG_DBCNFArchCharacterFail);
+
+			return TRUE;
+		}
+
+		char check[NAME_LENGTH];
+
+		strncpy(check, m->MobName, NAME_LENGTH);
+
+		_strupr(check);
+
+		if(strcmp(check, "KING") == 0 || strcmp(check, "KINGDOM") == 0 || strcmp(check, "GRITAR") == 0 || strcmp(check, "RELO") == 0)
+		{
+			Log("err,newchar - cmd name", pAccountList[Idx].File.Info.AccountName, 0);
+
+			SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
+
+			return FALSE;
+		}
+
+		if ((check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0) ||
+			(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0))
+		{
+			Log("err,newchar - com", pAccountList[Idx].File.Info.AccountName, 0);
+
+			SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
+
+			return FALSE;
+		}
+
+		STRUCT_MOB *mob;
+
+		mob = &pAccountList[Idx].File.Char[Slot];
+
+
+		mob->MobName[NAME_LENGTH - 1] = 0;
+		mob->MobName[NAME_LENGTH - 2] = 0;
+
+		m->MobName[NAME_LENGTH - 1] = 0;
+		m->MobName[NAME_LENGTH - 2] = 0;
+
+		if (mob->MobName[0] != 0)
+		{
+			SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
+
+			Log("err,newchar already charged", pAccountList[Idx].File.Info.AccountName, 0);
+			Log(mob->MobName, m->MobName, 0);
+
+			return TRUE;
+		}
+
+		m->MobName[NAME_LENGTH - 1] = 0;
+		m->MobName[NAME_LENGTH - 2] = 0;
+
+		int len = strlen(m->MobName);
+
+		for (int i = 0; i < len; i++)
+		{
+			if (m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
+			{
+				SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
+
+				return TRUE;
+			}
+		}
+
+								  
+		STRUCT_MOBEXTRA *extra;
+
+		extra = &pAccountList[Idx].File.mobExtra[Slot];
+
+		BASE_ClearMob(mob);
+		BASE_ClearMobExtra(extra);
+
+		memset(&pAccountList[Idx].File.affect[Slot], 0, sizeof(pAccountList[Idx].File.affect[Slot]));
+		memset(&pAccountList[Idx].File.ShortSkill[Slot], -1, 16);
+
+		extra->ClassMaster = HARDCORE; // Seta como HARDCORE
+		extra->QuestInfo.Arch.MortalSlot = m->CelestialSlot; // Identifica o Slot, sei la.
+		extra->QuestInfo.Arch.Cristal = quest1;
+		extra->QuestInfo.Celestial.ArchLevel = quest2;
+ 
+		mob->Equip[0].sIndex = cls; // Pega a Face do Celestial e Seta no HC
+		mob->Class = classe;
+
+		memset(&mob->Equip[1], 0, sizeof(STRUCT_ITEM)*(MAX_EQUIP - 1)); // Zera tudo
+		memset(&mob->Carry[0], 0, sizeof(STRUCT_ITEM)*(MAX_CARRY - 4)); // ||    || 
+
+		extra->MortalFace = CelestialFace; // Sei la, similar a Seta face no hc
+
+		mob->Equip[15].sIndex = cape; // Copia a capa do Celestial
+		mob->BaseScore.AttackRun = 2; // Seta pra quando o hc nascer, ja anda mais rapido kkk.
+
+		mob->BaseScore.Special[0] = skill0;
+		mob->BaseScore.Special[1] = skill1;
+		mob->BaseScore.Special[2] = skill2;
+		mob->BaseScore.Special[3] = skill3;
+
+
+		mob->Equip[1].sIndex = 3505; // Manda cythera
+
+		mob->BaseScore.Level = 0; // Seta o nível
+
+		mob->BaseScore.Str = BaseSIDCHM[mob->Class][0]; // Seta os atributos dependente da classe.
+		mob->BaseScore.Int = BaseSIDCHM[mob->Class][1];
+		mob->BaseScore.Dex = BaseSIDCHM[mob->Class][2];
+		mob->BaseScore.Con = BaseSIDCHM[mob->Class][3];
+
+		mob->BaseScore.Ac = 954; // def
+		mob->BaseScore.Damage = 800; // dano
+		mob->BaseScore.Hp = BaseSIDCHM[mob->Class][4]; // hp e mp dependente da classe.
+		mob->BaseScore.MaxHp = BaseSIDCHM[mob->Class][4];
+		mob->BaseScore.Mp = BaseSIDCHM[mob->Class][5];
+		mob->BaseScore.MaxMp = BaseSIDCHM[mob->Class][5];
+
+		mob->SpecialBonus = 855; // seta 855 pontos em aprendizagem
+
+		mob->LearnedSkill = learn; // zera o learn e entrega a soul
+		extra->SecLearnedSkill = 0;
+
+		mob->Exp = 0; // zera a xp
 
 		memcpy(mob->MobName, m->MobName, NAME_LENGTH);
 
@@ -1865,7 +2062,7 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 
 		for (int i = 0; i < len; i++)
 		{
-			if (m->MobName[i] == 'Ã­' && m->MobName[i + 1] == 'Ã­')
+			if (m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
@@ -2095,7 +2292,7 @@ int CFileDB::ProcessMessage(char *Msg, int conn)
 		sm2.ID = m->ID;
 		sm2.Size = sizeof(MSG_DBClientMessage);
 
-		strcpy(sm2.String, "Sua conta agora Ã© a primÃ¡ria.");
+		strcpy(sm2.String, "Sua conta agora é a primária.");
 
 		pUser[conn].cSock.SendOneMessage((char*)&sm2, sizeof(MSG_DBClientMessage));
 	} break;
@@ -2619,14 +2816,16 @@ void CFileDB::DBGetSelChar(STRUCT_SELCHAR *sel, STRUCT_ACCOUNTFILE *file)
 			sel->Equip[i][0].sIndex = file->mobExtra[i].ClassMaster == MORTAL ? 21 : file->mobExtra[i].MortalFace + 7;
 
 		sel->Guild[i] = file->Char[i].Guild;
-
 		sel->SPX[i] = file->Char[i].SPX;
-		sel->SPX[i] = file->Char[i].SPY;
+		sel->SPY[i] = file->Char[i].SPY;
 
 		sel->Score[i] = file->Char[i].CurrentScore;		
 
 		sel->Coin[i] = file->Char[i].Coin;
 		sel->Exp[i]  = file->Char[i].Exp;
+
+		sel->Equip[i][0].stEffect[2].cEffect = 28;//file->mobExtra[k].Citizen > 0 ? 28 : 106;
+		sel->Equip[i][0].stEffect[2].cValue = file->mobExtra[i].Citizen; //? file->mobExtra[k].Citizen : (unsigned char)file->Char[k].Equip[0].sIndex;
 	}
 }
 

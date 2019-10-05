@@ -1,21 +1,4 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*   Contact at:
-*/
+
 #include <Windows.h>
 
 #include "..\Basedef.h"
@@ -26,17 +9,17 @@
 #include "GetFunc.h"
 #include "CMob.h"
 #include "SendFunc.h"
+#include "CCubo.h"
 
 extern STRUCT_ITEMLIST g_pItemList[MAX_ITEMLIST];
-
 
 int GetMatchCombine(STRUCT_ITEM *item)
 {
 	int target = item[0].sIndex;
 
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(item[i].sIndex == 747)
+		if (item[i].sIndex == 747)
 			return 0;
 	}
 
@@ -73,8 +56,8 @@ int GetMatchCombine(STRUCT_ITEM *item)
 		int il1 = BASE_GetItemAbility(&item[0], EF_ITEMLEVEL);
 		int il2 = (BASE_GetItemAbility(&item[j], EF_ITEMLEVEL));
 
-		if(il1 > il2)
-			return 0;
+		//	if (il1 > il2)
+		//		return 0;
 
 		int	sa = BASE_GetItemSanc(&item[j]);
 
@@ -103,13 +86,13 @@ int GetMatchCombine(STRUCT_ITEM *item)
 	return rate;
 }
 
-int GetMatchCombineEhre(STRUCT_ITEM *Item)
+int GetMatchCombineDedekinto(STRUCT_ITEM *Item)
 {
 	int rate = 0;
 
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(Item[i].sIndex == 747)
+		if (Item[i].sIndex == 747)
 			return 0;
 	}
 
@@ -136,7 +119,50 @@ int GetMatchCombineEhre(STRUCT_ITEM *Item)
 
 	if (Item[7].sIndex < 0 || Item[7].sIndex >= MAX_ITEMLIST)
 		return 0;
-	
+
+	if (Item[0].sIndex == 673 && Item[1].sIndex == 674 && Item[2].sIndex == 675 && Item[3].sIndex == 676 && Item[4].sIndex == 677 && Item[5].sIndex == 770)
+		rate = 1; //Criação de Pedra Amunra
+
+	else if (Item[0].sIndex == 677 && Item[1].sIndex == 677 && Item[2].sIndex == 678 && Item[3].sIndex == 678)
+		rate = 2; //Proteção Divina
+
+	return rate;
+}
+
+int GetMatchCombineEhre(STRUCT_ITEM *Item)
+{
+	int rate = 0;
+
+	for (int i = 0; i < MAX_COMBINE; i++)
+	{
+		if (Item[i].sIndex == 747)
+			return 0;
+	}
+
+	if (Item[0].sIndex < 0 || Item[0].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[1].sIndex < 0 || Item[1].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[2].sIndex < 0 || Item[2].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[3].sIndex < 0 || Item[3].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[4].sIndex < 0 || Item[4].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[5].sIndex < 0 || Item[5].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[6].sIndex < 0 || Item[6].sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (Item[7].sIndex < 0 || Item[7].sIndex >= MAX_ITEMLIST)
+		return 0;
+
 	if (Item[0].sIndex == 697 && Item[1].sIndex == 697 && BASE_GetItemSanc(&Item[2]) >= 9 && Item[2].sIndex != 3338)
 		rate = 1;//Pacote Oriharucon
 
@@ -147,10 +173,10 @@ int GetMatchCombineEhre(STRUCT_ITEM *Item)
 		rate = 3;//Pedra espiritual
 
 	else if (Item[0].sIndex >= 661 && Item[0].sIndex <= 663 && Item[1].sIndex >= 661 && Item[1].sIndex <= 663 && Item[2].sIndex == 3464 && BASE_GetItemSanc(&Item[2]) >= 9)
-		rate = 4;//Pedra AmunrÃ¡
+		rate = 4;//Pedra Amunrá
 
 	else if (Item[0].sIndex == 697 && Item[1].sIndex == 697 && Item[2].sIndex == 3338 && BASE_GetItemSanc(&Item[2]) <= 8)
-		rate = 5;//RefinaÃ§Ã£o abenÃ§oada Purificada
+		rate = 5;//Refinação abençoada Purificada
 
 	else if (Item[0].sIndex >= 2360 && Item[0].sIndex <= 2389 && Item[1].sIndex >= 4190 && Item[1].sIndex <= 4199)
 		rate = 6;//Traje montaria
@@ -163,12 +189,26 @@ int GetMatchCombineEhre(STRUCT_ITEM *Item)
 
 	return rate;
 }
+/*int GetMatchCombineTiny(STRUCT_ITEM *Item)
+{
+
+if (BASE_GetItemSanc(&Item[0]) < 9)
+return 0;
+
+if (BASE_GetItemSanc(&Item[1]) < 9)
+return 0;
+
+if (BASE_GetItemSanc(&Item[2]) < 9)
+return 0;
+
+return g_pTinyBase + (BASE_GetItemAbility(&Item[1], EF_ITEMLEVEL) * 5);
+}*/
 
 int GetMatchCombineTiny(STRUCT_ITEM *Item)
 {
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(Item[i].sIndex == 747)
+		if (Item[i].sIndex == 747)
 			return 0;
 	}
 
@@ -187,28 +227,25 @@ int GetMatchCombineTiny(STRUCT_ITEM *Item)
 	if (g_pItemList[Item[0].sIndex].Grade < 5 || g_pItemList[Item[0].sIndex].Grade > 8)
 		return 0;
 
-	if (BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 4 || BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 5)
-		return 0;
+	//if (BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 4 || BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 5)
+	//	return 0;
 
 	if (g_pItemList[Item[1].sIndex].Grade < 5 || g_pItemList[Item[1].sIndex].Grade > 8)
 		return 0;
 
-	if (BASE_GetItemAbility(&Item[2], EF_ITEMTYPE) != 4 || BASE_GetItemAbility(&Item[2], EF_ITEMTYPE) != 5)
-		return 0;
+	//if (BASE_GetItemAbility(&Item[2], EF_ITEMTYPE) != 4 || BASE_GetItemAbility(&Item[2], EF_ITEMTYPE) != 5)
+	//	return 0;
 
 	if (g_pItemList[Item[0].sIndex].nPos != g_pItemList[Item[1].sIndex].nPos)
 		return 0;
 
-	if(g_pItemList[Item[0].sIndex].nPos != 64 && g_pItemList[Item[0].sIndex].nPos != 192)
+	if (g_pItemList[Item[0].sIndex].nPos != 64 && g_pItemList[Item[0].sIndex].nPos != 192)
 		return 0;
 
-	if (BASE_GetItemSanc(&Item[0]) < 9)
+	if (BASE_GetItemSanc(&Item[0]) > 9)
 		return 0;
 
-	if (BASE_GetItemSanc(&Item[1]) < 9)
-		return 0;
-
-	if (BASE_GetItemSanc(&Item[2]) < 9)
+	if (BASE_GetItemSanc(&Item[1]) > 9)
 		return 0;
 
 	return g_pTinyBase + (BASE_GetItemAbility(&Item[1], EF_ITEMLEVEL) * 5);
@@ -260,9 +297,9 @@ int GetMatchCombineShany(STRUCT_ITEM *Item)
 
 int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 {
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(Item[i].sIndex == 747)
+		if (Item[i].sIndex == 747)
 			return 0;
 	}
 
@@ -298,77 +335,19 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 
 	int rate = 1;
 
-	if((g_pItemList[Item[0].sIndex].nPos != 2 && g_pItemList[Item[0].sIndex].nPos != 4 && g_pItemList[Item[0].sIndex].nPos != 8 && g_pItemList[Item[0].sIndex].nPos != 16 && g_pItemList[Item[0].sIndex].nPos != 32 && g_pItemList[Item[0].sIndex].nPos != 64 && g_pItemList[Item[0].sIndex].nPos != 192 && g_pItemList[Item[0].sIndex].nPos != 128))
+	if ((g_pItemList[Item[0].sIndex].nPos != 2 && g_pItemList[Item[0].sIndex].nPos != 4 && g_pItemList[Item[0].sIndex].nPos != 8 && g_pItemList[Item[0].sIndex].nPos != 16 && g_pItemList[Item[0].sIndex].nPos != 32 && g_pItemList[Item[0].sIndex].nPos != 64 && g_pItemList[Item[0].sIndex].nPos != 192 && g_pItemList[Item[0].sIndex].nPos != 128))
 		return 0;
 
-	if (g_pItemList[Item[0].sIndex].Grade == 5)
+
+	for (int i = 3; i < 7; i++)
 	{
-		for (int i = 3; i < 7; i++)
-		{
-			if (Item[i].sIndex == 0)
-				continue;
+		if (Item[i].sIndex == 0)
+			continue;
 
-			if (Item[i].sIndex != 2441)
-				return 0;
+		if (Item[3].sIndex != Item[i].sIndex)
+			return 0;
 
-			rate += g_pAilynBase;
-		}
-	}
-	
-	else if (g_pItemList[Item[0].sIndex].Grade == 6)
-	{
-		for (int i = 3; i < 7; i++)
-		{
-			if (Item[i].sIndex == 0)
-				continue;
-
-			if (Item[i].sIndex != 2442)
-				return 0;
-
-			rate += g_pAilynBase;
-		}
-	}
-
-	else if (g_pItemList[Item[0].sIndex].Grade == 7)
-	{
-		for (int i = 3; i < 7; i++)
-		{
-			if (Item[i].sIndex == 0)
-				continue;
-
-			if (Item[i].sIndex != 2443)
-				return 0;
-
-			rate += g_pAilynBase;
-		}
-	}
-
-	else if (g_pItemList[Item[0].sIndex].Grade == 8)
-	{
-		for (int i = 3; i < 7; i++)
-		{
-			if (Item[i].sIndex == 0)
-				continue;
-
-			if (Item[i].sIndex != 2444)
-				return 0;
-
-			rate += g_pAilynBase;
-		}
-	}
-
-	else
-	{
-		for (int i = 3; i < 7; i++)
-		{
-			if (Item[i].sIndex == 0)
-				continue;
-
-			if (Item[3].sIndex != Item[i].sIndex)
-				return 0;
-
-			rate += g_pAilynBase;
-		}
+		rate += g_pAilynBase;
 	}
 
 	return rate;
@@ -376,9 +355,9 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 
 int GetMatchCombineAgatha(STRUCT_ITEM *Item)
 {
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(Item[i].sIndex == 747)
+		if (Item[i].sIndex == 747)
 			return 0;
 	}
 
@@ -406,8 +385,8 @@ int GetMatchCombineAgatha(STRUCT_ITEM *Item)
 	if (BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != MORTAL && BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 0)
 		return 0;
 
-	if (BASE_GetItemAbility(&Item[1], EF_ITEMLEVEL) < 4)
-		return 0;
+	//if (BASE_GetItemAbility(&Item[1], EF_ITEMLEVEL) < 4)
+	//return 0;
 
 	if (g_pItemList[Item[0].sIndex].nPos != g_pItemList[Item[1].sIndex].nPos)
 		return 0;
@@ -426,9 +405,9 @@ int GetMatchCombineAgatha(STRUCT_ITEM *Item)
 
 int GetMatchCombineOdin(STRUCT_ITEM *Item)
 {
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(Item[i].sIndex == 747)
+		if (Item[i].sIndex == 747)
 			return 0;
 	}
 
@@ -455,7 +434,7 @@ int GetMatchCombineOdin(STRUCT_ITEM *Item)
 
 	if (Item[7].sIndex < 0 || Item[7].sIndex >= MAX_ITEMLIST)
 		return 0;
-	
+
 	if (Item[0].sIndex == g_pItemList[Item[1].sIndex].Extra && BASE_GetItemSanc(&Item[0]) >= 9 && BASE_GetItemSanc(&Item[1]) == REF_15
 		&& (Item[2].sIndex == 542 || Item[2].sIndex == 772) && Item[3].sIndex == 5334 && Item[4].sIndex == 5335 && Item[5].sIndex == 5336 && Item[6].sIndex == 5337)
 		return 1;//Item celestial
@@ -472,7 +451,7 @@ int GetMatchCombineOdin(STRUCT_ITEM *Item)
 		return 4;//Level40 Celestial
 
 	else if (Item[0].sIndex == 5125 && Item[1].sIndex == 5115 && Item[2].sIndex == 5111 && Item[3].sIndex == 5112 && Item[4].sIndex == 5120 && Item[5].sIndex == 5128 && Item[6].sIndex == 5119)
-		return 5;//Pedra da fÃºria
+		return 5;//Pedra da fúria
 
 	else if (Item[0].sIndex == 5126 && Item[1].sIndex == 5127 && Item[2].sIndex == 5121 && Item[3].sIndex == 5114 && Item[4].sIndex == 5125 && Item[5].sIndex == 5111 && Item[6].sIndex == 5118)
 		return 6;//Secreta da Agua
@@ -488,7 +467,7 @@ int GetMatchCombineOdin(STRUCT_ITEM *Item)
 
 	else if (Item[0].sIndex == 421 && Item[1].sIndex == 422 && Item[2].sIndex == 423 && Item[3].sIndex == 424 && Item[4].sIndex == 425 && Item[5].sIndex == 426 && Item[6].sIndex == 427)
 		return 10;//Semente de cristal
-	
+
 	else if (Item[0].sIndex == 4127 && Item[1].sIndex == 4127 && Item[2].sIndex == 5135 && Item[3].sIndex == 413 && Item[4].sIndex == 413 && Item[5].sIndex == 413 && Item[6].sIndex == 413)
 		return 11;//Capa
 
@@ -497,9 +476,9 @@ int GetMatchCombineOdin(STRUCT_ITEM *Item)
 
 int GetMatchCombineAlquimia(STRUCT_ITEM *Item)
 {
-	for(int i = 0; i < MAX_COMBINE; i++)
+	for (int i = 0; i < MAX_COMBINE; i++)
 	{
-		if(Item[i].sIndex == 747)
+		if (Item[i].sIndex == 747)
 			return 0;
 	}
 	if (Item[0].sIndex < 0 || Item[0].sIndex >= MAX_ITEMLIST)
@@ -525,40 +504,40 @@ int GetMatchCombineAlquimia(STRUCT_ITEM *Item)
 
 	if (Item[7].sIndex < 0 || Item[7].sIndex >= MAX_ITEMLIST)
 		return -1;
-	
-	if(Item[0].sIndex == 413 && Item[1].sIndex == 2441 && Item[2].sIndex == 2442)
+
+	if (Item[0].sIndex == 413 && Item[1].sIndex == 2441 && Item[2].sIndex == 2442)
 		return 0;//Sagacidade
 
-	if(Item[0].sIndex == 413 && Item[1].sIndex == 2443 && Item[2].sIndex == 2442)
+	if (Item[0].sIndex == 413 && Item[1].sIndex == 2443 && Item[2].sIndex == 2442)
 		return 1;//Resistencia
 
-	if(Item[0].sIndex == 4127 && Item[1].sIndex == 4127 && Item[2].sIndex == 4127)
-		return 2;//RevelaÃ§Ã£o
+	if (Item[0].sIndex == 4127 && Item[1].sIndex == 4127 && Item[2].sIndex == 4127)
+		return 2;//Revelação
 
-	if(Item[0].sIndex == 4127 && Item[1].sIndex == 4127 && Item[2].sIndex == 697)
-		return 3;//RecuperaÃ§Ã£o
+	if (Item[0].sIndex == 4127 && Item[1].sIndex == 4127 && Item[2].sIndex == 697)
+		return 3;//Recuperação
 
-	if(Item[0].sIndex == 412 && Item[1].sIndex == 2441 && Item[2].sIndex == 2444)
-		return 4;//AbsorÃ§Ã£o
+	if (Item[0].sIndex == 412 && Item[1].sIndex == 2441 && Item[2].sIndex == 2444)
+		return 4;//Absorção
 
-	if(Item[0].sIndex == 412 && Item[1].sIndex == 2444 && Item[2].sIndex == 2443)
-		return 5;//ProteÃ§Ã£o
+	if (Item[0].sIndex == 412 && Item[1].sIndex == 2444 && Item[2].sIndex == 2443)
+		return 5;//Proteção
 
-	if(Item[0].sIndex == 612 && BASE_GetItemSanc(&Item[0]) >= 9 && Item[1].sIndex == 2441 && Item[2].sIndex == 2442)
+	if (Item[0].sIndex == 612 && BASE_GetItemSanc(&Item[0]) >= 9 && Item[1].sIndex == 2441 && Item[2].sIndex == 2442)
 		return 6;//Poder
 
-	if(Item[0].sIndex == 612 && Item[1].sIndex == 613 && Item[2].sIndex == 614 && Item[3].sIndex == 615)
+	if (Item[0].sIndex == 612 && Item[1].sIndex == 613 && Item[2].sIndex == 614 && Item[3].sIndex == 615)
 		return 7;//Armazenagem
 
-	if(Item[0].sIndex == 614 && BASE_GetItemSanc(&Item[0]) >= 9 && Item[1].sIndex == 2443 && Item[2].sIndex == 2444)
-		return 8;//PrecisÃ£o
+	if (Item[0].sIndex == 614 && BASE_GetItemSanc(&Item[0]) >= 9 && Item[1].sIndex == 2443 && Item[2].sIndex == 2444)
+		return 8;//Precisão
 
-	if(Item[0].sIndex == 615 && BASE_GetItemSanc(&Item[0]) >= 9 && Item[1].sIndex == 697 && Item[2].sIndex == 697 && Item[3].sIndex == 697)
+	if (Item[0].sIndex == 615 && BASE_GetItemSanc(&Item[0]) >= 9 && Item[1].sIndex == 697 && Item[2].sIndex == 697 && Item[3].sIndex == 697)
 		return 9;//Magia
 
 	return -1;
 }
-
+// W2PP Original
 int GetParryRate(STRUCT_MOB *mob, int add, int attackerdex, int attackrsv)
 {
 	if (add > 100)
@@ -607,15 +586,16 @@ int GetParryRate(STRUCT_MOB *mob, int add, int attackerdex, int attackrsv)
 	return parryrate;
 }
 
+
 int GetEmptyAffect(int mob, int type)
 {
-	for (int i = 0; i < MAX_AFFECT; i++)
+	for (int i = 1; i < MAX_AFFECT; i++) // i = 0;
 	{
 		if (pMob[mob].Affect[i].Type == type)
 			return i;
 	}
 
-	for (int i = 0; i < MAX_AFFECT; i++)
+	for (int i = 1; i < MAX_AFFECT; i++)// i = 0;
 	{
 		if (pMob[mob].Affect[i].Type == 0)
 			return i;
@@ -629,7 +609,7 @@ int GetHide(int mob)
 	if (mob <= 0 || mob >= MAX_USER)
 		return FALSE;
 
-	for(int i = 0; i < MAX_AFFECT; i++)
+	for (int i = 0; i < MAX_AFFECT; i++)
 	{
 		if (pMob[mob].Affect[i].Type == 28)
 			return TRUE;
@@ -655,10 +635,89 @@ int GetInHalf(int a, int b)
 	return TRUE;
 }
 
+bool GetCuboTeleportPositionN(int conn, int room)
+{
+	if (conn > MAX_USER)
+		return FALSE;
+
+	int Question = CuboN.CurrentQuestion[room];
+	bool Answer = CuboN.Answer[Question];
+
+	if (Answer)
+	{
+		if (pMob[conn].TargetX >= (CuboN.O[room].PosX - 3) && pMob[conn].TargetX <= CuboN.O[room].PosX && pMob[conn].TargetY >= (CuboN.O[room].PosY - 3) && pMob[conn].TargetY <= CuboN.O[room].PosY)
+			return TRUE;
+		else
+			return FALSE;
+	}
+	else
+	{
+		if (pMob[conn].TargetX >= (CuboN.X[room].PosX - 3) && pMob[conn].TargetX <= CuboN.X[room].PosX && pMob[conn].TargetY >= (CuboN.X[room].PosY - 3) && pMob[conn].TargetY <= CuboN.X[room].PosY)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return FALSE;
+}
+
+bool GetCuboTeleportPositionM(int conn, int room)
+{
+	if (conn > MAX_USER)
+		return FALSE;
+
+	int Question = CuboM.CurrentQuestion[room];
+	bool Answer = CuboM.Answer[Question];
+
+	if (Answer)
+	{
+		if (pMob[conn].TargetX >= (CuboM.O[room].PosX - 3) && pMob[conn].TargetX <= CuboM.O[room].PosX && pMob[conn].TargetY >= (CuboM.O[room].PosY - 3) && pMob[conn].TargetY <= CuboM.O[room].PosY)
+			return TRUE;
+		else
+			return FALSE;
+	}
+	else
+	{
+		if (pMob[conn].TargetX >= (CuboM.X[room].PosX - 3) && pMob[conn].TargetX <= CuboM.X[room].PosX && pMob[conn].TargetY >= (CuboM.X[room].PosY - 3) && pMob[conn].TargetY <= CuboM.X[room].PosY)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return FALSE;
+}
+
+bool GetCuboTeleportPositionA(int conn, int room)
+{
+	if (conn > MAX_USER)
+		return FALSE;
+
+	int Question = CuboA.CurrentQuestion[room];
+	bool Answer = CuboA.Answer[Question];
+
+	if (Answer)
+	{
+		if (pMob[conn].TargetX >= (CuboA.O[room].PosX - 3) && pMob[conn].TargetX <= CuboA.O[room].PosX && pMob[conn].TargetY >= (CuboA.O[room].PosY - 3) && pMob[conn].TargetY <= CuboA.O[room].PosY)
+			return TRUE;
+		else
+			return FALSE;
+	}
+	else
+	{
+		if (pMob[conn].TargetX >= (CuboA.X[room].PosX - 3) && pMob[conn].TargetX <= CuboA.X[room].PosX && pMob[conn].TargetY >= (CuboA.X[room].PosY - 3) && pMob[conn].TargetY <= CuboA.X[room].PosY)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return FALSE;
+}
+
 int GetTeleportPosition(int conn, int *x, int *y)
 {
 	int xv = (*x) & 0xFFFC;
 	int yv = (*y) & 0xFFFC;
+
 	int Charge = 0;
 
 	if (xv == 2116 && yv == 2100) // Armia to Noatum	
@@ -865,7 +924,7 @@ int GetTeleportPosition(int conn, int *x, int *y)
 		}
 	}
 
-	else if(xv == 2364 && yv == 3892 && pMob[conn].extra.KefraTicket > 0)
+	else if (xv == 2364 && yv == 3892 && pMob[conn].extra.KefraTicket > 0)
 	{
 		pMob[conn].extra.KefraTicket--;
 
@@ -878,26 +937,55 @@ int GetTeleportPosition(int conn, int *x, int *y)
 	}
 
 	//Deserto - Kefra
-	else if(xv == 2364 && yv == 3924 && KefraLive != 0)
+	else if (xv == 2364 && yv == 3924 && KefraLive != 0)
 	{
 		*x = 3250 + rand() % 3;
 		*y = 1703 + rand() % 3;
 	}
 
 	//Kefra - Deserto
-	else if(xv == 1312 && yv == 1900)
+	else if (xv == 1312 && yv == 1900)
 	{
 		*x = 2366 + rand() % 2;
 		*y = 4073 + rand() % 2;
 	}
 
-	else if(xv == 2364 && yv == 4072)
+	else if (xv == 2364 && yv == 4072)
 	{
 		*x = 1314 + rand() % 2;
 		*y = 1900 + rand() % 2;
 	}
+
+	// Portal1 (Portão Infernal) - Zona 2
+	else if (xv == 1756 && yv == 3672 && TarantulaKilled == TRUE)
+	{
+		*x = 1772 + rand() % 3;
+		*y = 3648 + rand() % 3;
+	}
+	else if (xv == 1756 && yv == 3672 && TarantulaKilled == FALSE)
+		SendClientMessage(conn, "Por favor derrote os monstros.");
+
+	// Portal2 (Portão Infernal) - Zona 2
+	else if (xv == 1756 && yv == 3644 && TarantulaKilled == TRUE)
+	{
+		*x = 1772 + rand() % 3;
+		*y = 3648 + rand() % 3;
+	}
+	else if (xv == 1756 && yv == 3644 && TarantulaKilled == FALSE)
+		SendClientMessage(conn, "Por favor derrote os monstros.");
+
+	// Portal3 (Portão Infernal) - Zona 2
+	else if (xv == 1756 && yv == 3616 && TarantulaKilled == TRUE)
+	{
+		*x = 1772 + rand() % 3;
+		*y = 3648 + rand() % 3;
+	}
+	else if (xv == 1756 && yv == 3616 && TarantulaKilled == FALSE)
+		SendClientMessage(conn, "Por favor derrote os monstros.");
+
 	return Charge;
 }
+
 
 int	GetExpApply(STRUCT_MOBEXTRA extra, int exp, int attacker, int target)
 {
@@ -918,12 +1006,44 @@ int	GetExpApply(STRUCT_MOBEXTRA extra, int exp, int attacker, int target)
 
 		if (attacker >= 89 && extra.QuestInfo.Celestial.Lv90 == 0)
 			return 0;
+
+		if (attacker >= 239 && extra.QuestInfo.Celestial.Lv240 == 0)
+			return 0;
+
+		if (attacker >= 279 && extra.QuestInfo.Celestial.Lv280 == 0)
+			return 0;
+
+		if (attacker >= 319 && extra.QuestInfo.Celestial.Lv320 == 0)
+			return 0;
+
+		if (attacker >= 359 && extra.QuestInfo.Celestial.Lv360 == 0)
+			return 0;
 	}
 
-	if ((extra.ClassMaster == CELESTIAL || extra.ClassMaster == SCELESTIAL || extra.ClassMaster == CELESTIALCS) && exp > 0)
-		attacker = MAX_LEVEL;
+	else if (extra.ClassMaster == CELESTIALCS && exp > 0)
+	{
+		if (attacker >= 239 && extra.QuestInfo.Celestial.Lv240 == 0)
+			return 0;
 
-	if (target > MAX_LEVEL+1 || attacker < 0 || target < 0)
+		if (attacker >= 279 && extra.QuestInfo.Celestial.Lv280 == 0)
+			return 0;
+
+		if (attacker >= 319 && extra.QuestInfo.Celestial.Lv320 == 0)
+			return 0;
+
+		if (attacker >= 359 && extra.QuestInfo.Celestial.Lv360 == 0)
+			return 0;
+	}
+
+	if ((extra.ClassMaster == MORTAL || extra.ClassMaster == ARCH || extra.ClassMaster == CELESTIAL || extra.ClassMaster == SCELESTIAL || extra.ClassMaster == CELESTIALCS ||
+		extra.ClassMaster == HARDCORE || extra.ClassMaster == HARDCOREA || extra.ClassMaster == HARDCORECS ||
+		extra.ClassMaster == SHARDCORE) && exp > 0)
+	{
+		if (attacker >= MAX_LEVEL)
+			return 0;
+	}
+
+	if (target > MAX_LEVEL + 1 || attacker < 0 || target < 0)
 		return exp;
 
 	attacker++;
@@ -942,6 +1062,23 @@ int	GetExpApply(STRUCT_MOBEXTRA extra, int exp, int attacker, int target)
 	exp = (exp * multiexp + 1) / 100;
 
 	return exp;
+}
+
+void TiroDireto(int Attacker, int Attacked)
+{
+	if (pMob[Attacker].MOB.Class == 3)
+	{
+		for (int i = 0; i < MAX_AFFECT; i++)
+		{
+			int Type = pMob[Attacker].Affect[i].Type;
+
+			if (Type == 28)
+			{
+				SendClientMessage(Attacker, "Oba");
+				return;
+			}
+		}
+	}
 }
 
 int GetCreateMob(int mob, MSG_CreateMob *sm)
@@ -1026,7 +1163,7 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 		sm->Equip[i] = BASE_VisualItemCode(item, i);
 
 		sm->AnctCode[i] = BASE_VisualAnctCode(item);
-		
+
 		if (i == 14 && sm->Equip[i] >= 2360 && sm->Equip[i] < 2390 && pMob[mob].MOB.Equip[i].stEffect[0].sValue <= 0)
 		{
 			sm->Equip[i] = 0;
@@ -1055,6 +1192,25 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 		}
 	}
 
+
+	/*
+	if (strcmp((char*)sm->MobName, "Balmus") == 0)
+	sprintf_s(sm->Tab, "Informações da Guild");
+
+	else if (strcmp((char*)sm->MobName, "Judith") == 0)
+	sprintf_s(sm->Tab, "Informações da Guild");
+
+	else if (strcmp((char*)sm->MobName, "Kara") == 0)
+	sprintf_s(sm->Tab, "Informações da Guild");
+
+	else if (strcmp((char*)sm->MobName, "Empis") == 0)
+	sprintf_s(sm->Tab, "Informações da Guild");
+
+	else if (strcmp((char*)sm->MobName, "Bruce") == 0)
+	sprintf_s(sm->Tab, "Informações da Guild");
+
+	*/
+
 	GetAffect(sm->Affect, pMob[mob].Affect);
 
 	if (BrState != 0 && xx >= 2604 && yy >= 1708 && xx <= 2648 && yy <= 1744)
@@ -1072,30 +1228,30 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 {
 	sm->Type = _MSG_CreateMobTrade;
-	
+
 	strncpy(sm->MobName, pMob[mob].MOB.MobName, NAME_LENGTH);
-	
-	if(mob >= MAX_USER)
+
+	if (mob >= MAX_USER)
 	{
 		Log("err,getcreatemob request by non player %d", pMob[mob].MOB.MobName, 0);
 		return 0;
 	}
 
-	if	(mob < MAX_USER)
-	{	
+	if (mob < MAX_USER)
+	{
 		int ck = GetCurKill(mob);
 		int tk = GetTotKill(mob);
 
 		unsigned char cv = ck;
-		unsigned char cv1 = tk%256;
-		unsigned char cv2 = tk/256;
+		unsigned char cv1 = tk % 256;
+		unsigned char cv2 = tk / 256;
 
 		sm->MobName[13] = cv;
 		sm->MobName[14] = cv1;
 		sm->MobName[15] = cv2;
 
 		int chaos = GetPKPoint(mob);
-		
+
 		cv = chaos;
 		sm->MobName[12] = cv;
 	}
@@ -1103,7 +1259,7 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 	sm->PosX = pMob[mob].TargetX;
 	sm->PosY = pMob[mob].TargetY;
 	sm->Size = sizeof(MSG_CreateMobTrade);
-	sm->ID   = ESCENE_FIELD;
+	sm->ID = ESCENE_FIELD;
 	sm->MobID = mob;
 	sm->ClientTick = CurrentTime;
 
@@ -1111,10 +1267,10 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 
 	sm->Guild = pMob[mob].MOB.Guild;
 
-	if	(pMob[mob].GuildDisable == 1)
+	if (pMob[mob].GuildDisable == 1)
 		sm->Guild = 0;
 
-	if	(mob >= MAX_USER)
+	if (mob >= MAX_USER)
 		sm->Score.Ac = pMob[mob].MOB.Clan != 4;
 
 	sm->CreateType = 0;
@@ -1125,7 +1281,7 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 	if (pMob[mob].MOB.GuildLevel != 0)
 		sm->CreateType = sm->CreateType | 0x40;
 
-	int selfdead=0;
+	int selfdead = 0;
 
 	for (int i = 0; i < MAX_EQUIP; i++)
 	{
@@ -1164,16 +1320,16 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 	}
 
 	strncpy(sm->Tab, pMob[mob].Tab, 26);
-	strncpy(sm->Desc, pUser[mob].AutoTrade.Title, MAX_AUTOTRADETITLE-1);
+	strncpy(sm->Desc, pUser[mob].AutoTrade.Title, MAX_AUTOTRADETITLE - 1);
 
-	GetAffect(sm->Affect,pMob[mob].Affect);
+	GetAffect(sm->Affect, pMob[mob].Affect);
 
 	return selfdead;
 }
 
 void GetAffect(unsigned short *out, STRUCT_AFFECT *affect)
 {
-	for (int i = 0; i < MAX_AFFECT; i++)
+	for (int i = 0; i < MAX_AFFECT; i++) // i = 0;
 	{
 		int type = affect[i].Type;
 		int value = affect[i].Time;
@@ -1212,7 +1368,7 @@ void GetCreateItem(int idx, MSG_CreateItem *sm)
 
 	sm->Height = -204;
 
-	if(pItem[idx].ITEM.sIndex == 3145)
+	if (pItem[idx].ITEM.sIndex == 3145)
 	{
 		int zone = BASE_GetVillage(pItem[idx].PosX, pItem[idx].PosY);
 		sm->Item.sIndex = 3145 + g_pGuildZone[zone].Victory;
@@ -1225,10 +1381,10 @@ void GetCreateItem(int idx, MSG_CreateItem *sm)
 		sm->Item.stEffect[0].cValue = (g_pGuildZone[zone].ChargeGuild + (ServerIndex << 12)) >> 8;
 		sm->Item.stEffect[1].cValue = g_pGuildZone[zone].ChargeGuild;
 	}
-	
+
 	if (pItem[idx].ITEM.sIndex == 5700)
 		return;
-		
+
 	if (sm->State == STATE_OPEN)
 	{
 		sm->Height = pItem[idx].Height;
@@ -1246,7 +1402,6 @@ void GetAction(int mob, int targetx, int targety, MSG_Action *sm)
 	sm->TargetX = targetx;
 	sm->TargetY = targety;
 	sm->Route[0] = 0;
-
 
 	sm->Speed = 2;
 	sm->Effect = 1;
@@ -1289,7 +1444,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 	sm->DoubleCritical = 0;
 	sm->CurrentMp = -1;
 	sm->ReqMp = -1;
-	
+
 	sm->Dam[0].TargetID = 0;
 	sm->Dam[0].Damage = 0;
 
@@ -1309,13 +1464,13 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 		int dis = BASE_GetDistance(pMob[mob].TargetX, pMob[mob].TargetY, pMob[target].TargetX, pMob[target].TargetY);
 		if (dis >= 3)
 		{
-			special = /*pMob[mob].MOB.BaseScore.Special[2]*/pMob[mob].MOB.SkillBar[2];
-			special2 = /*pMob[mob].MOB.BaseScore.Special[3] */ pMob[mob].MOB.SkillBar[3];
+			special = pMob[mob].MOB.BaseScore.Special[2];//pMob[mob].MOB.SkillBar[2];
+			special2 = pMob[mob].MOB.BaseScore.Special[3]; // pMob[mob].MOB.SkillBar[3];
 		}
 		else
 		{
-			special = /*pMob[mob].MOB.BaseScore.Special[0]*/pMob[mob].MOB.SkillBar[0];
-			special2 = /*pMob[mob].MOB.BaseScore.Special[1]*/pMob[mob].MOB.SkillBar[1];
+			special = pMob[mob].MOB.BaseScore.Special[0];//pMob[mob].MOB.SkillBar[0];
+			special2 = pMob[mob].MOB.BaseScore.Special[1];//pMob[mob].MOB.SkillBar[1];
 		}
 
 		sm->Motion = 0;
@@ -1376,7 +1531,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 				break;
 			case 6:
 				if (_rand > 1)
-					sm->Motion  += 2;
+					sm->Motion += 2;
 				else
 					sm->Motion++;
 				break;
@@ -1384,7 +1539,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 				if (_rand == 1)
 					sm->Motion++;
 				else
-					sm->Motion  += 2;
+					sm->Motion += 2;
 				break;
 			case 15:
 				switch (_rand)
@@ -1444,21 +1599,21 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 		if (pMob[mob].MOB.SkillBar[3] != 255 && rand_ >= 25 && rand_ <= 64)
 		{
 			int skillb3 = pMob[mob].MOB.SkillBar[3];
-			
+
 			int insttype = g_pSpell[skillb3].InstanceType;
-			
+
 			int leader = pMob[mob].Leader;
 			if (leader <= 0)
 				leader = mob;
-			
+
 			int hp = pMob[mob].MOB.CurrentScore.Hp;
 			hp *= 10;
-			hp /= pMob[mob].MOB.CurrentScore.MaxHp+1;
-			
+			hp /= pMob[mob].MOB.CurrentScore.MaxHp + 1;
+
 			int lhp = pMob[leader].MOB.CurrentScore.Hp;
 			lhp *= 10;
-			lhp /= pMob[leader].MOB.CurrentScore.MaxHp+1;
-			
+			lhp /= pMob[leader].MOB.CurrentScore.MaxHp + 1;
+
 			if (insttype == 6)
 			{
 				if (hp <= 8 || lhp <= 8)
@@ -1474,7 +1629,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 
 					sm->Dam[0].TargetID = _mob;
 					sm->Dam[0].Damage = pMob[_mob].MOB.CurrentScore.MaxHp / 10;
-					
+
 					return;
 				}
 			}
@@ -1504,10 +1659,10 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 
 	int fisdam = pMob[mob].MOB.CurrentScore.Damage;
 	fisdam = BASE_GetDamage(fisdam, pMob[target].MOB.CurrentScore.Ac, 0);
-	
+
 	if (Resist >= 0 && Resist <= 3)
 		fisdam = (200 - pMob[target].MOB.Resist[Resist]) * fisdam / 100;
-	
+
 	if (fisdam > 0 && target < MAX_USER)
 	{
 		if (pMob[target].ReflectDamage > 0)
@@ -1574,16 +1729,15 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 	sm->DoubleCritical = 0;
 	sm->CurrentMp = -1;
 	sm->ReqMp = -1;
-	
 
-	for(int i = 0; i < MAX_TARGET; i++)
+	for (int i = 0; i < MAX_TARGET; i++)
 	{
 		sm->Dam[i].TargetID = 0;
 		sm->Dam[i].Damage = 0;
 
 		sm->Dam[i].TargetID = pMob[mob].EnemyList[i];
 
-		if(sm->Dam[i].TargetID < 0 || sm->Dam[i].TargetID >= MAX_MOB)
+		if (sm->Dam[i].TargetID < 0 || sm->Dam[i].TargetID >= MAX_MOB)
 			sm->Dam[i].TargetID = 0;
 	}
 	int Resist = -1;
@@ -1592,9 +1746,9 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 	sm->SkillIndex = -1;
 	sm->Motion = rand() % 3 + 4;
 
-	for(int i = 0; i < MAX_TARGET; i++)
+	for (int i = 0; i < MAX_TARGET; i++)
 	{
-		if(sm->Dam[i].TargetID == 0)
+		if (sm->Dam[i].TargetID == 0)
 			continue;
 
 		sm->TargetX = pMob[sm->Dam[i].TargetID].TargetX;
@@ -1608,13 +1762,13 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 			int dis = BASE_GetDistance(pMob[mob].TargetX, pMob[mob].TargetY, pMob[sm->Dam[i].TargetID].TargetX, pMob[sm->Dam[i].TargetID].TargetY);
 			if (dis >= 3)
 			{
-				special = /*pMob[mob].MOB.BaseScore.Special[2]*/pMob[mob].MOB.SkillBar[2];
-				special2 = /*pMob[mob].MOB.BaseScore.Special[3] */ pMob[mob].MOB.SkillBar[3];
+				special = pMob[mob].MOB.BaseScore.Special[2];//pMob[mob].MOB.SkillBar[2];
+				special2 = pMob[mob].MOB.BaseScore.Special[3]; //pMob[mob].MOB.SkillBar[3];
 			}
 			else
 			{
-				special = /*pMob[mob].MOB.BaseScore.Special[0]*/pMob[mob].MOB.SkillBar[0];
-				special2 = /*pMob[mob].MOB.BaseScore.Special[1]*/pMob[mob].MOB.SkillBar[1];
+				special = pMob[mob].MOB.BaseScore.Special[0];//pMob[mob].MOB.SkillBar[0];
+				special2 = pMob[mob].MOB.BaseScore.Special[1];//pMob[mob].MOB.SkillBar[1];
 			}
 
 			sm->Motion = 0;
@@ -1675,7 +1829,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 					break;
 				case 6:
 					if (_rand > 1)
-						sm->Motion  += 2;
+						sm->Motion += 2;
 					else
 						sm->Motion++;
 					break;
@@ -1683,7 +1837,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 					if (_rand == 1)
 						sm->Motion++;
 					else
-						sm->Motion  += 2;
+						sm->Motion += 2;
 					break;
 				case 15:
 					switch (_rand)
@@ -1743,21 +1897,21 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 			if (pMob[mob].MOB.SkillBar[3] != 255 && rand_ >= 25 && rand_ <= 64)
 			{
 				int skillb3 = pMob[mob].MOB.SkillBar[3];
-			
+
 				int insttype = g_pSpell[skillb3].InstanceType;
-			
+
 				int leader = pMob[mob].Leader;
 				if (leader <= 0)
 					leader = mob;
-			
+
 				int hp = pMob[mob].MOB.CurrentScore.Hp;
 				hp *= 10;
-				hp /= pMob[mob].MOB.CurrentScore.MaxHp+1;
-			
+				hp /= pMob[mob].MOB.CurrentScore.MaxHp + 1;
+
 				int lhp = pMob[leader].MOB.CurrentScore.Hp;
 				lhp *= 10;
-				lhp /= pMob[leader].MOB.CurrentScore.MaxHp+1;
-			
+				lhp /= pMob[leader].MOB.CurrentScore.MaxHp + 1;
+
 				if (insttype == 6)
 				{
 					if (hp <= 8 || lhp <= 8)
@@ -1773,7 +1927,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 
 						sm->Dam[0].TargetID = _mob;
 						sm->Dam[0].Damage = pMob[_mob].MOB.CurrentScore.MaxHp / 10;
-					
+
 						return;
 					}
 				}
@@ -1803,10 +1957,10 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 
 		int fisdam = pMob[mob].MOB.CurrentScore.Damage;
 		fisdam = BASE_GetDamage(fisdam, pMob[sm->Dam[i].TargetID].MOB.CurrentScore.Ac, 0);
-	
+
 		if (Resist >= 0 && Resist <= 3)
 			fisdam = (200 - pMob[sm->Dam[i].TargetID].MOB.Resist[Resist]) * fisdam / 100;
-	
+
 		if (fisdam > 0 && sm->Dam[i].TargetID < MAX_USER)
 		{
 			if (pMob[sm->Dam[i].TargetID].ReflectDamage > 0)
@@ -1858,6 +2012,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 		sm->Dam[i].Damage = fisdam;
 	}
 }
+
 
 void GetGuild(int conn)
 {
@@ -1996,7 +2151,26 @@ BOOL GetEmptyMobGrid(int mob, int *tx, int *ty)
 		}
 	}
 
-	
+	for (y = (*ty) - 5; y <= (*ty) + 5; y++)
+	{
+		for (int x = (*tx) - 5; x <= (*tx) + 5; x++)
+		{
+			if (x < 0 || y < 0 || x >= MAX_GRIDX || y >= MAX_GRIDY)
+				continue;
+
+			if (pMobGrid[y][x] != 0)
+				continue;
+
+			if (pHeightGrid[*ty][*tx] == 127)
+				continue;
+
+			*ty = y;
+			*tx = x;
+
+			return TRUE;
+		}
+	}
+
 	return FALSE;
 }
 
@@ -2018,7 +2192,7 @@ BOOL GetEmptyMobGridGreat(int mob, int *tx, int *ty)
 	int y = 0;
 	int x = 0;
 
-	for(int k = 0; k < 30; k++)
+	for (int k = 0; k < 30; k++)
 	{
 		for (y = (*ty) - k; y <= (*ty) + k; y++)
 		{
@@ -2158,3 +2332,103 @@ void SetPKPoint(int conn, int value)
 	pMob[conn].MOB.Carry[KILL_MARK].stEffect[0].cEffect = cv;
 }
 
+BOOL GetEmptyMobGridShort(int mob, int *tx, int *ty)
+{
+	if (*tx < 0 || *ty < 0 || *tx >= MAX_GRIDX || *ty >= MAX_GRIDY)
+	{
+		Log("GetEmptyMobGridOut of range", "-system", 0);
+
+		return FALSE;
+	}
+
+	if (pMobGrid[*ty][*tx] == mob)
+		return TRUE;
+
+	if (pMobGrid[*ty][*tx] == 0 && pHeightGrid[*ty][*tx] != 127)
+		return TRUE;
+
+	int y = 0;
+	int x = 0;
+
+	for (y = (*ty) - 4; y <= (*ty) + 4; y++)
+	{
+		for (x = (*tx) - 4; x <= (*tx) + 4; x++)
+		{
+			if (x < 0 || y < 0 || x >= MAX_GRIDX || y >= MAX_GRIDY)
+				continue;
+
+			if (pMobGrid[y][x] != 0)
+				continue;
+
+			if (pHeightGrid[*ty][*tx] == 127)
+				continue;
+
+			*ty = y;
+			*tx = x;
+
+			return TRUE;
+		}
+	}
+	/*
+	for (y = (*ty) - 2; y <= (*ty) + 2; y++)
+	{
+	for (x = (*tx) - 2; x <= (*tx) + 2; x++)
+	{
+	if (x < 0 || y < 0 || x >= MAX_GRIDX || y >= MAX_GRIDY)
+	continue;
+
+	if (pMobGrid[y][x] != 0)
+	continue;
+
+	if (pHeightGrid[*ty][*tx] == 127)
+	continue;
+
+	*ty = y;
+	*tx = x;
+
+	return TRUE;
+	}
+	}
+
+	for (y = (*ty) - 3; y <= (*ty) + 3; y++)
+	{
+	for (int x = (*tx) - 3; x <= (*tx) + 3; x++)
+	{
+	if (x < 0 || y < 0 || x >= MAX_GRIDX || y >= MAX_GRIDY)
+	continue;
+
+	if (pMobGrid[y][x] != 0)
+	continue;
+
+	if (pHeightGrid[*ty][*tx] == 127)
+	continue;
+
+	*ty = y;
+	*tx = x;
+
+	return TRUE;
+	}
+	}
+
+	for (y = (*ty) - 4; y <= (*ty) + 4; y++)
+	{
+	for (int x = (*tx) - 4; x <= (*tx) + 4; x++)
+	{
+	if (x < 0 || y < 0 || x >= MAX_GRIDX || y >= MAX_GRIDY)
+	continue;
+
+	if (pMobGrid[y][x] != 0)
+	continue;
+
+	if (pHeightGrid[*ty][*tx] == 127)
+	continue;
+
+	*ty = y;
+	*tx = x;
+
+	return TRUE;
+	}
+	}
+	*/
+	return FALSE;
+}

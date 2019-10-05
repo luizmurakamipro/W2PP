@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 #include <stdio.h>
@@ -37,11 +37,12 @@
 #include "ProcessDBMessage.h"
 #include "CReadFiles.h"
 #include "CWarTower.h"
+#include "CCubo.h"
 
 #pragma region Defines
 
 int FREEEXP = 35;
-int PARTY_DIF = 150;
+int PARTY_DIF = 250; //150
 
 int ServerDown = -1000;
 
@@ -52,8 +53,19 @@ int Sapphire = 8;
 int ServerGroup = -1;
 int GuildCounter = 1;
 
+//////////////////////////////
+
+bool TarantulaKilled = FALSE;
+bool MsgArea = FALSE;
+bool MsgArea2 = FALSE;
+int BigCubo = 1;
+
+char ACCOUNT_DIRECTORY[MESSAGECHAT_LENGTH];
+
+///////////////////////////////
+
 int ValidGuild = MAX_GUILDZONE;
-int WaterScrollPosition[3][10][2] = 
+int WaterScrollPosition[3][10][2] =
 {
 	{//N
 		{ 1121, 3554 },//LV1
@@ -92,7 +104,7 @@ int WaterScrollPosition[3][10][2] =
 		{ 1343, 3518 }
 	}
 };
-int PesaNPosStandard[13][2] = 
+int PesaNPosStandard[13][2] =
 {
 	{ 1304, 335 },
 	{ 1304, 335 },
@@ -143,7 +155,7 @@ int PesaAPosStandard[13][2] =
 	{ 1209, 174 }
 };
 
-int CartaPos[4][2] = 
+int CartaPos[4][2] =
 {
 	{ 786, 3688 },
 	{ 843, 3688 },
@@ -151,7 +163,27 @@ int CartaPos[4][2] =
 	{ 786, 3640 }
 };
 
-int PistaPos[7][3][2] = 
+int CTarantulaPos[4][2] =
+{	// Tarantula Liberadora
+	{ 1754, 3674 },
+	{ 1728, 3646 },
+	{ 1703, 3635 },
+	{ 1752, 3618 }
+};
+
+int TarantulaPos[2][2][2] =
+{
+	{//Tarantula Normal = 1
+		{ 1752, 3645 }, // = 2 , 3
+		{ 1700, 3646 }
+	},
+	{//Tarantula Normal
+		{ 1683, 3632 },
+		{ 1724, 3673 }
+	}
+};
+
+int PistaPos[7][3][2] =
 {
 	{//Sala 1 Lich
 		{ 3350, 1622 }, //Grupo 1
@@ -190,7 +222,7 @@ int PistaPos[7][3][2] =
 	}
 };
 
-int PistaBalrogPos[5][2] = 
+int PistaBalrogPos[5][2] =
 {
 	{3421, 1217}, //Sala1
 	{3428, 1180}, //Sala2
@@ -199,7 +231,7 @@ int PistaBalrogPos[5][2] =
 	{3385, 1204} //Sala Boss
 };
 
-int PistaBalrogPortalPos[5][5][2] = 
+int PistaBalrogPortalPos[5][5][2] =
 {
 	//Sala1
 	{
@@ -258,10 +290,11 @@ HFONT hFont = NULL;
 FILE *fLogFile = NULL;
 FILE *fChatLogFile = NULL;
 FILE *fItemLogFile = NULL;
+FILE *fReadDir = NULL;
 
 CPSock DBServerSocket;
 
-unsigned int pAdminIP[MAX_ADMIN] = {0,};
+unsigned int pAdminIP[MAX_ADMIN] = { 0, };
 
 CNPCGenerator mNPCGen;
 CNPCSummon mSummon;
@@ -281,6 +314,13 @@ CItem pItem[MAX_ITEM];
 unsigned int CurrentTime = 0;
 unsigned int LastSendTime = 0;
 
+
+QuizInfo SendQuiz[1000];
+char QuizLineCounter;
+MSG_Quiz QuizList[50];
+
+MSG_BigQuiz CuboList[50];
+char CuboQuizLine;
 
 int BillCounter = 0;
 
@@ -314,7 +354,7 @@ int DOUBLEMODE = 0;
 int DUNGEONEVENT = 1;
 int DEADPOINT = 1;
 int StatSapphire = 30;
-int BRItem = 0;
+int BRItem = 518;
 int BRHour = 19;
 
 int BILLING = 3;
@@ -337,14 +377,14 @@ int GuildHour = 20;
 int NumGuildBattle = 26;
 int PotionReady = 0;
 
-int PotionDelay = 500;
+int PotionDelay = 100;
 
 int RvRState = 0;
 int RvRHour = 22;
 int RvRBonus = 0;
 
 int GTorreState = 0;
-int GTorreHour = 22;
+int GTorreHour = 21;
 int GTorreGuild = 0;
 
 int NewbieHour = 20;
@@ -374,7 +414,9 @@ char DBServerAddress[32] = { 0, };
 int DBServerPort = 0;
 
 int isDropItem = 0;
+int isHardCore = 0;
 int maxNightmare = 3;
+int maxPortaoInfernal = 3;
 int CurrentWeather = 0;
 int TESTSERVER = 0;
 int LOCALSERVER = 0;
@@ -392,6 +434,12 @@ int BrGrid = 0;
 int CastleState = 0;
 int Colo150Limit = 0;
 int KefraLive = 0;
+int EspelhoLive = 0;
+int RandBoss = 0;
+int Lich_1 = 0;
+int Lich_2 = 0;
+int Lich_3 = 0;
+int Lich_4 = 0;
 char KefraKiller[32] = "LOCALSERVER";
 
 int g_dLevel = 0;
@@ -441,6 +489,7 @@ HDC hDC;
 
 int WaterClear1[3][10] = { 0, 0, 0, 0, 0, };
 int PartyPesa[3] = { 0, 0, 0 };
+int PartyPortao[3] = { 0, 0, 0 };
 
 int RvRBluePoint = 0;
 int RvRRedPoint = 0;
@@ -448,7 +497,7 @@ int RvRRedPoint = 0;
 STRUCT_PISTA Pista[7] = { 0, 0, 0, 0, 0, };
 STRUCT_MERC pMobMerc[MAX_MOB_MERC];
 
-int PistaRune[7][10] = 
+int PistaRune[7][10] =
 {
 	// Lich
 	{
@@ -522,7 +571,7 @@ void ClearCrown(int conn)
 
 		for (i = 0; i < MAX_EQUIP; i++)
 		{
-			if(pMob[conn].MOB.Equip[i].sIndex == 747)
+			if (pMob[conn].MOB.Equip[i].sIndex == 747)
 				HaveCrow = 1;
 
 			if (pMob[conn].MOB.Equip[i].sIndex != 3993 && pMob[conn].MOB.Equip[i].sIndex != 3994) // 747 = Crown on itemlist
@@ -530,7 +579,7 @@ void ClearCrown(int conn)
 
 			HaveDrag = 1;
 
-			if(pMob[conn].MOB.Equip[i].sIndex == 3993 && pMob[conn].MOB.Clan == 7)
+			if (pMob[conn].MOB.Equip[i].sIndex == 3993 && pMob[conn].MOB.Clan == 7)
 			{
 				sprintf(temp, "etc,crown guild:%d level:%d charge:%d name:%s", Guild, GLevel, ChargedGuildList[ServerIndex][4], pMob[conn].MOB.MobName);
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -539,7 +588,7 @@ void ClearCrown(int conn)
 
 				SendItem(conn, ITEM_PLACE_EQUIP, i, &pMob[conn].MOB.Equip[i]);
 			}
-			else if(pMob[conn].MOB.Equip[i].sIndex == 3994 && pMob[conn].MOB.Clan == 8)
+			else if (pMob[conn].MOB.Equip[i].sIndex == 3994 && pMob[conn].MOB.Clan == 8)
 			{
 				sprintf(temp, "etc,crown guild:%d level:%d charge:%d name:%s", Guild, GLevel, ChargedGuildList[ServerIndex][4], pMob[conn].MOB.MobName);
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -560,7 +609,7 @@ void ClearCrown(int conn)
 
 			HaveDrag = 1;
 
-			if(pMob[conn].MOB.Carry[i].sIndex == 3993 && pMob[conn].MOB.Clan == 7)
+			if (pMob[conn].MOB.Carry[i].sIndex == 3993 && pMob[conn].MOB.Clan == 7)
 			{
 				sprintf(temp, "etc,crown guild:%d level:%d charge:%d name:%s", Guild, GLevel, ChargedGuildList[ServerIndex][4], pMob[conn].MOB.MobName);
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -570,7 +619,7 @@ void ClearCrown(int conn)
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
 			}
 
-			if(pMob[conn].MOB.Carry[i].sIndex == 3994 && pMob[conn].MOB.Clan == 8)
+			if (pMob[conn].MOB.Carry[i].sIndex == 3994 && pMob[conn].MOB.Clan == 8)
 			{
 				sprintf(temp, "etc,crown guild:%d level:%d charge:%d name:%s", Guild, GLevel, ChargedGuildList[ServerIndex][4], pMob[conn].MOB.MobName);
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -591,7 +640,7 @@ void ClearCrown(int conn)
 
 			HaveDrag = 1;
 
-			if(pUser[conn].Cargo[i].sIndex == 3993 && pMob[conn].MOB.Clan == 7)
+			if (pUser[conn].Cargo[i].sIndex == 3993 && pMob[conn].MOB.Clan == 7)
 			{
 				sprintf(temp, "etc,crown guild:%d level:%d charge:%d name:%s", Guild, GLevel, ChargedGuildList[ServerIndex][4], pMob[conn].MOB.MobName);
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -600,7 +649,7 @@ void ClearCrown(int conn)
 
 				SendItem(conn, ITEM_PLACE_CARGO, i, &pUser[conn].Cargo[i]);
 			}
-			else if(pUser[conn].Cargo[i].sIndex == 3994 && pMob[conn].MOB.Clan == 8)
+			else if (pUser[conn].Cargo[i].sIndex == 3994 && pMob[conn].MOB.Clan == 8)
 			{
 				sprintf(temp, "etc,crown guild:%d level:%d charge:%d name:%s", Guild, GLevel, ChargedGuildList[ServerIndex][4], pMob[conn].MOB.MobName);
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -611,7 +660,7 @@ void ClearCrown(int conn)
 			}
 		}
 
-		if(HaveCrow == 0)
+		if (HaveCrow == 0)
 		{
 			STRUCT_ITEM Item;
 			memset(&Item, 0, sizeof(STRUCT_ITEM));
@@ -623,15 +672,15 @@ void ClearCrown(int conn)
 			PutItem(conn, &Item);
 		}
 
-		if(HaveDrag == 0)
+		if (HaveDrag == 0)
 		{
 			STRUCT_ITEM Item;
 			memset(&Item, 0, sizeof(STRUCT_ITEM));
 
-			if(pMob[conn].MOB.Clan == 8)
+			if (pMob[conn].MOB.Clan == 8)
 				Item.sIndex = 3993;
 
-			else if(pMob[conn].MOB.Clan == 7)
+			else if (pMob[conn].MOB.Clan == 7)
 				Item.sIndex = 3994;
 
 
@@ -704,6 +753,42 @@ BOOL AddCrackError(int conn, int val, int Type)
 	}
 
 	return FALSE;
+}
+
+BOOL PutItemArea(STRUCT_ITEM *item, int x1, int y1, int x2, int y2)
+{
+	for (int i = 0; i < MAX_USER; i++)
+	{
+		if (i <= 0 || i >= MAX_USER)
+			return FALSE;
+
+		if (pUser[i].Mode != USER_PLAY)
+			return FALSE;
+
+		int pos = 0;
+
+		if (pMob[i].TargetX >= x1 && pMob[i].TargetX <= x2 && pMob[i].TargetY >= y1 && pMob[i].TargetY <= y2)
+		{
+			for (pos = 0; pos < pMob[i].MaxCarry && pos < MAX_CARRY; pos++)
+			{
+				if (pMob[i].MOB.Carry[pos].sIndex == 0)
+					break;
+			}
+
+			if (pos >= 0 && pos < pMob[i].MaxCarry && pos < MAX_CARRY)
+			{
+				memcpy(&pMob[i].MOB.Carry[pos], item, sizeof(STRUCT_ITEM));
+
+				SendItem(i, ITEM_PLACE_CARRY, pos, &pMob[i].MOB.Carry[pos]);
+			}
+			else
+			{
+				SendClientMessage(i, g_pMessageStringTable[_NN_You_Have_No_Space_To_Trade]);
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
 }
 
 BOOL PutItem(int conn, STRUCT_ITEM *item)
@@ -1082,9 +1167,9 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	fgets(tmp, 511, fp);
 
-	sscanf(tmp, "%s %3d %s %3d %s %3d %s %3d %s %3d %s %3d %s %3d %s %3d", parm[0], &value[0], parm[1], &value[1], parm[2], &value[2], parm[3], &value[3], parm[4], &value[4], parm[5], &value[5], parm[6], &value[6], parm[7], &value[7]);
+	sscanf(tmp, "%s %3d %s %3d %s %3d %s %3d %s %3d %s %3d %s %3d %s %3d %s %3d", parm[0], &value[0], parm[1], &value[1], parm[2], &value[2], parm[3], &value[3], parm[4], &value[4], parm[5], &value[5], parm[6], &value[6], parm[7], &value[7], parm[8], &value[8]);
 
-	if (strcmp(parm[0], "partydif") || strcmp(parm[1], "kefrastatus") || strcmp(parm[2], "GTorreHour") || strcmp(parm[3], "RVRHour") || strcmp(parm[4], "DropItem") || strcmp(parm[5], "BRHour") || strcmp(parm[6], "maxNightmare") || strcmp(parm[7], "PotionDelay"))
+	if (strcmp(parm[0], "partydif") || strcmp(parm[1], "kefrastatus") || strcmp(parm[2], "GTorreHour") || strcmp(parm[3], "RVRHour") || strcmp(parm[4], "DropItem") || strcmp(parm[5], "BRHour") || strcmp(parm[6], "maxNightmare") || strcmp(parm[7], "PotionDelay") || strcmp(parm[8], "HardCore"))
 	{
 		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line13", "Error", MB_OK | MB_SYSTEMMODAL);
 
@@ -1093,7 +1178,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 		return;
 	}
 
-	if (value[0] == -1 || value[1] == -1 || value[2] == -1 || value[3] == -1 || value[4] == -1 || value[5] == -1 || value[6] == -1 || value[7] == -1)
+	if (value[0] == -1 || value[1] == -1 || value[2] == -1 || value[3] == -1 || value[4] == -1 || value[5] == -1 || value[6] == -1 || value[7] == -1 || value[8] == -1)
 	{
 		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line13", "Error", MB_OK | MB_SYSTEMMODAL);
 
@@ -1110,6 +1195,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 	BRHour = value[5];
 	maxNightmare = value[6];
 	PotionDelay = value[7];
+	isHardCore = value[8];
 
 	fclose(fp);
 }
@@ -1122,7 +1208,7 @@ void DrawConfig(int wb)
 	int x = 0;
 	int y = 0;
 	HFONT h = 0;
-	
+
 	int color = 255;
 	int backcolor = 0;
 
@@ -1159,9 +1245,9 @@ void DrawConfig(int wb)
 
 	SetTextColor(hDC, backcolor);
 
-	sprintf(String,"   evindex %d   evdelete %d   evon %d   evitem %d   evrate %d   evstart %d %d %d %d",
+	sprintf(String, "   evindex %d   evdelete %d   evon %d   evitem %d   evrate %d   evstart %d %d %d %d",
 		evIndex, evDelete, evOn, evItem, evRate, evStartIndex, evCurrentIndex, evEndIndex, evNotice);
-	
+
 	len = strlen(String);
 
 	TextOutA(hDC, x, y, String, len);
@@ -1186,9 +1272,9 @@ void DrawConfig(int wb)
 	SetTextColor(hDC, backcolor);
 	sprintf(String, "   double %d   deadpoint %d   dungeonevent %d   statsapphire %d    battleroyal %d",
 		DOUBLEMODE, DEADPOINT, DUNGEONEVENT, StatSapphire, BRItem);
-	
+
 	len = strlen(String);
-	
+
 	TextOutA(hDC, x, y, String, len);
 
 	y += 16;
@@ -1212,7 +1298,7 @@ void DrawConfig(int wb)
 
 	sprintf(String, "   billmode %d   freeexp %d   charselbill %d    potioncount %d   partybonus %d   guildboard %d",
 		BILLING, FREEEXP, CHARSELBILL, POTIONCOUNT, PARTYBONUS, GUILDBOARD);
-	
+
 	len = strlen(String);
 	TextOutA(hDC, x, y, String, len);
 
@@ -1227,7 +1313,7 @@ void DrawConfig(int wb)
 
 	len = strlen(String);
 	TextOutA(hDC, x, y, String, len);
-	
+
 	y += 16;
 
 	if (wb)
@@ -1257,7 +1343,7 @@ void DrawConfig(int wb)
 
 	sprintf(String, "Treasure Settings:");
 	len = strlen(String);
-	
+
 	TextOutA(hDC, x, y, String, len);
 	y += 16;
 
@@ -1265,7 +1351,7 @@ void DrawConfig(int wb)
 		fprintf(fp, "%s\n", String);
 
 	SetTextColor(hDC, backcolor);
-	
+
 	for (int j = 0; j < 8; j++)
 	{
 		STRUCT_TREASURE *tr = &g_pTreasure[j];
@@ -1286,10 +1372,10 @@ void DrawConfig(int wb)
 
 		if (wb)
 			fprintf(fp, "%s\n", String);
-		
+
 		sprintf(String, "       %-5d                %-5d                %-5d                %-5d                %-5d",
 			tr->Rate[0], tr->Rate[1], tr->Rate[2], tr->Rate[3], tr->Rate[4]);
-		
+
 		len = strlen(String);
 		TextOutA(hDC, x, y, String, len);
 		y += 16;
@@ -1310,8 +1396,8 @@ void DrawConfig(int wb)
 		fprintf(fp, "%s\n", String);
 
 	SetTextColor(hDC, backcolor);
-	sprintf(String, "   partydif %d   kefrastatus %d   GTorreHour %d    RVRHour %d    DropItem %d   BRHour %d   maxNightmare %d   PotionDelay %d",
-		PARTY_DIF, KefraLive, GTorreHour, RvRHour, isDropItem, BRHour, maxNightmare, PotionDelay);
+	sprintf(String, "   partydif %d   kefrastatus %d   GTorreHour %d    RVRHour %d    DropItem %d   BRHour %d   maxNightmare %d   PotionDelay %d   HardCore %d",
+		PARTY_DIF, KefraLive, GTorreHour, RvRHour, isDropItem, BRHour, maxNightmare, PotionDelay, isHardCore);
 
 	len = strlen(String);
 
@@ -1324,7 +1410,7 @@ void DrawConfig(int wb)
 
 	if (hFont && h)
 		h = (HFONT)SelectObject(hDC, h);
-	
+
 	ReleaseDC(hWndMain, hDC);
 
 	if (wb)
@@ -1393,7 +1479,7 @@ int  SendBilling2(_AUTH_GAME *m, int hostlong)
 void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 {
 	int addDropBonus = DropBonus / 8;
-	
+
 	if (DropBonus / 8 < 0)
 		addDropBonus = 0;
 
@@ -1407,7 +1493,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 	{
 		add1 = Dest->stEffect[0].cEffect - EF_GRADE0;
 		add2 = Dest->stEffect[0].cValue;
-   
+
 		Dest->stEffect[0].cEffect = 0;
 		Dest->stEffect[0].cValue = 0;
 	}
@@ -1415,7 +1501,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 	g_dLevel1 = 0;
 	g_dLevel2 = 0;
 
-	if(!a3 && Level >= 210)
+	if (!a3 && Level >= 210)
 		Level -= 47;
 
 	int ItemId = Dest->sIndex;
@@ -1425,922 +1511,922 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 
 	int lvdif = (Level - nReqLv + 1) / 25;
 
-	if(add1 != -1)
+	if (add1 != -1)
 		lvdif = add1;
 
 	g_dLevel = lvdif;
 
 	int pForc = 0;
 
-	if ( lvdif >= 4 )
+	if (lvdif >= 4)
 		pForc = 1;
 
-	if ( lvdif < 0 )
+	if (lvdif < 0)
 		lvdif = 0;
 
-	if ( lvdif > 3 )
+	if (lvdif > 3)
 		lvdif = 3;
 
-	if ( a3 && lvdif >= 3 )
+	if (a3 && lvdif >= 3)
 		lvdif = 2;
 
-	if (nPos & 0xFE && !LOBYTE(Dest->stEffect[0].sValue) && nPos != 128 )
+	if (nPos & 0xFE && !LOBYTE(Dest->stEffect[0].sValue) && nPos != 128)
 	{
-    
-	int v38 = 59;
-    int v37 = 0;
-    int v36 = 0;
-    int v35 = rand() % 101;
-    int v34 = 100;
 
-    if ( a3 )
-    {
-      v34 = v35 % 3;
-    }
-    else
-    {
-      if ( lvdif )
-      {
-        if ( lvdif == 1 )
-        {
-          v34 = v35 % (6 - addDropBonus);
-        }
-        else
-        {
-          if ( lvdif == 2 )
-          {
-            v34 = v35 % (6 - addDropBonus);
-          }
-          else
-          {
-            if ( lvdif >= 3 )
-              v34 = v35 % 4;
-          }
-        }
-      }
-      else
-      {
-        v34 = v35 % (8 - addDropBonus);
-      }
-    }
-    switch ( nPos )
-    {
-      case 2:
-        if ( v34 )
-        {
-          if ( v34 == 1 )
-          {
-            v38 = 60;
-            v36 = 2;
-          }
-        }
-        else
-        {
-          v38 = 26;
-          v36 = 3;
-        }
-        break;
-      case 4:
-        v38 = 71;
-        v36 = 10;
-        v37 = 1;
-        break;
-      case 8:
-        v38 = 71;
-        v36 = 10;
-        v37 = 1;
-        break;
-      case 16:
-        v38 = 72;
-        v36 = 5;
-        break;
-      case 32:
-        v38 = 73;
-        v36 = 6;
-        v37 = -1;
-        break;
-      case 64:
-      case 192:
-        if ( nUnique != 44 && nUnique != 47 )
-        {
-          if ( v34 )
-          {
-            if ( v34 == 1 )
-            {
-              v38 = 2;
-              v36 = 9;
-              v37 = -1;
-            }
-            else
-            {
-              if ( v34 == 2 )
-              {
-                v38 = 74;
-                v36 = 3;
-              }
-            }
-          }
-          else
-          {
-            v38 = 26;
-            v36 = 3;
-            v37 = 1;
-          }
-        }
-        else
-        {
-          if ( v34 )
-          {
-            if ( v34 == 1 )
-            {
-              v38 = 74;
-              v36 = 3;
-              v37 = 1;
-            }
-          }
-          else
-          {
-            v38 = 60;
-            v36 = 4;
-            v37 = -1;
-          }
-        }
-        break;
-    }
-    int v33 = rand() % 100;
-    if ( a3 )
-      v33 = 2 * v33 / 3;
-    int v32 = 100;
-    if ( a3 )
-    {
-      v32 = v33 % 4;
-    }
-    else
-    {
-      if ( lvdif )
-      {
-        if ( lvdif == 1 )
-        {
-          v32 = v33 % 6;
-        }
-        else
-        {
-          if ( lvdif == 2 )
-          {
-            v32 = v33 % 6;
-          }
-          else
-          {
-            if ( lvdif >= 3 )
-              v32 = v33 % 4;
-          }
-        }
-      }
-      else
-      {
-        v32 = v33 % 8;
-      }
-    }
-    int v31 = 59;
-    int v30 = 0;
-    int v29 = 0;
-    switch ( nPos )
-    {
-      case 2:
-        if ( v32 )
-        {
-          if ( v32 == 1 )
-          {
-            v31 = 3;
-            v30 = 5;
-            v29 = -1;
-          }
-        }
-        else
-        {
-          v31 = 4;
-          v30 = 10;
-        }
-        break;
-      case 4:
-        if ( v32 )
-        {
-          if ( v32 == 1 )
-          {
-            v31 = 2;
-            v30 = 6;
-            v29 = -1;
-          }
-          else
-          {
-            if ( v32 == 2 )
-            {
-              v31 = 3;
-              v30 = 5;
-              v29 = -1;
-            }
-          }
-        }
-        else
-        {
-          v31 = 60;
-          v30 = 2;
-          v29 = -1;
-        }
-        break;
-      case 8:
-        if ( v32 )
-        {
-          if ( v32 == 1 )
-          {
-            v31 = 2;
-            v30 = 6;
-            v29 = -1;
-          }
-          else
-          {
-            if ( v32 == 2 )
-            {
-              v31 = 3;
-              v30 = 5;
-              v29 = -1;
-            }
-          }
-        }
-        else
-        {
-          v31 = 60;
-          v30 = 2;
-          v29 = -1;
-        }
-        break;
-      case 16:
-        if ( v32 )
-        {
-          switch ( v32 )
-          {
-            case 1:
-              v31 = 2;
-              v30 = 6;
-              v29 = -1;
-              break;
-            case 2:
-              v31 = 74;
-              v30 = 3;
-              break;
-            case 3:
-              v31 = 54;
-              v30 = 3;
-              break;
-          }
-        }
-        else
-        {
-          v31 = 60;
-          v30 = 2;
-          v29 = -1;
-        }
-        break;
-      case 32:
-        if ( v32 )
-        {
-          if ( v32 == 1 )
-          {
-            v31 = 74;
-            v30 = 3;
-          }
-        }
-        else
-        {
-          v31 = 60;
-          v30 = 2;
-          v29 = -1;
-        }
-        break;
-      case 64:
-      case 128:
-      case 192:
-        if ( nUnique != 44 && nUnique != 47 )
-        {
-          if ( v32 )
-          {
-            if ( v32 == 1 )
-            {
-              v31 = 2;
-              v30 = 9;
-              v29 = -1;
-            }
-            else
-            {
-              if ( v32 == 2 )
-              {
-                v31 = 74;
-                v30 = 3;
-                v29 = 1;
-              }
-            }
-          }
-          else
-          {
-            v31 = 26;
-            v30 = 3;
-            v29 = 1;
-          }
-        }
-        else
-        {
-          if ( v32 )
-          {
-            if ( v32 == 1 )
-            {
-              v31 = 74;
-              v30 = 3;
-              v29 = 1;
-            }
-          }
-          else
-          {
-            v31 = 60;
-            v30 = 4;
-            v29 = -1;
-          }
-        }
-        break;
-    }
-    int v28 = 0;
-    v35 = rand() % 100;
-    if ( lvdif )
-    {
-      switch ( lvdif )
-      {
-        case 1:
-          if ( v35 >= 1 )
-          {
-            if ( v35 >= 5 )
-            {
-              if ( v35 >= 24 )
-              {
-                if ( v35 >= 65 )
-                  v28 = 1;
-                else
-                  v28 = 2;
-              }
-              else
-              {
-                v28 = 3;
-              }
-            }
-            else
-            {
-              v28 = 4;
-            }
-          }
-          else
-          {
-            v28 = 5;
-          }
-          break;
-        case 2:
-          if ( v35 >= 2 )
-          {
-            if ( v35 >= 16 )
-            {
-              if ( v35 >= 60 )
-                v28 = 2;
-              else
-                v28 = 3;
-            }
-            else
-            {
-              v28 = 4;
-            }
-          }
-          else
-          {
-            v28 = 5;
-          }
-          break;
-        case 3:
-          if ( v35 >= 2 )
-          {
-            if ( v35 >= 9 )
-            {
-              if ( v35 >= 45 )
-              {
-                if ( v35 >= 75 )
-                  v28 = 2;
-                else
-                  v28 = 3;
-              }
-              else
-              {
-                v28 = 4;
-              }
-            }
-            else
-            {
-              v28 = 5;
-            }
-          }
-          else
-          {
-            v28 = 6;
-          }
-          break;
-        default:
-          if ( lvdif >= 4 )
-          {
-            if ( v35 >= 2 )
-            {
-              if ( v35 >= 10 )
-              {
-                if ( v35 >= 30 )
-                {
-                  if ( v35 >= 75 )
-                    v28 = 3;
-                  else
-                    v28 = 4;
-                }
-                else
-                {
-                  v28 = 5;
-                }
-              }
-              else
-              {
-                v28 = 6;
-              }
-            }
-            else
-            {
-              v28 = 7;
-            }
-          }
-          break;
-      }
-    }
-    else
-    {
-      if ( v35 >= 2 )
-      {
-        if ( v35 >= 6 )
-        {
-          if ( v35 >= 24 )
-            v28 = v35 < 55;
-          else
-            v28 = 2;
-        }
-        else
-        {
-          v28 = 3;
-        }
-      }
-      else
-      {
-        v28 = 4;
-      }
-    }
-    if ( pForc && v28 < 4 )
-      v28 = 4;
-    v28 += v37;
-    if ( a3 && !v28 )
-      v28 = 1;
-    if ( LOBYTE(Dest->stEffect[1].sValue) || v28 <= 0 )
-    {
-      if ( LOBYTE(Dest->stEffect[1].sValue) || v28 > 0 || nPos != 32 )
-      {
-        if ( !LOBYTE(Dest->stEffect[1].sValue) )
-        {
+		int v38 = 59;
+		int v37 = 0;
+		int v36 = 0;
+		int v35 = rand() % 101;
+		int v34 = 100;
+
+		if (a3)
+		{
+			v34 = v35 % 3;
+		}
+		else
+		{
+			if (lvdif)
+			{
+				if (lvdif == 1)
+				{
+					v34 = v35 % (6 - addDropBonus);
+				}
+				else
+				{
+					if (lvdif == 2)
+					{
+						v34 = v35 % (6 - addDropBonus);
+					}
+					else
+					{
+						if (lvdif >= 3)
+							v34 = v35 % 4;
+					}
+				}
+			}
+			else
+			{
+				v34 = v35 % (8 - addDropBonus);
+			}
+		}
+		switch (nPos)
+		{
+		case 2:
+			if (v34)
+			{
+				if (v34 == 1)
+				{
+					v38 = 60;
+					v36 = 2;
+				}
+			}
+			else
+			{
+				v38 = 26;
+				v36 = 3;
+			}
+			break;
+		case 4:
+			v38 = 71;
+			v36 = 10;
+			v37 = 1;
+			break;
+		case 8:
+			v38 = 71;
+			v36 = 10;
+			v37 = 1;
+			break;
+		case 16:
+			v38 = 72;
+			v36 = 5;
+			break;
+		case 32:
+			v38 = 73;
+			v36 = 6;
+			v37 = -1;
+			break;
+		case 64:
+		case 192:
+			if (nUnique != 44 && nUnique != 47)
+			{
+				if (v34)
+				{
+					if (v34 == 1)
+					{
+						v38 = 2;
+						v36 = 9;
+						v37 = -1;
+					}
+					else
+					{
+						if (v34 == 2)
+						{
+							v38 = 74;
+							v36 = 3;
+						}
+					}
+				}
+				else
+				{
+					v38 = 26;
+					v36 = 3;
+					v37 = 1;
+				}
+			}
+			else
+			{
+				if (v34)
+				{
+					if (v34 == 1)
+					{
+						v38 = 74;
+						v36 = 3;
+						v37 = 1;
+					}
+				}
+				else
+				{
+					v38 = 60;
+					v36 = 4;
+					v37 = -1;
+				}
+			}
+			break;
+		}
+		int v33 = rand() % 100;
+		if (a3)
+			v33 = 2 * v33 / 3;
+		int v32 = 100;
+		if (a3)
+		{
+			v32 = v33 % 4;
+		}
+		else
+		{
+			if (lvdif)
+			{
+				if (lvdif == 1)
+				{
+					v32 = v33 % 6;
+				}
+				else
+				{
+					if (lvdif == 2)
+					{
+						v32 = v33 % 6;
+					}
+					else
+					{
+						if (lvdif >= 3)
+							v32 = v33 % 4;
+					}
+				}
+			}
+			else
+			{
+				v32 = v33 % 8;
+			}
+		}
+		int v31 = 59;
+		int v30 = 0;
+		int v29 = 0;
+		switch (nPos)
+		{
+		case 2:
+			if (v32)
+			{
+				if (v32 == 1)
+				{
+					v31 = 3;
+					v30 = 5;
+					v29 = -1;
+				}
+			}
+			else
+			{
+				v31 = 4;
+				v30 = 10;
+			}
+			break;
+		case 4:
+			if (v32)
+			{
+				if (v32 == 1)
+				{
+					v31 = 2;
+					v30 = 6;
+					v29 = -1;
+				}
+				else
+				{
+					if (v32 == 2)
+					{
+						v31 = 3;
+						v30 = 5;
+						v29 = -1;
+					}
+				}
+			}
+			else
+			{
+				v31 = 60;
+				v30 = 2;
+				v29 = -1;
+			}
+			break;
+		case 8:
+			if (v32)
+			{
+				if (v32 == 1)
+				{
+					v31 = 2;
+					v30 = 6;
+					v29 = -1;
+				}
+				else
+				{
+					if (v32 == 2)
+					{
+						v31 = 3;
+						v30 = 5;
+						v29 = -1;
+					}
+				}
+			}
+			else
+			{
+				v31 = 60;
+				v30 = 2;
+				v29 = -1;
+			}
+			break;
+		case 16:
+			if (v32)
+			{
+				switch (v32)
+				{
+				case 1:
+					v31 = 2;
+					v30 = 6;
+					v29 = -1;
+					break;
+				case 2:
+					v31 = 74;
+					v30 = 3;
+					break;
+				case 3:
+					v31 = 54;
+					v30 = 3;
+					break;
+				}
+			}
+			else
+			{
+				v31 = 60;
+				v30 = 2;
+				v29 = -1;
+			}
+			break;
+		case 32:
+			if (v32)
+			{
+				if (v32 == 1)
+				{
+					v31 = 74;
+					v30 = 3;
+				}
+			}
+			else
+			{
+				v31 = 60;
+				v30 = 2;
+				v29 = -1;
+			}
+			break;
+		case 64:
+		case 128:
+		case 192:
+			if (nUnique != 44 && nUnique != 47)
+			{
+				if (v32)
+				{
+					if (v32 == 1)
+					{
+						v31 = 2;
+						v30 = 9;
+						v29 = -1;
+					}
+					else
+					{
+						if (v32 == 2)
+						{
+							v31 = 74;
+							v30 = 3;
+							v29 = 1;
+						}
+					}
+				}
+				else
+				{
+					v31 = 26;
+					v30 = 3;
+					v29 = 1;
+				}
+			}
+			else
+			{
+				if (v32)
+				{
+					if (v32 == 1)
+					{
+						v31 = 74;
+						v30 = 3;
+						v29 = 1;
+					}
+				}
+				else
+				{
+					v31 = 60;
+					v30 = 4;
+					v29 = -1;
+				}
+			}
+			break;
+		}
+		int v28 = 0;
+		v35 = rand() % 100;
+		if (lvdif)
+		{
+			switch (lvdif)
+			{
+			case 1:
+				if (v35 >= 1)
+				{
+					if (v35 >= 5)
+					{
+						if (v35 >= 24)
+						{
+							if (v35 >= 65)
+								v28 = 1;
+							else
+								v28 = 2;
+						}
+						else
+						{
+							v28 = 3;
+						}
+					}
+					else
+					{
+						v28 = 4;
+					}
+				}
+				else
+				{
+					v28 = 5;
+				}
+				break;
+			case 2:
+				if (v35 >= 2)
+				{
+					if (v35 >= 16)
+					{
+						if (v35 >= 60)
+							v28 = 2;
+						else
+							v28 = 3;
+					}
+					else
+					{
+						v28 = 4;
+					}
+				}
+				else
+				{
+					v28 = 5;
+				}
+				break;
+			case 3:
+				if (v35 >= 2)
+				{
+					if (v35 >= 9)
+					{
+						if (v35 >= 45)
+						{
+							if (v35 >= 75)
+								v28 = 2;
+							else
+								v28 = 3;
+						}
+						else
+						{
+							v28 = 4;
+						}
+					}
+					else
+					{
+						v28 = 5;
+					}
+				}
+				else
+				{
+					v28 = 6;
+				}
+				break;
+			default:
+				if (lvdif >= 4)
+				{
+					if (v35 >= 2)
+					{
+						if (v35 >= 10)
+						{
+							if (v35 >= 30)
+							{
+								if (v35 >= 75)
+									v28 = 3;
+								else
+									v28 = 4;
+							}
+							else
+							{
+								v28 = 5;
+							}
+						}
+						else
+						{
+							v28 = 6;
+						}
+					}
+					else
+					{
+						v28 = 7;
+					}
+				}
+				break;
+			}
+		}
+		else
+		{
+			if (v35 >= 2)
+			{
+				if (v35 >= 6)
+				{
+					if (v35 >= 24)
+						v28 = v35 < 55;
+					else
+						v28 = 2;
+				}
+				else
+				{
+					v28 = 3;
+				}
+			}
+			else
+			{
+				v28 = 4;
+			}
+		}
+		if (pForc && v28 < 4)
+			v28 = 4;
+		v28 += v37;
+		if (a3 && !v28)
+			v28 = 1;
+		if (LOBYTE(Dest->stEffect[1].sValue) || v28 <= 0)
+		{
+			if (LOBYTE(Dest->stEffect[1].sValue) || v28 > 0 || nPos != 32)
+			{
+				if (!LOBYTE(Dest->stEffect[1].sValue))
+				{
+					Dest->stEffect[1].cEffect = 59;
+					int v4 = rand() & 0x8000007F;
+					if (v4 < 0)
+						v4 = ((unsigned __int8)(v4 - 1) | 0x80) + 1;
+					Dest->stEffect[1].cValue = v4;
+				}
+			}
+			else
+			{
+				Dest->stEffect[1].cEffect = v38;
+				Dest->stEffect[1].cValue = 0;
+			}
+		}
+		else
+		{
+			Dest->stEffect[1].cEffect = v38;
+			Dest->stEffect[1].cValue = v36 * v28;
+		}
+		g_dLevel1 = v28;
+		int v27 = 0;
+		v33 = rand() % 100;
+		if (lvdif)
+		{
+			switch (lvdif)
+			{
+			case 1:
+				if (v33 >= 1)
+				{
+					if (v33 >= 5)
+					{
+						if (v33 >= 24)
+						{
+							if (v33 >= 65)
+								v27 = 1;
+							else
+								v27 = 2;
+						}
+						else
+						{
+							v27 = 3;
+						}
+					}
+					else
+					{
+						v27 = 4;
+					}
+				}
+				else
+				{
+					v27 = 5;
+				}
+				break;
+			case 2:
+				if (v33 >= 2)
+				{
+					if (v33 >= 16)
+					{
+						if (v33 >= 60)
+							v27 = 2;
+						else
+							v27 = 3;
+					}
+					else
+					{
+						v27 = 4;
+					}
+				}
+				else
+				{
+					v27 = 5;
+				}
+				break;
+			case 3:
+				if (v33 >= 2)
+				{
+					if (v33 >= 9)
+					{
+						if (v33 >= 45)
+						{
+							if (v33 >= 75)
+								v27 = 2;
+							else
+								v27 = 3;
+						}
+						else
+						{
+							v27 = 4;
+						}
+					}
+					else
+					{
+						v27 = 5;
+					}
+				}
+				else
+				{
+					v27 = 6;
+				}
+				break;
+			default:
+				if (lvdif >= 4)
+				{
+					if (v33 >= 2)
+					{
+						if (v33 >= 10)
+						{
+							if (v33 >= 30)
+							{
+								if (v33 >= 75)
+									v27 = 3;
+								else
+									v27 = 4;
+							}
+							else
+							{
+								v27 = 5;
+							}
+						}
+						else
+						{
+							v27 = 6;
+						}
+					}
+					else
+					{
+						v27 = 7;
+					}
+				}
+				break;
+			}
+		}
+		else
+		{
+			if (v35 >= 2)
+			{
+				if (v33 >= 6)
+				{
+					if (v33 >= 24)
+						v27 = v33 < 55;
+					else
+						v27 = 2;
+				}
+				else
+				{
+					v27 = 3;
+				}
+			}
+			else
+			{
+				v28 = 4;
+			}
+		}
+		if (pForc && v27 < 3)
+			v27 = 3;
+		if (a3 && v27 >= 5)
+			v27 = 4;
+		v27 += v29;
+		if (addDropBonus && !v27)
+			v27 = addDropBonus;
+		if (a3 && !v27)
+			v27 = 1;
+		if (v27 <= 0 || LOBYTE(Dest->stEffect[2].sValue))
+		{
+			if (!LOBYTE(Dest->stEffect[2].sValue))
+			{
+				Dest->stEffect[2].cEffect = 59;
+				int v5 = rand() & 0x8000007F;
+				if (v5 < 0)
+					v5 = ((unsigned __int8)(v5 - 1) | 0x80) + 1;
+				Dest->stEffect[2].cValue = v5;
+			}
+		}
+		else
+		{
+			Dest->stEffect[2].cEffect = v31;
+			Dest->stEffect[2].cValue = v30 * v27;
+		}
+		g_dLevel2 = v27;
+
+		if (!LOBYTE(Dest->stEffect[0].sValue))
+		{
+			int v26 = rand() % 100;
+			if (a3)
+				v26 /= 2;
+			int v25 = 1;
+			int v24 = 12;
+			int v23 = 45;
+			int v22 = 70;
+			if (lvdif >= 3)
+			{
+				v25 = 6;
+				v24 = 35;
+				v23 = 85;
+				v22 = 100;
+			}
+			if (lvdif == 2)
+			{
+				v25 = 6;
+				v24 = 35;
+				v23 = 85;
+				v22 = 100;
+			}
+			if (lvdif == 1)
+			{
+				v25 = 6;
+				v24 = 22;
+				v23 = 75;
+				v22 = 90;
+			}
+			if (!lvdif)
+			{
+				v25 = 6;
+				v24 = 22;
+				v23 = 75;
+				v22 = 90;
+			}
+			if (v26 >= v25)
+			{
+				if (v26 >= v24)
+				{
+					if (v26 >= v23)
+					{
+						if (v26 >= v22)
+						{
+							Dest->stEffect[0].cEffect = 59;
+							int v6 = rand() & 0x8000007F;
+							if (v6 < 0)
+								v6 = ((unsigned __int8)(v6 - 1) | 0x80) + 1;
+							Dest->stEffect[0].cValue = v6;
+						}
+						else
+						{
+							int v20 = rand() % 10;
+							int v19 = g_pBonusType[v20];
+							int v18 = lvdif;
+							int v17 = g_pBonusValue[v20][lvdif][0];
+							int v16 = g_pBonusValue[v20][lvdif][1];
+							int v15 = v16 + 1 - v17;
+							int v14 = rand() % v15 + v17;
+							Dest->stEffect[0].cEffect = v19;
+							Dest->stEffect[0].cValue = v14;
+						}
+					}
+					else
+					{
+						Dest->stEffect[0].cEffect = 43;
+						Dest->stEffect[0].cValue = 0;
+					}
+				}
+				else
+				{
+					Dest->stEffect[0].cEffect = 43;
+					Dest->stEffect[0].cValue = 1;
+				}
+			}
+			else
+			{
+				Dest->stEffect[0].cEffect = 43;
+				Dest->stEffect[0].cValue = 2;
+				if (add2 > 2)
+				{
+					int v21 = rand() % 100;
+					switch (add2)
+					{
+					case 3:
+						if (v21 < 30)
+							Dest->stEffect[0].cValue = 3;
+						break;
+					case 4:
+						if (v21 >= 10)
+						{
+							if (v21 < 40)
+								Dest->stEffect[0].cValue = 3;
+						}
+						else
+						{
+							Dest->stEffect[0].cValue = 4;
+						}
+						break;
+					case 5:
+						if (v21 >= 10)
+						{
+							if (v21 >= 30)
+							{
+								if (v21 < 60)
+									Dest->stEffect[0].cValue = 3;
+							}
+							else
+							{
+								Dest->stEffect[0].cValue = 4;
+							}
+						}
+						else
+						{
+							Dest->stEffect[0].cValue = 5;
+						}
+						break;
+					case 6:
+						if (v21 >= 10)
+						{
+							if (v21 >= 20)
+							{
+								if (v21 >= 40)
+								{
+									if (v21 < 60)
+										Dest->stEffect[0].cValue = 3;
+								}
+								else
+								{
+									Dest->stEffect[0].cValue = 4;
+								}
+							}
+							else
+							{
+								Dest->stEffect[0].cValue = 5;
+							}
+						}
+						else
+						{
+							Dest->stEffect[0].cValue = 6;
+						}
+						break;
+					case 7:
+						if (v21 >= 4)
+						{
+							if (v21 >= 10)
+							{
+								if (v21 >= 20)
+								{
+									if (v21 >= 35)
+									{
+										if (v21 < 60)
+											Dest->stEffect[0].cValue = 3;
+									}
+									else
+									{
+										Dest->stEffect[0].cValue = 4;
+									}
+								}
+								else
+								{
+									Dest->stEffect[0].cValue = 5;
+								}
+							}
+							else
+							{
+								Dest->stEffect[0].cValue = 6;
+							}
+						}
+						else
+						{
+							Dest->stEffect[0].cValue = 7;
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < 12; ++i)
+	{
+		int v12 = g_pItemList[ItemId].ReqLvl;
+		switch (g_pItemList[ItemId].stEffect[i].sEffect)
+		{
+		case 0x2B:
+			Dest->stEffect[0].cEffect = 43;
+			Dest->stEffect[0].cValue = (unsigned char)g_pItemList[ItemId].stEffect[i].sValue;
+			break;
+		case 0x3D:
+			Dest->stEffect[0].cEffect = 61;
+			Dest->stEffect[0].cValue = LOBYTE(g_pItemList[ItemId].stEffect[i].sValue);
+			break;
+		case 0x4E:
+			Dest->stEffect[0].cEffect = 78;
+			int v11 = rand() % 4 + g_pItemList[ItemId].stEffect[i].sValue;
+			if (v11 > 9)
+				v11 = 9;
+			Dest->stEffect[0].cValue = v11;
+			break;
+		}
+	}
+	if (Dest->sIndex == 412 || Dest->sIndex == 413 || Dest->sIndex == 419 || Dest->sIndex == 420 || Dest->sIndex == 753)
+	{
+		if (!Dest->stEffect[0].cEffect)
+		{
+			Dest->stEffect[0].cEffect = 59;
+			Dest->stEffect[0].cValue = rand();
+		}
+		if (!Dest->stEffect[1].cEffect)
+		{
 			Dest->stEffect[1].cEffect = 59;
-          int v4 = rand() & 0x8000007F;
-          if ( v4 < 0 )
-            v4 = ((unsigned __int8)(v4 - 1) | 0x80) + 1;
-		  Dest->stEffect[1].cValue = v4;
-        }
-      }
-      else
-      {
-		  Dest->stEffect[1].cEffect = v38;
-		  Dest->stEffect[1].cValue = 0;
-      }
-    }
-    else
-    {
-		Dest->stEffect[1].cEffect = v38;
-		Dest->stEffect[1].cValue = v36 * v28;
-    }
-    g_dLevel1 = v28;
-    int v27 = 0;
-    v33 = rand() % 100;
-    if ( lvdif )
-    {
-      switch ( lvdif )
-      {
-        case 1:
-          if ( v33 >= 1 )
-          {
-            if ( v33 >= 5 )
-            {
-              if ( v33 >= 24 )
-              {
-                if ( v33 >= 65 )
-                  v27 = 1;
-                else
-                  v27 = 2;
-              }
-              else
-              {
-                v27 = 3;
-              }
-            }
-            else
-            {
-              v27 = 4;
-            }
-          }
-          else
-          {
-            v27 = 5;
-          }
-          break;
-        case 2:
-          if ( v33 >= 2 )
-          {
-            if ( v33 >= 16 )
-            {
-              if ( v33 >= 60 )
-                v27 = 2;
-              else
-                v27 = 3;
-            }
-            else
-            {
-              v27 = 4;
-            }
-          }
-          else
-          {
-            v27 = 5;
-          }
-          break;
-        case 3:
-          if ( v33 >= 2 )
-          {
-            if ( v33 >= 9 )
-            {
-              if ( v33 >= 45 )
-              {
-                if ( v33 >= 75 )
-                  v27 = 2;
-                else
-                  v27 = 3;
-              }
-              else
-              {
-                v27 = 4;
-              }
-            }
-            else
-            {
-              v27 = 5;
-            }
-          }
-          else
-          {
-            v27 = 6;
-          }
-          break;
-        default:
-          if ( lvdif >= 4 )
-          {
-            if ( v33 >= 2 )
-            {
-              if ( v33 >= 10 )
-              {
-                if ( v33 >= 30 )
-                {
-                  if ( v33 >= 75 )
-                    v27 = 3;
-                  else
-                    v27 = 4;
-                }
-                else
-                {
-                  v27 = 5;
-                }
-              }
-              else
-              {
-                v27 = 6;
-              }
-            }
-            else
-            {
-              v27 = 7;
-            }
-          }
-          break;
-      }
-    }
-    else
-    {
-      if ( v35 >= 2 )
-      {
-        if ( v33 >= 6 )
-        {
-          if ( v33 >= 24 )
-            v27 = v33 < 55;
-          else
-            v27 = 2;
-        }
-        else
-        {
-          v27 = 3;
-        }
-      }
-      else
-      {
-        v28 = 4;
-      }
-    }
-    if ( pForc && v27 < 3 )
-      v27 = 3;
-    if ( a3 && v27 >= 5 )
-      v27 = 4;
-    v27 += v29;
-    if ( addDropBonus && !v27 )
-      v27 = addDropBonus;
-    if ( a3 && !v27 )
-      v27 = 1;
-    if ( v27 <= 0 || LOBYTE(Dest->stEffect[2].sValue) )
-    {
-      if ( !LOBYTE(Dest->stEffect[2].sValue) )
-      {
-        Dest->stEffect[2].cEffect = 59;
-        int v5 = rand() & 0x8000007F;
-        if ( v5 < 0 )
-          v5 = ((unsigned __int8)(v5 - 1) | 0x80) + 1;
-		Dest->stEffect[2].cValue = v5;
-      }
-    }
-    else
-    {
-		Dest->stEffect[2].cEffect = v31;
-		Dest->stEffect[2].cValue = v30 * v27;
-    }
-    g_dLevel2 = v27;
-
-    if ( !LOBYTE(Dest->stEffect[0].sValue) )
-    {
-      int v26 = rand() % 100;
-      if ( a3 )
-        v26 /= 2;
-      int v25 = 1;
-      int v24 = 12;
-      int v23 = 45;
-      int v22 = 70;
-      if ( lvdif >= 3 )
-      {
-        v25 = 6;
-        v24 = 35;
-        v23 = 85;
-        v22 = 100;
-      }
-      if ( lvdif == 2 )
-      {
-        v25 = 6;
-        v24 = 35;
-        v23 = 85;
-        v22 = 100;
-      }
-      if ( lvdif == 1 )
-      {
-        v25 = 6;
-        v24 = 22;
-        v23 = 75;
-        v22 = 90;
-      }
-      if ( !lvdif )
-      {
-        v25 = 6;
-        v24 = 22;
-        v23 = 75;
-        v22 = 90;
-      }
-      if ( v26 >= v25 )
-      {
-        if ( v26 >= v24 )
-        {
-          if ( v26 >= v23 )
-          {
-            if ( v26 >= v22 )
-            {
-				Dest->stEffect[0].cEffect = 59;
-              int v6 = rand() & 0x8000007F;
-              if ( v6 < 0 )
-                v6 = ((unsigned __int8)(v6 - 1) | 0x80) + 1;
-			  Dest->stEffect[0].cValue = v6;
-            }
-            else
-            {
-              int v20 = rand() % 10;
-              int v19 = g_pBonusType[v20];
-              int v18 = lvdif;
-              int v17 = g_pBonusValue[v20][lvdif][0];
-              int v16 = g_pBonusValue[v20][lvdif][1];
-              int v15 = v16 + 1 - v17;
-              int v14 = rand() % v15 + v17;
-              Dest->stEffect[0].cEffect = v19;
-              Dest->stEffect[0].cValue = v14;
-            }
-          }
-          else
-          {
-            Dest->stEffect[0].cEffect = 43;
-            Dest->stEffect[0].cValue = 0;
-          }
-        }
-        else
-        {
-          Dest->stEffect[0].cEffect = 43;
-          Dest->stEffect[0].cValue = 1;
-        }
-      }
-      else
-      {
-        Dest->stEffect[0].cEffect = 43;
-        Dest->stEffect[0].cValue = 2;
-        if ( add2 > 2 )
-        {
-          int v21 = rand() % 100;
-          switch ( add2 )
-          {
-            case 3:
-              if ( v21 < 30 )
-                Dest->stEffect[0].cValue = 3;
-              break;
-            case 4:
-              if ( v21 >= 10 )
-              {
-                if ( v21 < 40 )
-                  Dest->stEffect[0].cValue = 3;
-              }
-              else
-              {
-                Dest->stEffect[0].cValue = 4;
-              }
-              break;
-            case 5:
-              if ( v21 >= 10 )
-              {
-                if ( v21 >= 30 )
-                {
-                  if ( v21 < 60 )
-                    Dest->stEffect[0].cValue = 3;
-                }
-                else
-                {
-                  Dest->stEffect[0].cValue = 4;
-                }
-              }
-              else
-              {
-                Dest->stEffect[0].cValue = 5;
-              }
-              break;
-            case 6:
-              if ( v21 >= 10 )
-              {
-                if ( v21 >= 20 )
-                {
-                  if ( v21 >= 40 )
-                  {
-                    if ( v21 < 60 )
-                      Dest->stEffect[0].cValue = 3;
-                  }
-                  else
-                  {
-                    Dest->stEffect[0].cValue = 4;
-                  }
-                }
-                else
-                {
-                  Dest->stEffect[0].cValue = 5;
-                }
-              }
-              else
-              {
-                Dest->stEffect[0].cValue = 6;
-              }
-              break;
-            case 7:
-              if ( v21 >= 4 )
-              {
-                if ( v21 >= 10 )
-                {
-                  if ( v21 >= 20 )
-                  {
-                    if ( v21 >= 35 )
-                    {
-                      if ( v21 < 60 )
-                        Dest->stEffect[0].cValue = 3;
-                    }
-                    else
-                    {
-                      Dest->stEffect[0].cValue = 4;
-                    }
-                  }
-                  else
-                  {
-                    Dest->stEffect[0].cValue = 5;
-                  }
-                }
-                else
-                {
-                  Dest->stEffect[0].cValue = 6;
-                }
-              }
-              else
-              {
-                Dest->stEffect[0].cValue = 7;
-              }
-              break;
-          }
-        }
-      }
-    }
-  }
-
-  for (int i = 0; i < 12; ++i )
-  {
-    int v12 = g_pItemList[ItemId].ReqLvl;
-    switch ( g_pItemList[ItemId].stEffect[i].sEffect )
-    {
-      case 0x2B:
-        Dest->stEffect[0].cEffect = 43;
-		Dest->stEffect[0].cValue = (unsigned char)g_pItemList[ItemId].stEffect[i].sValue;
-        break;
-      case 0x3D:
-        Dest->stEffect[0].cEffect = 61;
-        Dest->stEffect[0].cValue = LOBYTE(g_pItemList[ItemId].stEffect[i].sValue);
-        break;
-      case 0x4E:
-        Dest->stEffect[0].cEffect = 78;
-        int v11 = rand() % 4 + g_pItemList[ItemId].stEffect[i].sValue;
-        if ( v11 > 9 )
-          v11 = 9;
-        Dest->stEffect[0].cValue = v11;
-        break;
-    }
-  }
-  if ( Dest->sIndex == 412 || Dest->sIndex == 413 || Dest->sIndex == 419 || Dest->sIndex == 420 || Dest->sIndex == 753 )
-  {
-    if ( !Dest->stEffect[0].cEffect )
-    {
-      Dest->stEffect[0].cEffect = 59;
-      Dest->stEffect[0].cValue = rand();
-    }
-    if ( !Dest->stEffect[1].cEffect)
-    {
-      Dest->stEffect[1].cEffect = 59;
-      Dest->stEffect[01].cValue = rand();
-    }
-    if ( !Dest->stEffect[2].cEffect)
-    {
-      Dest->stEffect[2].cEffect = 59;
-      Dest->stEffect[2].cValue = rand();
-    }
-  }
-  if ( Dest->sIndex >= 447 && Dest->sIndex <= 450
-    || Dest->sIndex >= 692 && Dest->sIndex <= 695)
-  {
-    if ( !Dest->stEffect[0].cEffect )
-    {
-      Dest->stEffect[0].cEffect = 59;
-      Dest->stEffect[0].cValue = rand();
-    }
-    if ( !Dest->stEffect[1].cEffect)
-    {
-      Dest->stEffect[1].cEffect = 59;
-      Dest->stEffect[01].cValue = rand();
-    }
-    if ( !Dest->stEffect[2].cEffect)
-    {
-      Dest->stEffect[2].cEffect = 59;
-      Dest->stEffect[2].cValue = rand()%256;
-    }
-  }
+			Dest->stEffect[01].cValue = rand();
+		}
+		if (!Dest->stEffect[2].cEffect)
+		{
+			Dest->stEffect[2].cEffect = 59;
+			Dest->stEffect[2].cValue = rand();
+		}
+	}
+	if (Dest->sIndex >= 447 && Dest->sIndex <= 450
+		|| Dest->sIndex >= 692 && Dest->sIndex <= 695)
+	{
+		if (!Dest->stEffect[0].cEffect)
+		{
+			Dest->stEffect[0].cEffect = 59;
+			Dest->stEffect[0].cValue = rand();
+		}
+		if (!Dest->stEffect[1].cEffect)
+		{
+			Dest->stEffect[1].cEffect = 59;
+			Dest->stEffect[01].cValue = rand();
+		}
+		if (!Dest->stEffect[2].cEffect)
+		{
+			Dest->stEffect[2].cEffect = 59;
+			Dest->stEffect[2].cValue = rand() % 256;
+		}
+	}
 }
 
 void SetItemBonus2(STRUCT_ITEM *Dest)
 {
 	int nPos = g_pItemList[Dest->sIndex].nPos;
 
-	if(nPos == 2)//Elmo
+	if (nPos == 2)//Elmo
 	{
-		int _rand = rand()%25;
+		int _rand = rand() % 25;
 
-		if(Dest->stEffect[0].cEffect == EF_SANC)
+		if (Dest->stEffect[0].cEffect == EF_SANC)
 		{
 			int sanc = BASE_GetItemSanc(Dest);
 
@@ -2354,10 +2440,10 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 				BASE_SetItemSanc(Dest, sanc, 0);
 			}
 		}
-		else 
+		else
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = rand() % 2;
 		}
 		Dest->stEffect[1].cEffect = g_pBonusValue3[_rand][0];
 		Dest->stEffect[1].cValue = g_pBonusValue3[_rand][1];
@@ -2365,12 +2451,12 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 		Dest->stEffect[2].cEffect = g_pBonusValue3[_rand][2];
 		Dest->stEffect[2].cValue = g_pBonusValue3[_rand][3];
 	}
-	//Peito calÃ§a
-	if(nPos == 4 || nPos == 8)
+	//Peito calça
+	if (nPos == 4 || nPos == 8)
 	{
-		int _rand = rand()%48;
+		int _rand = rand() % 48;
 
-		if(Dest->stEffect[0].cEffect == EF_SANC)
+		if (Dest->stEffect[0].cEffect == EF_SANC)
 		{
 			int sanc = BASE_GetItemSanc(Dest);
 
@@ -2384,10 +2470,10 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 				BASE_SetItemSanc(Dest, sanc, 0);
 			}
 		}
-		else 
+		else
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = rand() % 2;
 		}
 
 		Dest->stEffect[1].cEffect = g_pBonusValue2[_rand][0];
@@ -2398,11 +2484,11 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 	}
 
 	//Luva
-	if(nPos == 16)
+	if (nPos == 16)
 	{
-		int _rand = rand()%30;
+		int _rand = rand() % 30;
 
-		if(Dest->stEffect[0].cEffect == EF_SANC)
+		if (Dest->stEffect[0].cEffect == EF_SANC)
 		{
 			int sanc = BASE_GetItemSanc(Dest);
 
@@ -2416,10 +2502,10 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 				BASE_SetItemSanc(Dest, sanc, 0);
 			}
 		}
-		else 
+		else
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = rand() % 2;
 		}
 
 		Dest->stEffect[1].cEffect = g_pBonusValue4[_rand][0];
@@ -2430,10 +2516,78 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 	}
 
 	//Bota
-	if(nPos == 32)
+	if (nPos == 32)
 	{
-		int _rand = rand()%30;
+		int _rand = rand() % 30;
 
+		if (Dest->stEffect[0].cEffect == EF_SANC)
+		{
+			int sanc = BASE_GetItemSanc(Dest);
+
+			if (sanc < 6)
+			{
+				sanc += rand() % 2;
+
+				if (sanc >= 6)
+					sanc = 6;
+
+				BASE_SetItemSanc(Dest, sanc, 0);
+			}
+		}
+		else
+		{
+			Dest->stEffect[0].cEffect = EF_SANC;
+			Dest->stEffect[0].cValue = rand() % 2;
+		}
+
+		Dest->stEffect[1].cEffect = g_pBonusValue5[_rand][0];
+		Dest->stEffect[1].cValue = g_pBonusValue5[_rand][1];
+
+		Dest->stEffect[2].cEffect = g_pBonusValue5[_rand][2];
+		Dest->stEffect[2].cValue = g_pBonusValue5[_rand][3];
+	}
+}
+
+/*void SetItemBonus2(STRUCT_ITEM *Dest)
+{
+	int chance = rand()%100;
+
+	int nPos = g_pItemList[Dest->sIndex].nPos;
+
+	if (nPos == 2)//Elmo
+	{
+		int _rand = rand() % 25;
+
+		if (Dest->stEffect[0].cEffect == EF_SANC)
+		{
+			int sanc = BASE_GetItemSanc(Dest);
+
+			if (sanc < 6)
+			{
+				sanc += rand() % 2;
+
+				if (sanc >= 6)
+					sanc = 6;
+
+				BASE_SetItemSanc(Dest, sanc, 0);
+			}
+		}
+		else
+		{
+			Dest->stEffect[0].cEffect = EF_SANC;
+			Dest->stEffect[0].cValue = rand() % 2;
+		}
+		Dest->stEffect[1].cEffect = g_pBonusValue3[_rand][0];
+		Dest->stEffect[1].cValue = g_pBonusValue3[_rand][1];
+
+		Dest->stEffect[2].cEffect = g_pBonusValue3[_rand][2];
+		Dest->stEffect[2].cValue = g_pBonusValue3[_rand][3];
+	}
+
+
+	//Peito calça
+	if(nPos == 4 || nPos == 8)
+	{
 		if(Dest->stEffect[0].cEffect == EF_SANC)
 		{
 			int sanc = BASE_GetItemSanc(Dest);
@@ -2448,33 +2602,377 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 				BASE_SetItemSanc(Dest, sanc, 0);
 			}
 		}
-		else 
+		else
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
 			Dest->stEffect[0].cValue = rand()%2;
 		}
 
-		Dest->stEffect[1].cEffect = g_pBonusValue5[_rand][0];
-		Dest->stEffect[1].cValue = g_pBonusValue5[_rand][1];
-
-		Dest->stEffect[2].cEffect = g_pBonusValue5[_rand][2];
-		Dest->stEffect[2].cValue = g_pBonusValue5[_rand][3];
-
-		if(Dest->stEffect[1].cEffect == EF_DAMAGE && BASE_GetItemAbility(Dest, EF_DAMAGE) > 30)
+		if(chance < 5)
 		{
-			Dest->stEffect[1].cValue -= Dest->stEffect[1].cValue < (BASE_GetItemAbility(Dest, EF_DAMAGE)-30) ? Dest->stEffect[1].cValue : (BASE_GetItemAbility(Dest, EF_DAMAGE)-30);
-			if(Dest->stEffect[1].cValue < 0)
-				Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 15;
+			Dest->stEffect[2].cEffect = 71;
+			Dest->stEffect[2].cValue = 60;
 		}
-
-		if(Dest->stEffect[2].cEffect == EF_DAMAGE && BASE_GetItemAbility(Dest, EF_DAMAGE) > 30)
+		else if(chance >= 5 && chance < 10)
 		{
-			Dest->stEffect[2].cValue -= Dest->stEffect[2].cValue < (BASE_GetItemAbility(Dest, EF_DAMAGE)-30) ? Dest->stEffect[2].cValue : (BASE_GetItemAbility(Dest, EF_DAMAGE)-30);
-			if(Dest->stEffect[2].cValue < 0)
-				Dest->stEffect[2].cValue = 0;
+			Dest->stEffect[1].cEffect = 71;
+			Dest->stEffect[1].cValue = 60;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 10;
+		}
+		else if(chance >= 10 && chance < 15)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 24;
+			Dest->stEffect[2].cEffect = 3;
+			Dest->stEffect[2].cValue = 25;
+		}
+		else if(chance >= 15 && chance < 18)//dificil
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 30;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 10;
+		}
+		else if(chance >= 18 && chance < 23)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 24;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 23 && chance < 28)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 18;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 28 && chance < 33)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 24;
+			Dest->stEffect[2].cEffect = 3;
+			Dest->stEffect[2].cValue = 30;
+		}
+		else if(chance >= 33 && chance < 38)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 40;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 38 && chance < 41)//dificil
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 30;
+			Dest->stEffect[2].cEffect = 71;
+			Dest->stEffect[2].cValue = 70;
+		}
+		else if(chance >= 41 && chance < 44)//dificil
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 30;
+			Dest->stEffect[2].cEffect = 3;
+			Dest->stEffect[2].cValue = 30;
+		}
+		else if(chance >= 44 && chance < 49)
+		{
+			Dest->stEffect[1].cEffect = 71;
+			Dest->stEffect[1].cValue = 60;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 8;
+		}
+		else if(chance >= 49 && chance < 54)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 25;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 8;
+		}
+		else if(chance >= 54 && chance < 59)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 25;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 59 && chance < 62)//dificl
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 30;
+			Dest->stEffect[2].cEffect = 71;
+			Dest->stEffect[2].cValue = 70;
+		}
+		else if(chance >= 62 && chance < 67)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 25;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 67 && chance < 71)
+		{
+			Dest->stEffect[1].cEffect = 71;
+			Dest->stEffect[1].cValue = 60;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 71 && chance < 76)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 50;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 76 && chance < 81)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 18;
+			Dest->stEffect[2].cEffect = 71;
+			Dest->stEffect[2].cValue = 70;
+		}
+		else if(chance >= 81 && chance < 86)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 20;
+			Dest->stEffect[2].cEffect = 71;
+			Dest->stEffect[2].cValue = 60;
+		}
+		else if(chance >= 86 && chance < 91)
+		{
+			Dest->stEffect[1].cEffect = 71;
+			Dest->stEffect[1].cValue = 60;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 10;
+		}
+		else if(chance >= 91 && chance < 96)
+		{
+			Dest->stEffect[1].cEffect = 3;
+			Dest->stEffect[1].cValue = 30;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 8;
+		}
+		else if(chance > 96)//dificil
+		{
+			Dest->stEffect[1].cEffect = 71;
+			Dest->stEffect[1].cValue = 70;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 10;
 		}
 	}
-}
+
+	//Luva
+	if (nPos == 16)
+	{
+		int _rand = rand() % 30;
+
+		if (Dest->stEffect[0].cEffect == EF_SANC)
+		{
+			int sanc = BASE_GetItemSanc(Dest);
+
+			if (sanc < 6)
+			{
+				sanc += rand() % 2;
+
+				if (sanc >= 6)
+					sanc = 6;
+
+				BASE_SetItemSanc(Dest, sanc, 0);
+			}
+		}
+		else
+		{
+			Dest->stEffect[0].cEffect = EF_SANC;
+			Dest->stEffect[0].cValue = rand() % 2;
+		}
+
+		Dest->stEffect[1].cEffect = g_pBonusValue4[_rand][0];
+		Dest->stEffect[1].cValue = g_pBonusValue4[_rand][1];
+
+		Dest->stEffect[2].cEffect = g_pBonusValue4[_rand][2];
+		Dest->stEffect[2].cValue = g_pBonusValue4[_rand][3];
+	}
+	//Bota
+	if(nPos == 32)
+	{
+		if (Dest->stEffect[0].cEffect == EF_SANC)
+		{
+			int sanc = BASE_GetItemSanc(Dest);
+
+			if (sanc < 6)
+			{
+				sanc += rand() % 2;
+
+				if (sanc >= 6)
+					sanc = 6;
+
+				BASE_SetItemSanc(Dest, sanc, 0);
+			}
+		}
+		else
+		{
+			Dest->stEffect[0].cEffect = EF_SANC;
+			Dest->stEffect[0].cValue = rand()%2;
+		}
+		if (chance < 2)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 8;
+		}
+		else if(chance >= 2 && chance < 10)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 8;
+		}
+		else if(chance >= 10 && chance < 15)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 15;
+		}
+		else if(chance >= 15 && chance < 18)//dificil
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 18 && chance < 23)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 12;
+		}
+		else if(chance >= 23 && chance < 24)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 24 && chance < 33)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 12;
+		}
+		else if(chance >= 33 && chance < 38)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 38 && chance < 39)//dificil
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 10;
+		}
+		else if(chance >= 39 && chance < 40)//dificil
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 18;
+		}
+		else if(chance >= 41 && chance < 44)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 12;
+		}
+		else if(chance >= 44 && chance < 49)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 10;
+		}
+		else if(chance >= 49 && chance < 55)
+		{
+			Dest->stEffect[1].cEffect = 74;
+			Dest->stEffect[1].cValue = 18;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 55 && chance < 56)//dificl
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 18;
+		}
+		else if(chance >= 56 && chance < 67)
+		{
+			Dest->stEffect[1].cEffect = 74;
+			Dest->stEffect[1].cValue = 15;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 67 && chance < 71)
+		{
+			Dest->stEffect[1].cEffect = 60;
+			Dest->stEffect[1].cValue = 10;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance >= 71 && chance < 76)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 6;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 76 && chance < 81)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 81 && chance < 86)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 74;
+			Dest->stEffect[2].cValue = 12;
+		}
+		else if(chance >= 86 && chance < 91)
+		{
+			Dest->stEffect[1].cEffect = 2;
+			Dest->stEffect[1].cValue = 0;
+			Dest->stEffect[2].cEffect = 60;
+			Dest->stEffect[2].cValue = 6;
+		}
+		else if(chance >= 91 && chance < 96)
+		{
+			Dest->stEffect[1].cEffect = 74;
+			Dest->stEffect[1].cValue = 18;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+		else if(chance > 96)
+		{
+			Dest->stEffect[1].cEffect = 74;
+			Dest->stEffect[1].cValue = 12;
+			Dest->stEffect[2].cEffect = 0;
+			Dest->stEffect[2].cValue = 0;
+		}
+	}
+}*/
 
 int Challange(int conn, int mob, int coin)
 {
@@ -2569,6 +3067,7 @@ int Challange(int conn, int mob, int coin)
 	return 1;
 }
 
+
 int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 {
 	int Leader = pMob[conn].Leader;
@@ -2594,6 +3093,7 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 
 	int IsSummonOther = 0;
 
+
 	for (int i = 0; i < MAX_PARTY; i++)
 	{
 		int partyconn = pMob[Leader].PartyList[i];
@@ -2604,7 +3104,7 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 		if (partyconn <= 0 || partyconn >= MAX_MOB)
 			continue;
 
-		for (int k = 0; k < MAX_SUMMONLIST; k++)
+		for (int k = 0; k < 8; k++)
 		{
 			if (pMob[partyconn].MOB.Equip[0].sIndex == mSummon.Mob[k].Equip[0].sIndex && mSummon.Mob[k].Equip[0].sIndex != sFace)
 			{
@@ -2651,6 +3151,7 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 
 			return 0;
 		}
+
 		int j = 0;
 
 		for (j = 0; j < MAX_PARTY; j++)
@@ -2690,7 +3191,10 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 		int sBase = Int * pSummonBonus[SummonID].Unk / 100;
 		int sMax = Evocacao * pSummonBonus[SummonID].Unk2 / 100;
 
-		pMob[MobEmpty].MOB.BaseScore.Damage += sMax + sBase;
+		if (pMob[conn].MOB.Class == 2 && (pMob[conn].extra.SecLearnedSkill & 0x20)) // Invocação Final
+			pMob[MobEmpty].MOB.BaseScore.Damage += (sMax + sBase) * 2;
+		else
+			pMob[MobEmpty].MOB.BaseScore.Damage += sMax + sBase;
 
 		sBase = Int * pSummonBonus[SummonID].Unk3 / 100;
 		sMax = Evocacao * pSummonBonus[SummonID].Unk4 / 100;
@@ -2710,6 +3214,8 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 
 		pMob[MobEmpty].RouteType = 5;
 		pMob[MobEmpty].Mode = MOB_PEACE;
+		//pMob[MobEmpty].MOB.Guild = pMob[conn].MOB.Guild;
+		//pMob[MobEmpty].MOB.GuildLevel = pMob[conn].MOB.GuildLevel;
 
 		//	*(int*)&pMob[MobEmpty].Unk6[64] = 0;
 		//	*(int*)&pMob[MobEmpty].Unk6[60] = 0;
@@ -2738,7 +3244,7 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 
 			if (face >= 315 && face < 345)
 			{
-				int mcon = /*0x4C7974[face]*/0; // Voltar e identificar essa var
+				int mcon = 0; // Voltar e identificar essa var
 				int mUnk = mcon / 2 - 1000;
 				int mUnk2 = mcon - mUnk;
 
@@ -2754,12 +3260,11 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 
 		if (pMob[conn].GuildDisable == 0)
 		{
-			pMob[MobEmpty].MOB.Guild = pMob[MobEmpty].MOB.Guild;
+			pMob[MobEmpty].MOB.Guild = pMob[conn].MOB.Guild;
 			pMob[MobEmpty].MOB.GuildLevel = 0;
 		}
 
 		GetGuild(MobEmpty);
-
 
 		pMob[MobEmpty].MOB.CurrentScore.Hp = pMob[MobEmpty].MOB.CurrentScore.MaxHp;
 
@@ -2823,12 +3328,14 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 			pMob[MobEmpty].MOB.BaseScore.Hp = sItem->stEffect[0].sValue;
 			pMob[MobEmpty].MOB.CurrentScore.Hp = pMob[MobEmpty].MOB.BaseScore.Hp;
 		}
+
 		MSG_CreateMob sm;
 		memset(&sm, 0, sizeof(MSG_CreateMob));
 
 		GetCreateMob(MobEmpty, &sm);
 
 		sm.CreateType |= 3u;
+
 		pMobGrid[posY][posX] = MobEmpty;
 
 		GridMulticast(posX, posY, (MSG_STANDARD*)&sm, 0);
@@ -2862,6 +3369,286 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 	return 1;
 }
 
+int GenerateEvocation(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
+{
+	int Leader = pMob[conn].Leader;
+
+	if (Leader <= 0)
+		Leader = conn;
+
+	int MobEmpty = GetEmptyNPCMob();
+
+	if (MobEmpty == 0)
+	{
+		SendClientMessage(conn, g_pMessageStringTable[_NN_Cant_Create_More_Summons]);
+
+		return 0;
+	}
+
+	if (SummonID < 0 || SummonID >= MAX_SUMMONLIST)
+		return 0;
+
+	int sFace = mSummon.Mob[SummonID].Equip[0].sIndex;
+	int Unk = 0;
+	int SummonNum = 0;
+
+	for (int i = 0; i < MAX_PARTY; i++)
+	{
+		int partyconn = pMob[Leader].Evocations[i];
+
+		if (partyconn == 0)
+			continue;
+
+		if (partyconn <= 0 || partyconn >= MAX_MOB)
+			continue;
+
+		for (int k = 0; k < 8; k++)
+		{
+			if (pMob[partyconn].MOB.Equip[0].sIndex == mSummon.Mob[k].Equip[0].sIndex && mSummon.Mob[k].Equip[0].sIndex != sFace)
+			{
+				return 0;
+			}
+		}
+
+		if (pMob[partyconn].MOB.Equip[0].sIndex != sFace || SummonID >= MAX_SUMMONLIST)
+			continue;
+
+		int posX = pMob[conn].TargetX;
+		int posY = pMob[conn].TargetY;
+
+		SummonNum++;
+
+		if (GetEmptyMobGrid(partyconn, &posX, &posY) != 0 && GetInView(conn, partyconn) == FALSE)
+		{
+			MSG_Action sm;
+			memset(&sm, 0, sizeof(MSG_Action));
+
+			GetAction(partyconn, posX, posY, &sm);
+
+			sm.Effect = 8;
+			sm.Speed = 6;
+
+			GridMulticast(partyconn, posX, posY, (MSG_STANDARD*)&sm);
+
+			if (SummonNum >= Num)
+				return 0;
+			else
+				continue;
+		}
+		else if (SummonNum >= Num)
+			return 0;
+	}
+	for (int i = SummonNum; i < Num; i++)
+	{
+		MobEmpty = GetEmptyNPCMob();
+
+		if (MobEmpty == 0)
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Cant_Create_More_Summons]);
+
+			return 0;
+		}
+
+		int j = 0;
+
+		for (j = 0; j < MAX_PARTY; j++)
+		{
+			if (pMob[Leader].Evocations[j])
+				continue;
+
+			else
+				break;
+		}
+
+		if (j >= MAX_PARTY)
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Party_Full_Cant_Summon]);
+
+			return 0;
+		}
+
+		memcpy(&pMob[MobEmpty], &mSummon.Mob[SummonID], sizeof(mSummon.Mob[SummonID]));
+
+		pMob[MobEmpty].MOB.BaseScore.Level = pMob[conn].MOB.BaseScore.Level <= MAX_LEVEL ? pMob[conn].MOB.BaseScore.Level : MAX_LEVEL;
+
+		strcat(pMob[MobEmpty].MOB.MobName, "^");
+
+		for (int k = 0; k < NAME_LENGTH; k++)
+		{
+			if (pMob[MobEmpty].MOB.MobName[k] == '_')
+				pMob[MobEmpty].MOB.MobName[k] = ' ';
+		}
+
+		memset(pMob[MobEmpty].Affect, 0, sizeof(pMob[MobEmpty].Affect));
+
+		int Int = pMob[conn].MOB.CurrentScore.Int;
+		int Evocacao = pMob[conn].MOB.CurrentScore.Special[2];
+
+		int sBase = Int * pSummonBonus[SummonID].Unk / 100;
+		int sMax = Evocacao * pSummonBonus[SummonID].Unk2 / 100;
+
+		if (pMob[conn].MOB.Class == 2 && (pMob[conn].extra.SecLearnedSkill & 0x20)) // Invocação Final
+			pMob[MobEmpty].MOB.BaseScore.Damage += (sMax + sBase) * 2;
+		else
+			pMob[MobEmpty].MOB.BaseScore.Damage += sMax + sBase;
+
+		sBase = Int * pSummonBonus[SummonID].Unk3 / 100;
+		sMax = Evocacao * pSummonBonus[SummonID].Unk4 / 100;
+
+		pMob[MobEmpty].MOB.BaseScore.Ac += sMax + sBase;
+
+		sBase = Int * pSummonBonus[SummonID].Unk5 / 100;
+		sMax = Evocacao * pSummonBonus[SummonID].Unk6 / 100;
+
+		pMob[MobEmpty].MOB.BaseScore.MaxHp += sMax + sBase;
+
+		pMob[MobEmpty].MOB.CurrentScore.MaxHp = pMob[MobEmpty].MOB.BaseScore.MaxHp;
+
+		pMob[MobEmpty].GenerateIndex = -1;
+
+		pMob[MobEmpty].Formation = 5;
+
+		pMob[MobEmpty].RouteType = 5;
+		pMob[MobEmpty].Mode = MOB_PEACE;
+		//pMob[MobEmpty].MOB.Guild = pMob[conn].MOB.Guild;
+		//pMob[MobEmpty].MOB.GuildLevel = pMob[conn].MOB.GuildLevel;
+
+		//	*(int*)&pMob[MobEmpty].Unk6[64] = 0;
+		//	*(int*)&pMob[MobEmpty].Unk6[60] = 0;
+
+		pMob[MobEmpty].SegmentProgress = 0;
+		pMob[MobEmpty].SegmentDirection = 0;
+
+		memset(&pMob[MobEmpty].SegmentX, 0, sizeof(pMob[MobEmpty].SegmentX));
+		memset(&pMob[MobEmpty].SegmentY, 0, sizeof(pMob[MobEmpty].SegmentY));
+
+		//	memset(pMob[MobEmpty].Unk6, 0, 20);
+		//	memset(&pMob[MobEmpty].Unk6[20], 0, 20);
+
+		pMob[MobEmpty].Leader = Leader;
+		pMob[MobEmpty].Evocation = 1;
+		pMob[MobEmpty].LastTime = CurrentTime;
+
+		if (sItem != 0)
+		{
+			int mountsanc = BASE_GetItemAbility(sItem, EF_MOUNTSANC);
+
+			if (mountsanc >= 100)
+				mountsanc = 100;
+
+			int face = pMob[MobEmpty].MOB.Equip[0].sIndex;
+			int con = 0;
+
+			if (face >= 315 && face < 345)
+			{
+				int mcon = 0; // Voltar e identificar essa var
+				int mUnk = mcon / 2 - 1000;
+				int mUnk2 = mcon - mUnk;
+
+				con = mountsanc * (mcon - mUnk) / 100 + mcon / 2 - 1000;
+			}
+
+			pMob[MobEmpty].MOB.BaseScore.Con = con;
+			pMob[MobEmpty].MOB.CurrentScore.Con = con;
+
+			pMob[MobEmpty].MOB.BaseScore.Damage += 6 * BASE_GetItemAbility(sItem, EF_MOUNTSANC);
+			pMob[MobEmpty].MOB.CurrentScore.Damage = pMob[MobEmpty].MOB.BaseScore.Damage;
+		}
+
+		if (pMob[conn].GuildDisable == 0)
+		{
+			pMob[MobEmpty].MOB.Guild = pMob[conn].MOB.Guild;
+			pMob[MobEmpty].MOB.GuildLevel = 0;
+		}
+
+		GetGuild(MobEmpty);
+
+		pMob[MobEmpty].MOB.CurrentScore.Hp = pMob[MobEmpty].MOB.CurrentScore.MaxHp;
+
+		if (pMob[conn].MOB.Equip[15].sIndex == 543 || pMob[conn].MOB.Equip[15].sIndex == 545)
+		{
+			memset(&pMob[MobEmpty].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
+			pMob[MobEmpty].MOB.Equip[15].sIndex = 734;
+		}
+
+		if (pMob[conn].MOB.Equip[15].sIndex == 544 || pMob[conn].MOB.Equip[15].sIndex == 546)
+		{
+			memset(&pMob[MobEmpty].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
+			pMob[MobEmpty].MOB.Equip[15].sIndex = 735;
+		}
+
+		if (pMob[conn].MOB.Equip[15].sIndex == 548 || pMob[conn].MOB.Equip[15].sIndex == 549)
+		{
+			memset(&pMob[MobEmpty].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
+			pMob[MobEmpty].MOB.Equip[15].sIndex = 550;
+		}
+
+		pMob[MobEmpty].MOB.Clan = 4;
+
+		pMob[MobEmpty].GetCurrentScore(MAX_USER);
+
+		memset(pMob[MobEmpty].EnemyList, 0, sizeof(pMob[MobEmpty].EnemyList));
+
+		int posX = pMob[conn].TargetX;
+		int posY = pMob[conn].TargetY;
+
+		int tmob = GetEmptyMobGrid(MobEmpty, &posX, &posY);
+
+		if (tmob == 0)
+		{
+			pMob[MobEmpty].Mode = MOB_EMPTY;
+
+			return 0;
+		}
+
+		pMob[MobEmpty].TargetX = posX;
+		pMob[MobEmpty].LastX = posX;
+		pMob[MobEmpty].TargetY = posY;
+		pMob[MobEmpty].LastY = posY;
+
+		if (sItem == 0)
+		{
+			pMob[MobEmpty].Affect[0].Type = 24;
+			pMob[MobEmpty].Affect[0].Value = 0;
+			pMob[MobEmpty].Affect[0].Level = 0;
+			pMob[MobEmpty].Affect[0].Time = 20;
+
+			if (SummonID >= 28 && SummonID <= 37)
+				pMob[MobEmpty].Affect[0].Time = 2000000000;
+		}
+
+		if (sItem != 0)
+		{
+			if (sItem->stEffect[0].sValue > pMob[MobEmpty].MOB.CurrentScore.MaxHp)
+				sItem->stEffect[0].sValue = pMob[MobEmpty].MOB.CurrentScore.MaxHp;
+
+			pMob[MobEmpty].MOB.BaseScore.Hp = sItem->stEffect[0].sValue;
+			pMob[MobEmpty].MOB.CurrentScore.Hp = pMob[MobEmpty].MOB.BaseScore.Hp;
+		}
+
+		MSG_CreateMob sm;
+		memset(&sm, 0, sizeof(MSG_CreateMob));
+
+		GetCreateMob(MobEmpty, &sm);
+
+		sm.CreateType |= 3u;
+
+		pMobGrid[posY][posX] = MobEmpty;
+
+		GridMulticast(posX, posY, (MSG_STANDARD*)&sm, 0);
+
+		pMob[Leader].Evocations[j] = MobEmpty;
+		pMob[MobEmpty].Leader = Leader;
+
+		pMob[MobEmpty].Summoner = conn;
+	}
+
+	SendAddPartyEvocation(conn);
+
+	return 1;
+}
+
+
 int CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type)
 {
 	int tmob = GetEmptyNPCMob();
@@ -2877,10 +3664,11 @@ int CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type)
 	strncpy(pMob[tmob].MOB.MobName, MobName, NAME_LENGTH);
 
 	memset(&pMob[tmob].PartyList, 0, sizeof(pMob[tmob].PartyList));
-	
+	memset(&pMob[tmob].Evocations, 0, sizeof(pMob[tmob].Evocations));
+
 	int read = ReadMob(&pMob[tmob].MOB, folder);
 
-	if(read == 0)
+	if (read == 0)
 		return 0;
 
 	pMob[tmob].MOB.MobName[NAME_LENGTH - 1] = 0;
@@ -2900,13 +3688,13 @@ int CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type)
 
 	for (int i = 0; i < MAX_SEGMENT; i++)
 	{
-		if(pMob[tmob].MOB.Equip[0].sIndex != 220 && pMob[tmob].MOB.Equip[0].sIndex != 219 && pMob[tmob].MOB.Equip[0].sIndex != 358)
+		if (pMob[tmob].MOB.Equip[0].sIndex != 220 && pMob[tmob].MOB.Equip[0].sIndex != 219 && pMob[tmob].MOB.Equip[0].sIndex != 358)
 		{
-			pMob[tmob].SegmentListX[i] = PosX + rand()%5 - 2;
-			pMob[tmob].SegmentListY[i] = PosY + rand()%5 - 2;
+			pMob[tmob].SegmentListX[i] = PosX + rand() % 5 - 2;
+			pMob[tmob].SegmentListY[i] = PosY + rand() % 5 - 2;
 		}
 
-		else 
+		else
 		{
 			pMob[tmob].SegmentListX[i] = PosX;
 			pMob[tmob].SegmentListY[i] = PosY;
@@ -2939,8 +3727,8 @@ int CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type)
 	pMob[tmob].GetCurrentScore(MAX_USER);
 	pMob[tmob].MOB.CurrentScore.Hp = pMob[tmob].MOB.CurrentScore.MaxHp;
 
-	if (NewbieEventServer && pMob[tmob].MOB.CurrentScore.Level < 120)
-		pMob[tmob].MOB.CurrentScore.Hp = 3 * pMob[tmob].MOB.CurrentScore.Hp / 4;
+	// if (NewbieEventServer && pMob[tmob].MOB.CurrentScore.Level < 120) // Variavel para diminuir a vida dos mobs ao nascerem//
+		//pMob[tmob].MOB.CurrentScore.Hp = 3 * pMob[tmob].MOB.CurrentScore.Hp / 4;
 
 	pMob[tmob].SegmentProgress = Type == 0 ? 0 : 4;
 
@@ -2953,8 +3741,8 @@ int CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type)
 
 	if (mobslot == 0)
 	{
-		sprintf(temp, "err,No empty mobgrid:%s x:%d y:%d", MobName, px, py);
-		Log(temp, "-system", 0);
+		//sprintf(temp, "err,No empty mobgrid:%s x:%d y:%d", MobName, px, py);
+		//Log(temp, "-system", 0);
 
 		pMob[tmob].Mode = 0;
 		pMob[tmob].MOB.MobName[0] = 0;
@@ -3051,13 +3839,13 @@ void GenerateMob(int index, int PosX, int PosY)
 
 	if (tmob == 0)
 	{
-		sprintf(temp, "err,no emptymob leader: %d", index);
+		//sprintf(temp, "err,no emptymob leader: %d", index);
 		//Log(temp, "-system", 0);
 
 		return;
 	}
 
-	if(mNPCGen.pList[index].Leader.Equip[0].sIndex != 219 && mNPCGen.pList[index].SegmentListX[0] >= 2440 && mNPCGen.pList[index].SegmentListX[0] <= 2545 && mNPCGen.pList[index].SegmentListY[0] >= 1845 && mNPCGen.pList[index].SegmentListY[0] <= 1921)
+	if (mNPCGen.pList[index].Leader.Equip[0].sIndex != 219 && mNPCGen.pList[index].SegmentListX[0] >= 2440 && mNPCGen.pList[index].SegmentListX[0] <= 2545 && mNPCGen.pList[index].SegmentListY[0] >= 1845 && mNPCGen.pList[index].SegmentListY[0] <= 1921)
 	{
 		mNPCGen.pList[index].MinuteGenerate = -1;
 		return;
@@ -3066,6 +3854,7 @@ void GenerateMob(int index, int PosX, int PosY)
 	int tmob2 = tmob;
 
 	memset(&pMob[tmob].PartyList, 0, sizeof(pMob[tmob].PartyList));
+	memset(&pMob[tmob].Evocations, 0, sizeof(pMob[tmob].Evocations));
 	memcpy(&pMob[tmob].MOB, &mNPCGen.pList[nindex].Leader, sizeof(STRUCT_MOB));
 
 	pMob[tmob].MOB.MobName[NAME_LENGTH - 1] = 0;
@@ -3073,7 +3862,7 @@ void GenerateMob(int index, int PosX, int PosY)
 
 	strncpy(pMob[tmob].MOB.MobName, mNPCGen.pList[nindex].Leader.MobName, NAME_LENGTH);
 
-	if(strcmp(pMob[tmob].MOB.MobName, mNPCGen.pList[nindex].Leader.MobName) != 0)
+	if (strcmp(pMob[tmob].MOB.MobName, mNPCGen.pList[nindex].Leader.MobName) != 0)
 		memcpy(pMob[tmob].MOB.MobName, mNPCGen.pList[nindex].Leader.MobName, NAME_LENGTH);
 
 	for (int i = 0; i < NAME_LENGTH; i++)
@@ -3093,10 +3882,10 @@ void GenerateMob(int index, int PosX, int PosY)
 			if (mNPCGen.pList[index].SegmentRange[i])
 			{
 				pMob[tmob].SegmentListX[i] = mNPCGen.pList[index].SegmentListX[i]
-					- mNPCGen.pList[index].SegmentRange[i] + (rand() % (mNPCGen.pList[index].SegmentRange[i] + 1));
+					- mNPCGen.pList[index].SegmentRange[i] + 2 * rand() % (mNPCGen.pList[index].SegmentRange[i] + 1);
 
 				pMob[tmob].SegmentListY[i] = mNPCGen.pList[index].SegmentListY[i]
-					- mNPCGen.pList[index].SegmentRange[i] + (rand() % (mNPCGen.pList[index].SegmentRange[i] + 1));
+					- mNPCGen.pList[index].SegmentRange[i] + 2 * rand() % (mNPCGen.pList[index].SegmentRange[i] + 1);
 			}
 			else
 			{
@@ -3114,10 +3903,18 @@ void GenerateMob(int index, int PosX, int PosY)
 
 	if (PosX && PosY)
 	{
+		int pX = PosX;
+		int pY = PosY;
+
+		//if (index != 23)
+		//	pX = pX + rand() % 5 - 2;
+		//if (index != 23)
+		//	pY = pY + rand() % 5 - 2;
+
 		for (int i = 0; i < MAX_SEGMENT; i++)
 		{
-			pMob[tmob].SegmentListX[i] = PosX;
-			pMob[tmob].SegmentListY[i] = PosY;
+			pMob[tmob].SegmentListX[i] = pX;
+			pMob[tmob].SegmentListY[i] = pY;
 		}
 	}
 
@@ -3162,8 +3959,8 @@ void GenerateMob(int index, int PosX, int PosY)
 	pMob[tmob].GetCurrentScore(MAX_USER);
 	pMob[tmob].MOB.CurrentScore.Hp = pMob[tmob].MOB.CurrentScore.MaxHp;
 
-	if (NewbieEventServer && pMob[tmob].MOB.CurrentScore.Level < 120)
-		pMob[tmob].MOB.CurrentScore.Hp = 3 * pMob[tmob].MOB.CurrentScore.Hp / 4;
+	//if (NewbieEventServer && pMob[tmob].MOB.CurrentScore.Level < 120)
+	//	pMob[tmob].MOB.CurrentScore.Hp = 3 * pMob[tmob].MOB.CurrentScore.Hp / 4;
 
 	pMob[tmob].SegmentProgress = 0;
 
@@ -3176,8 +3973,8 @@ void GenerateMob(int index, int PosX, int PosY)
 
 	if (mobslot == 0)
 	{
-		sprintf(temp, "err,No empty mobgrid(1): %d %d %d", index, pMob[tmob].SegmentListX[0], pMob[tmob].SegmentListY[0]);
-		Log(temp, "-system", 0);
+		//sprintf(temp, "err,No empty mobgrid(1): %d %d %d", index, pMob[tmob].SegmentListX[0], pMob[tmob].SegmentListY[0]);
+		//Log(temp, "-system", 0);
 
 		pMob[tmob].Mode = 0;
 		pMob[tmob].MOB.MobName[0] = 0;
@@ -3187,7 +3984,7 @@ void GenerateMob(int index, int PosX, int PosY)
 	}
 
 	//Imposto
-	if(pMob[tmob].MOB.Merchant == 6 && tmob >= MAX_USER)
+	if (pMob[tmob].MOB.Merchant == 6 && tmob >= MAX_USER)
 	{
 		int level = pMob[tmob].MOB.CurrentScore.Level;
 
@@ -3241,6 +4038,7 @@ void GenerateMob(int index, int PosX, int PosY)
 		}
 
 		memset(&pMob[tempmob].PartyList, 0, sizeof(pMob[tempmob].PartyList));
+		memset(&pMob[tempmob].Evocations, 0, sizeof(pMob[tempmob].Evocations));
 
 		pMob[tmob2].PartyList[i] = tempmob;
 
@@ -3301,8 +4099,8 @@ void GenerateMob(int index, int PosX, int PosY)
 		pMob[tempmob].GetCurrentScore(MAX_USER);
 		pMob[tempmob].MOB.CurrentScore.Hp = pMob[tempmob].MOB.CurrentScore.MaxHp;
 
-		if (NewbieEventServer && pMob[tempmob].MOB.CurrentScore.Level < 120)
-			pMob[tempmob].MOB.CurrentScore.Hp = 3 * pMob[tempmob].MOB.CurrentScore.Hp / 4;
+		//if (NewbieEventServer && pMob[tempmob].MOB.CurrentScore.Level < 120)
+		//	pMob[tempmob].MOB.CurrentScore.Hp = 3 * pMob[tempmob].MOB.CurrentScore.Hp / 4;
 
 		pMob[tempmob].WaitSec = pMob[tempmob].SegmentWait[0];
 		pMob[tempmob].SegmentDirection = 0;
@@ -3316,8 +4114,8 @@ void GenerateMob(int index, int PosX, int PosY)
 
 		if (mslot == 0)
 		{
-			sprintf(temp, "err,No empty mobgrid: %d %d %d", index, pMob[tempmob].SegmentListX[0], pMob[tempmob].SegmentListY[0]);
-			Log(temp, "-system", 0);
+			//sprintf(temp, "err,No empty mobgrid: %d %d %d", index, pMob[tempmob].SegmentListX[0], pMob[tempmob].SegmentListY[0]);
+			//Log(temp, "-system", 0);
 
 			pMob[tempmob].Mode = 0;
 			pMob[tempmob].MOB.MobName[0] = 0;
@@ -3359,6 +4157,7 @@ void GenerateMob(int index, int PosX, int PosY)
 		mNPCGen.pList[nindex].CurrentNumMob++;
 	}
 }
+
 
 void RebuildGenerator()
 {
@@ -3414,9 +4213,9 @@ BOOL InitApplication(HANDLE hInstance)
 BOOL InitInstance(HANDLE hInstance, int nCmdShow)
 {
 	hMainMenu = CreateMenu();
-	hWndMain = CreateWindow("MainClass", "Game Server",
+	hWndMain = CreateWindow("MainClass", "With Your Destiny Emulator V7.59 by Swedka",
 		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,    // Window style. 
-		CW_USEDEFAULT, CW_USEDEFAULT, 900, 600,            // W,H[MenuÃ‡Ã•Ã„Â¡Â¸Ã© 480]
+		CW_USEDEFAULT, CW_USEDEFAULT, 900, 600,            // W,H[MenuÇÕÄ¡¸é 480]
 		NULL, hMainMenu, (HINSTANCE)hInstance, NULL);
 
 	if (!hWndMain)
@@ -3452,6 +4251,22 @@ FILE*  WriteHeader(char *fileName)
 	return fp;
 }
 
+inline void FixIOHandles()
+{
+	int outParam = _open_osfhandle((long)GetStdHandle(STD_OUTPUT_HANDLE), _O_TEXT);
+	FILE *stdout_stream = _fdopen(outParam, "w");
+	*stdout = *stdout_stream;
+	int inParam = _open_osfhandle((long)GetStdHandle(STD_INPUT_HANDLE), _O_TEXT);
+	FILE *stdin_stream = _fdopen(inParam, "r");
+	*stdin = *stdin_stream;
+}
+
+inline void CreateConsole()
+{
+	AllocConsole();
+	FixIOHandles();
+}
+
 void  WriteArmor(FILE *fp)
 {
 }
@@ -3464,8 +4279,8 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	if (!hPrevInstance)
-	if (!InitApplication(hInstance))
-		return FALSE;
+		if (!InitApplication(hInstance))
+			return FALSE;
 
 	if (!InitInstance(hInstance, nCmdShow))
 		return FALSE;
@@ -3475,11 +4290,12 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	BASE_InitModuleDir();
 	BASE_InitializeHitRate();
 
-	StartLog();
-	StartChatLog();
+	/*StartLog();
+	StartChatLog();*/
 
 	memset(&g_pTreasure, 0, sizeof(g_pTreasure));
 
+	ReadDirectory();
 	ReadConfig();
 	ReadLevelItemConfig();
 
@@ -3497,12 +4313,16 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	if (!ret)
 	{
-		Log("erro,nÃ£o foi possivel iniciar a seguinte funÃ§Ã£o : WSAInitialize", "-system", 0);
+		Log("erro,não foi possivel iniciar a seguinte função : WSAInitialize", "-system", 0);
 
 		return FALSE;
 	}
 
 	Reboot();
+
+	StartLog();
+	StartChatLog();
+	StartItemLog();
 
 	SetCastleDoor(1);
 
@@ -3517,7 +4337,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		fclose(fp);
 	}
 	else
-		MessageBox(hWndMain, "NÃ£o foi possivel encontrar o arquivo LocalIP.txt", "Erro ao iniciar", NULL);
+		MessageBox(hWndMain, "Não foi possivel encontrar o arquivo LocalIP.txt", "Erro ao iniciar", NULL);
 
 	int r1 = 0, r2 = 0, r3 = 0, r4 = 0;
 
@@ -3550,7 +4370,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	if (DBServerAddress[0] == 0)
 	{
-		MessageBox(hWndMain, "NÃ£o foi possivel pegar o ServerGroup. LocalIP.txt / ServerList.txt", "Erro ao iniciar", MB_OK | MB_SYSTEMMODAL);
+		MessageBox(hWndMain, "Não foi possivel pegar o ServerGroup. LocalIP.txt / ServerList.txt", "Erro ao iniciar", MB_OK | MB_SYSTEMMODAL);
 
 		return TRUE;
 	}
@@ -3563,8 +4383,8 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	if (ret == NULL)
 	{
-		Log("erro, NÃ£o foi possivel se conectar a DBServer", "-system", 0);
-		MessageBox(hWndMain, "NÃ£o foi possivel se conectar a DBServer", "Erro ao iniciar", NULL);
+		Log("erro, Não foi possivel se conectar a DBServer", "-system", 0);
+		MessageBox(hWndMain, "Não foi possivel se conectar a DBServer", "Erro ao iniciar", NULL);
 
 		return FALSE;
 	}
@@ -3580,7 +4400,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	if (NumServerInGroup > 10)
 		NumServerInGroup = 10;
-	
+
 	if (!strcmp(DBServerAddress, "192.168.0.153"))
 		TESTSERVER = 1;
 
@@ -3604,13 +4424,13 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 		if (ret == NULL)
 		{
-			Log("erro, NÃ£o foi possivel se conectar na BIServer", "-system", 0);
+			Log("erro, Não foi possivel se conectar na BIServer", "-system", 0);
 			BILLING = 0;
 		}
 		else
 		{
 			_AUTH_GAME sm;
-			
+
 			memset(&sm, 0, sizeof(sm));
 
 			SendBilling2(&sm, 4); // MSG_BillLogin ?
@@ -3627,6 +4447,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	CReadFiles::CReadFiles();
 	// CEncampment::ReadCamp();
 	CCastleZakum::ReadCastleQuest();
+	//CCubo::Initialize();
 
 	SetTimer(hWndMain, TIMER_SEC, 500, NULL);
 	SetTimer(hWndMain, TIMER_MIN, 12000, NULL);
@@ -4054,6 +4875,8 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 	case WM_CREATE:
 	{
+		//CreateConsole();
+
 		HMENU hMenu, hSubMenu;
 		// HICON hIcon, hIconSm;
 
@@ -4115,7 +4938,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 	} break;
 	case WM_CLOSE:
 	{
-		if (MessageBox(hWndMain, "VocÃª realmente deseja desligar o server?", "Aviso!!!", MB_ICONQUESTION | MB_YESNO) == IDNO)
+		if (MessageBox(hWndMain, "Você realmente deseja desligar o server?", "Aviso!!!", MB_ICONQUESTION | MB_YESNO) == IDNO)
 			break;
 
 		if (BILLING != 0)
@@ -4313,7 +5136,7 @@ void CheckIdle(int conn)
 		pUser[conn].LastReceiveTime = SecCounter;
 
 	if (lst < ser - 720)
-	{
+	{	
 		sprintf(temp, "sys,disconnect last:%d server:%d mode:%d conn:%d", pUser[conn].LastReceiveTime, SecCounter, pUser[conn].Mode, conn);
 		Log(temp, pUser[conn].AccountName, 0);
 
@@ -4366,18 +5189,18 @@ void RegenMob(int conn)
 		int Guild = pMob[conn].MOB.Guild;
 		if (CastleState <= 1 || pMob[conn].TargetX != 1046 || pMob[conn].TargetY != 1690 || Guild <= 0 || pMob[conn].MOB.GuildLevel != 9 || Guild == g_pGuildZone[4].ChargeGuild)
 			pUser[conn].CastleStatus = 0;
-		
+
 		else
 		{
 			int Citys = 0;
 
-			for(int i = 0; i < ValidGuild; i++)
+			for (int i = 0; i < ValidGuild; i++)
 			{
-				if(g_pGuildZone[i].ChargeGuild == pMob[conn].MOB.Guild && i != 4)
+				if (g_pGuildZone[i].ChargeGuild == pMob[conn].MOB.Guild && i != 4)
 					Citys++;
 			}
 
-			if(Citys != 0)
+			if (Citys != 0)
 			{
 				if (pUser[conn].CastleStatus == 0)
 				{
@@ -4393,19 +5216,19 @@ void RegenMob(int conn)
 				sm.Parm = 1;
 
 				GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&sm, 0);
-			
+
 				pUser[conn].CastleStatus++;
-			
+
 				if (pUser[conn].CastleStatus > 22)
 				{
 					sprintf(temp, g_pMessageStringTable[_SN_S_charge_castle], pMob[conn].MOB.MobName);
 					SendNotice(temp);
-				
+
 					g_pGuildZone[4].ChargeGuild = Guild;
 					g_pGuildZone[4].Clan = pMob[conn].MOB.Clan;
-				
+
 					FinishCastleWar();
-				
+
 					for (int i = 0; i < MAX_USER; i++)
 						ClearCrown(i);
 				}
@@ -4485,7 +5308,7 @@ void RegenMob(int conn)
 				MSG_CreateMob CreateMob;
 				GetCreateMob(conn, &CreateMob);
 				GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&CreateMob, 0);
-				
+
 				for (int j = MAX_USER; j < MAX_MOB; j++)
 				{
 					if (pMob[j].Mode == 5 && pMob[j].MOB.Clan == 4)
@@ -4507,7 +5330,7 @@ void RegenMob(int conn)
 				}
 			}
 		}
-	}	
+	}
 }
 
 int  ProcessAffect(int idx)
@@ -4521,7 +5344,7 @@ int  ProcessAffect(int idx)
 	if (currentTarget == idx)
 		pMob[idx].CurrentTarget = 0;
 
-#pragma region Fada attack
+#pragma region Fada / Chama Resistente - Attack
 	else
 	{
 		if (currentTarget > 0 && currentTarget < MAX_MOB)
@@ -4559,7 +5382,7 @@ int  ProcessAffect(int idx)
 							{
 								unsigned char map_att2 = GetAttribute(pMob[currentTarget].TargetX, pMob[currentTarget].TargetY);
 
-								if(!(map_att & 0x40))
+								if (!(map_att & 0x40))
 								{
 									pMob[idx].CurrentTarget = 0;
 									goto LABEL_59;
@@ -4641,797 +5464,992 @@ int  ProcessAffect(int idx)
 			pMob[idx].CurrentTarget = 0;
 	}
 #pragma endregion
-LABEL_59:
+	LABEL_59:
 
-	int regen = 0;
-	int upScore = 0;
-	int FaceChange = 0;
-	int Damage = 0;
+			int regen = 0;
+			int upScore = 0;
+			int FaceChange = 0;
+			int Damage = 0;
 
-	for (int i = 0; i < MAX_AFFECT; i++)
-	{
-		int Type = pMob[idx].Affect[i].Type;
+			for (int i = 0; i < MAX_AFFECT; i++)
+			{
+				int Type = pMob[idx].Affect[i].Type;
 
-		if (Type <= 0)
-			continue;
+				if (Type <= 0)
+					continue;
 
+				int MaxHp = pMob[idx].MOB.CurrentScore.MaxHp;
+				int Hp = pMob[idx].MOB.CurrentScore.Hp;
+				int AffectValue = pMob[idx].Affect[i].Value;
+				int AffectLevel = pMob[idx].Affect[i].Level;
+				int Level = pMob[idx].MOB.CurrentScore.Level;
 
-		int MaxHp = pMob[idx].MOB.CurrentScore.MaxHp;
-		int Hp = pMob[idx].MOB.CurrentScore.Hp;
-		int AffectValue = pMob[idx].Affect[i].Value;
-		int AffectLevel = pMob[idx].Affect[i].Level;
-		int Level = pMob[idx].MOB.CurrentScore.Level;
-
-		if(pMob[idx].extra.ClassMaster != MORTAL && pMob[idx].extra.ClassMaster != ARCH)
-			Level += MAX_LEVEL;
+				if (pMob[idx].extra.ClassMaster != MORTAL && pMob[idx].extra.ClassMaster != ARCH)
+					Level += MAX_LEVEL;
 
 #pragma region Regen de HP Aura da Vida
-		if (Type == 17)
-		{
-			Hp += AffectLevel / 2 + AffectValue;
+				if (Type == 17)
+				{
+					Hp += AffectLevel / 2 + AffectValue;
 
-			if (Hp < 1)
-				Hp = 1;
+					if (Hp < 1)
+						Hp = 1;
 
-			if (Hp > MaxHp)
-				Hp = MaxHp;
+					if (Hp > MaxHp)
+						Hp = MaxHp;
 
-			if (pMob[idx].MOB.CurrentScore.Hp != Hp)
-				upScore = 1;
+					if (pMob[idx].MOB.CurrentScore.Hp != Hp)
+						upScore = 1;
 
-			Damage = Hp - pMob[idx].MOB.CurrentScore.Hp;
+					Damage = Hp - pMob[idx].MOB.CurrentScore.Hp;
 
-			pMob[idx].MOB.CurrentScore.Hp = Hp;
-			regen = 1;
-			goto LessAffect;
-		}
+					pMob[idx].MOB.CurrentScore.Hp = Hp;
+					regen = 1;
+					goto LessAffect;
+				}
 #pragma endregion
-#pragma region Veneno - Drenagem de HP
-		if (Type == 20) //??? Possivelmente Veneno's
-		{
-			AffectValue = 100;
+#pragma region Veneno / Sangrar - Drenagem de HP
+				if (Type == 20 || Type == 47) //??? Possivelmente Veneno's
+				{
+					AffectValue = 100;
 
-			if (idx >= MAX_USER)
-				AffectValue -= pMob[idx].MOB.LearnedSkill / MAX_USER;
+					if (idx >= MAX_USER)
+						AffectValue -= pMob[idx].MOB.LearnedSkill / MAX_USER;
 
-			AffectValue /= 10;
+					AffectValue /= 10;
 
-			int HpLose = (int)((100 - AffectValue) / 100.0);
-			int Perda = 1000;
+					int HpLose = (int)((100 - AffectValue) / 100.0);
+					int Perda = 1000;
 
-			if (idx >= MAX_USER)
-				Perda = 10 * (100 - pMob[idx].MOB.LearnedSkill / MAX_USER);
+					if (idx >= MAX_USER)
+						Perda = 10 * (100 - pMob[idx].MOB.LearnedSkill / MAX_USER);
 
-			int Perdamax = Hp - Perda;
+					int Perdamax = Hp - Perda;
 
-			Hp = (int)((double)Hp * HpLose);
+					Hp = (int)((double)Hp * HpLose);
 
-			if (Hp < (signed int)Perdamax)
-				Hp = Perdamax;
+					if (Hp < (signed int)Perdamax)
+						Hp = Perdamax;
 
-			if (Hp < 1)
-				Hp = 1;
+					if (Hp < 1)
+						Hp = 1;
 
-			if (Hp > MaxHp)
-				Hp = MaxHp;
+					if (Hp > MaxHp)
+						Hp = MaxHp;
 
-			if (pMob[idx].MOB.CurrentScore.Hp != Hp)
-				upScore = 1;
+					if (pMob[idx].MOB.CurrentScore.Hp != Hp)
+						upScore = 1;
 
-			Damage = Hp - pMob[idx].MOB.CurrentScore.Hp;
-			pMob[idx].MOB.CurrentScore.Hp = Hp;
+					Damage = Hp - pMob[idx].MOB.CurrentScore.Hp;
+					pMob[idx].MOB.CurrentScore.Hp = Hp;
 
-			if (idx > 0 && idx < MAX_USER)
-				pUser[idx].ReqHp += Damage;
+					if (idx > 0 && idx < MAX_USER)
+						pUser[idx].ReqHp += Damage;
 
-			regen = 1;
+					regen = 1;
 
-			if (idx > MAX_USER && pMob[idx].MOB.Clan == 4)
-				LinkMountHp(idx);
+					if (idx > MAX_USER && pMob[idx].MOB.Clan == 4)
+						LinkMountHp(idx);
 
-			goto LessAffect;
-		}
+					goto LessAffect;
+				}
 #pragma endregion
 #pragma region RegenHP Type21
-/*		if (Type == 21)//Regen de HT
-		{
-			Hp += AffectValue * MaxHp / 100;
+				/*		if (Type == 21)//Regen de HT
+						{
+							Hp += AffectValue * MaxHp / 100;
 
-			if (Hp < 1)
-				Hp = 1;
+							if (Hp < 1)
+								Hp = 1;
 
-			if (Hp > MaxHp)
-				Hp = MaxHp;
+							if (Hp > MaxHp)
+								Hp = MaxHp;
 
-			if (pMob[idx].MOB.CurrentScore.Hp != Hp)
-				upScore = 1;
+							if (pMob[idx].MOB.CurrentScore.Hp != Hp)
+								upScore = 1;
 
-			Damage = Hp - pMob[idx].MOB.CurrentScore.Hp;
+							Damage = Hp - pMob[idx].MOB.CurrentScore.Hp;
 
-			pMob[idx].MOB.CurrentScore.Hp = Hp;
-			regen = 1;
+							pMob[idx].MOB.CurrentScore.Hp = Hp;
+							regen = 1;
 
-			goto LessAffect;
-		}*/
+							goto LessAffect;
+						}*/
 #pragma endregion
-#pragma region TrovÃ£o
-		if(Type == 22)
-		{
-			  int alvo1 = 0;
-			  int alvo2 = 0;
-			  int alvo3 = 0;
-			  int alvo4 = 0;
-			  int alvo6 = 0;
-			  int alvo7 = 0;
+#pragma region Trovão
+				if (Type == 22)
+				{
+					int alvo1 = 0;
+					int alvo2 = 0;
+					int alvo3 = 0;
+					int alvo4 = 0;
+					int alvo6 = 0;
+					int alvo7 = 0;
 
-			  unsigned char map_att = GetAttribute(pMob[idx].TargetX, pMob[idx].TargetY);
+					unsigned char map_att = GetAttribute(pMob[idx].TargetX, pMob[idx].TargetY);
 
-			  int Clan = pMob[idx].MOB.Clan;
+					int Clan = pMob[idx].MOB.Clan;
 
-			  if (map_att & 1)
-				goto LessAffect;
+					if (map_att & 1)
+						goto LessAffect;
 
-			  int yv = pMob[idx].TargetY - 1;
-			  int xv = pMob[idx].TargetX - 1;
-			  int leader = pMob[idx].Leader;
+					int yv = pMob[idx].TargetY - 1;
+					int xv = pMob[idx].TargetX - 1;
+					int leader = pMob[idx].Leader;
 
-			  if(leader <= 0)
-				leader = idx;
+					if (leader <= 0)
+						leader = idx;
 
-			  for(int yy = yv; yy <= (yv + 1); yy++)
-			  {
-				  for(int xx = xv; xx <= (xv + 1); xx++)
-				  {
-					  if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
-						  continue;
-
-					  int tmob = pMobGrid[yy][xx];
-
-					  int tclan = pMob[tmob].MOB.Clan;
-					  int SameClan = 0;
-
-					  if(Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
-						SameClan = 1;
-
-					  if(pMob[tmob].MOB.Merchant & 1)
-						  continue;
-
-					  unsigned char map_attack = GetAttribute(xx, yy);
-
-					  if(map_attack & 1)
-						  continue;
-
-					  if(idx >= MAX_USER)
-						  break;
-
-					  if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= 100 && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
-					  {
-						  if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
-							  continue;
-
-						  int idxleader = pMob[idx].Leader;
-						  
-						  if(!idxleader)
-							idxleader = idx;
-						  
-						  int mobleader = pMob[tmob].Leader;
-						  if(!mobleader)
-							mobleader = tmob;
-
-						  int Guild = pMob[idx].MOB.Guild;
-						  
-						  if(pMob[idx].GuildDisable)
-							Guild = 0;
-
-						  int MobGuild = pMob[tmob].MOB.Guild;
-						  
-						  if(pMob[tmob].GuildDisable)
-							MobGuild = 0;
-
-						  int Ally = g_pGuildAlly[Guild];
-						  
-						  if(!Ally)
-							Ally = -2;
-
-						  if(!Guild && !MobGuild)
-							Guild = -1;
-
-						  if(idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
-							continue;
-
-						  if(!alvo1)
-						  {
-							alvo1 = tmob;
-							continue;
-						  }
-
-						  if(alvo1 == tmob)
-							 continue;
-
-						  if(!alvo2)
-						  {
-							alvo2 = tmob;
-							continue;
-						  }
-						  if(alvo2 == tmob)
-							continue;
-
-						  if(!alvo3)
-						  {
-							alvo3 = tmob;
-							continue;
-						  }
-						  if(alvo3 == tmob)
-							continue;
-
-						  if(!alvo4)
-						  {
-							alvo4 = tmob;
-							continue;
-						  }
-						  if(alvo4 == tmob)
-							continue;
-
-						  if(!alvo6)
-						  {
-							alvo6 = tmob;
-							continue;
-						  }
-
-						  if(alvo6 == tmob || alvo7)
-							 continue;
-
-						  alvo7 = tmob;
-					  }
-				  }
-			  }
-
-			  yv = pMob[idx].TargetY - 4;
-			  xv = pMob[idx].TargetX - 4;
-
-
-			  for(int yy = yv; yy <= (yv + 4); yy++)
-			  {
-				  for(int xx = xv; xx <= (xv + 4); xx++)
-				  {
-					  if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
-						  continue;
-
-					  int tmob = pMobGrid[yy][xx];
-
-					  int tclan = pMob[tmob].MOB.Clan;
-					  int SameClan = 0;
-
-					  if(Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
-						SameClan = 1;
-
-					  if(pMob[tmob].MOB.Merchant & 1)
-						  continue;
-
-					  unsigned char map_attack = GetAttribute(xx, yy);
-
-					  if(map_attack & 1)
-						  continue;
-
-					  if(idx >= MAX_USER)
-						  break;
-
-					  if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
-					  {
-						  if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
-							  continue;
-
-						  int idxleader = pMob[idx].Leader;
-						  
-						  if(!idxleader)
-							idxleader = idx;
-						  
-						  int mobleader = pMob[tmob].Leader;
-						  if(!mobleader)
-							mobleader = tmob;
-
-						  int Guild = pMob[idx].MOB.Guild;
-						  
-						  if(pMob[idx].GuildDisable)
-							Guild = 0;
-
-						  int MobGuild = pMob[tmob].MOB.Guild;
-						  
-						  if(pMob[tmob].GuildDisable)
-							MobGuild = 0;
-
-						  int Ally = g_pGuildAlly[Guild];
-						  
-						  if(!Ally)
-							Ally = -2;
-
-						  if(!Guild && !MobGuild)
-							Guild = -1;
-
-						  if(idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
-							continue;
-
-						  if(!alvo1)
-						  {
-							alvo1 = tmob;
-							continue;
-						  }
-
-						  if(alvo1 == tmob)
-							 continue;
-
-						  if(!alvo2)
-						  {
-							alvo2 = tmob;
-							continue;
-						  }
-						  if(alvo2 == tmob)
-							continue;
-
-						  if(!alvo3)
-						  {
-							alvo3 = tmob;
-							continue;
-						  }
-						  if(alvo3 == tmob)
-							continue;
-
-						  if(!alvo4)
-						  {
-							alvo4 = tmob;
-							continue;
-						  }
-						  if(alvo4 == tmob)
-							continue;
-
-						  if(!alvo6)
-						  {
-							alvo6 = tmob;
-							continue;
-						  }
-
-						  if(alvo6 == tmob || alvo7)
-							 continue;
-
-						  alvo7 = tmob;
-					  }
-				  }
-			  }
-
-			  if(alvo1)
-			  {
-					MSG_Attack sm;
-
-					memset(&sm, 0, sizeof(MSG_Attack));
-
-					sm.Type = _MSG_Attack;
-					sm.ID = idx;
-					sm.Size = sizeof(MSG_Attack);
-
-					sm.ClientTick = 0xE0A1ACA;
-					sm.Motion = 254;
-
-					sm.TargetX = pMob[idx].TargetX;
-					sm.TargetY = pMob[idx].TargetY;
-					
-					sm.CurrentMp = -2;
-					
-					if(pMob[idx].MOB.Equip[0].sIndex == 219)
-						sm.CurrentMp = -4;
-
-					sm.AttackerID = idx;
-					sm.SkillIndex = 33;
-
-					int calc = 500 + rand()%100 + (pMob[idx].extra.ClassMaster == MORTAL ||  pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
-
-					sm.Dam[0].TargetID = alvo1;
-					sm.Dam[0].Damage = -1;
-
-					if(calc > 300)
+					for (int yy = yv; yy <= (yv + 1); yy++)
 					{
-						sm.Dam[1].TargetID = alvo2;
-						sm.Dam[1].Damage = -1;
+						for (int xx = xv; xx <= (xv + 1); xx++)
+						{
+							if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
+								continue;
+
+							int tmob = pMobGrid[yy][xx];
+
+							int tclan = pMob[tmob].MOB.Clan;
+							int SameClan = 0;
+
+							if (Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
+								SameClan = 1;
+
+							if (pMob[tmob].MOB.Merchant & 1)
+								continue;
+
+							unsigned char map_attack = GetAttribute(xx, yy);
+
+							if (map_attack & 1)
+								continue;
+
+							if (idx >= MAX_USER)
+								break;
+
+							if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= 100 && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
+							{
+								if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
+									continue;
+
+								int idxleader = pMob[idx].Leader;
+
+								if (!idxleader)
+									idxleader = idx;
+
+								int mobleader = pMob[tmob].Leader;
+								if (!mobleader)
+									mobleader = tmob;
+
+								int Guild = pMob[idx].MOB.Guild;
+
+								if (pMob[idx].GuildDisable)
+									Guild = 0;
+
+								int MobGuild = pMob[tmob].MOB.Guild;
+
+								if (pMob[tmob].GuildDisable)
+									MobGuild = 0;
+
+								int Ally = g_pGuildAlly[Guild];
+
+								if (!Ally)
+									Ally = -2;
+
+								if (!Guild && !MobGuild)
+									Guild = -1;
+
+								if (idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
+									continue;
+
+								if (!alvo1)
+								{
+									alvo1 = tmob;
+									continue;
+								}
+
+								if (alvo1 == tmob)
+									continue;
+
+								if (!alvo2)
+								{
+									alvo2 = tmob;
+									continue;
+								}
+								if (alvo2 == tmob)
+									continue;
+
+								if (!alvo3)
+								{
+									alvo3 = tmob;
+									continue;
+								}
+								if (alvo3 == tmob)
+									continue;
+
+								if (!alvo4)
+								{
+									alvo4 = tmob;
+									continue;
+								}
+								if (alvo4 == tmob)
+									continue;
+
+								if (!alvo6)
+								{
+									alvo6 = tmob;
+									continue;
+								}
+
+								if (alvo6 == tmob || alvo7)
+									continue;
+
+								alvo7 = tmob;
+							}
+						}
 					}
 
-					if(calc > 350)
+					yv = pMob[idx].TargetY - 4;
+					xv = pMob[idx].TargetX - 4;
+
+
+					for (int yy = yv; yy <= (yv + 4); yy++)
 					{
-						sm.Dam[2].TargetID = alvo3;
-						sm.Dam[2].Damage = -1;
+						for (int xx = xv; xx <= (xv + 4); xx++)
+						{
+							if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
+								continue;
+
+							int tmob = pMobGrid[yy][xx];
+
+							int tclan = pMob[tmob].MOB.Clan;
+							int SameClan = 0;
+
+							if (Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
+								SameClan = 1;
+
+							if (pMob[tmob].MOB.Merchant & 1)
+								continue;
+
+							unsigned char map_attack = GetAttribute(xx, yy);
+
+							if (map_attack & 1)
+								continue;
+
+							if (idx >= MAX_USER)
+								break;
+
+							if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
+							{
+								if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
+									continue;
+
+								int idxleader = pMob[idx].Leader;
+
+								if (!idxleader)
+									idxleader = idx;
+
+								int mobleader = pMob[tmob].Leader;
+								if (!mobleader)
+									mobleader = tmob;
+
+								int Guild = pMob[idx].MOB.Guild;
+
+								if (pMob[idx].GuildDisable)
+									Guild = 0;
+
+								int MobGuild = pMob[tmob].MOB.Guild;
+
+								if (pMob[tmob].GuildDisable)
+									MobGuild = 0;
+
+								int Ally = g_pGuildAlly[Guild];
+
+								if (!Ally)
+									Ally = -2;
+
+								if (!Guild && !MobGuild)
+									Guild = -1;
+
+								if (idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
+									continue;
+
+								if (!alvo1)
+								{
+									alvo1 = tmob;
+									continue;
+								}
+
+								if (alvo1 == tmob)
+									continue;
+
+								if (!alvo2)
+								{
+									alvo2 = tmob;
+									continue;
+								}
+								if (alvo2 == tmob)
+									continue;
+
+								if (!alvo3)
+								{
+									alvo3 = tmob;
+									continue;
+								}
+								if (alvo3 == tmob)
+									continue;
+
+								if (!alvo4)
+								{
+									alvo4 = tmob;
+									continue;
+								}
+								if (alvo4 == tmob)
+									continue;
+
+								if (!alvo6)
+								{
+									alvo6 = tmob;
+									continue;
+								}
+
+								if (alvo6 == tmob || alvo7)
+									continue;
+
+								alvo7 = tmob;
+							}
+						}
 					}
 
-					if(calc > 400)
+					if (alvo1)
 					{
-						sm.Dam[3].TargetID = alvo4;
-						sm.Dam[3].Damage = -1;
+						MSG_Attack sm;
+
+						memset(&sm, 0, sizeof(MSG_Attack));
+
+						sm.Type = _MSG_Attack;
+						sm.ID = idx;
+						sm.Size = sizeof(MSG_Attack);
+
+						sm.ClientTick = 0xE0A1ACA;
+						sm.Motion = 254;
+
+						sm.TargetX = pMob[idx].TargetX;
+						sm.TargetY = pMob[idx].TargetY;
+
+						sm.CurrentMp = -2;
+
+						if (pMob[idx].MOB.Equip[0].sIndex == 219)
+							sm.CurrentMp = -4;
+
+						sm.AttackerID = idx;
+						sm.SkillIndex = 33; // 33
+
+						int calc = 500 + rand() % 100 + (pMob[idx].extra.ClassMaster == MORTAL || pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
+
+						sm.Dam[0].TargetID = alvo1;
+						sm.Dam[0].Damage = -1;
+
+						if (calc > 300)
+						{
+							sm.Dam[1].TargetID = alvo2;
+							sm.Dam[1].Damage = -1;
+						}
+
+						if (calc > 350)
+						{
+							sm.Dam[2].TargetID = alvo3;
+							sm.Dam[2].Damage = -1;
+						}
+
+						if (calc > 400)
+						{
+							sm.Dam[3].TargetID = alvo4;
+							sm.Dam[3].Damage = -1;
+						}
+
+						if (calc > 450)
+						{
+							sm.Dam[4].TargetID = alvo6;
+							sm.Dam[4].Damage = -1;
+						}
+
+						if (calc > 500)
+						{
+							sm.Dam[5].TargetID = alvo7;
+							sm.Dam[5].Damage = -1;
+						}
+
+						if (idx < MAX_USER)
+							ProcessClientMessage(idx, (char*)&sm, TRUE);
 					}
-
-					if(calc > 450)
-					{
-						sm.Dam[4].TargetID = alvo6;
-						sm.Dam[4].Damage = -1;
-					}
-
-					if(calc > 500)
-					{
-						sm.Dam[5].TargetID = alvo7;
-						sm.Dam[5].Damage = -1;
-					}
-
-
-					if(idx < MAX_USER)
-						ProcessClientMessage(idx, (char*)&sm, TRUE);
-			  }
-		}
+				}
 #pragma endregion
 #pragma region Aura Bestial
-		if(Type == 23)
-		{
-			 int alvo1 = 0;
-			  int alvo2 = 0;
-			  int alvo3 = 0;
-			  int alvo4 = 0;
-			  int alvo6 = 0;
-			  int alvo7 = 0;
+				if (Type == 23)
+				{
+					int alvo1 = 0;
+					int alvo2 = 0;
+					int alvo3 = 0;
+					int alvo4 = 0;
+					int alvo6 = 0;
+					int alvo7 = 0;
 
-			  unsigned char map_att = GetAttribute(pMob[idx].TargetX, pMob[idx].TargetY);
+					unsigned char map_att = GetAttribute(pMob[idx].TargetX, pMob[idx].TargetY);
 
-			  int Clan = pMob[idx].MOB.Clan;
+					int Clan = pMob[idx].MOB.Clan;
 
-			  if (map_att & 1)
-				goto LessAffect;
+					if (map_att & 1)
+						goto LessAffect;
 
-			  int yv = pMob[idx].TargetY - 1;
-			  int xv = pMob[idx].TargetX - 1;
-			  int leader = pMob[idx].Leader;
+					int yv = pMob[idx].TargetY - 1;
+					int xv = pMob[idx].TargetX - 1;
+					int leader = pMob[idx].Leader;
 
-			  if(leader <= 0)
-				leader = idx;
+					if (leader <= 0)
+						leader = idx;
 
-			  for(int yy = yv; yy <= (yv + 1); yy++)
-			  {
-				  for(int xx = xv; xx <= (xv + 1); xx++)
-				  {
-					  if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
-						  continue;
-
-					  int tmob = pMobGrid[yy][xx];
-
-					  int tclan = pMob[tmob].MOB.Clan;
-					  int SameClan = 0;
-
-					  if(Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
-						SameClan = 1;
-
-					  if(pMob[tmob].MOB.Merchant & 1)
-						  continue;
-
-					  unsigned char map_attack = GetAttribute(xx, yy);
-
-					  if(map_attack & 1)
-						  continue;
-
-					  if(idx >= MAX_USER)
-						  break;
-
-					  if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= 100 && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
-					  {
-						  if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
-							  continue;
-
-						  int idxleader = pMob[idx].Leader;
-						  
-						  if(!idxleader)
-							idxleader = idx;
-						  
-						  int mobleader = pMob[tmob].Leader;
-						  if(!mobleader)
-							mobleader = tmob;
-
-						  int Guild = pMob[idx].MOB.Guild;
-						  
-						  if(pMob[idx].GuildDisable)
-							Guild = 0;
-
-						  int MobGuild = pMob[tmob].MOB.Guild;
-						  
-						  if(pMob[tmob].GuildDisable)
-							MobGuild = 0;
-
-						  int Ally = g_pGuildAlly[Guild];
-						  
-						  if(!Ally)
-							Ally = -2;
-
-						  if(!Guild && !MobGuild)
-							Guild = -1;
-
-						  if(idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
-							continue;
-
-						  if(!alvo1)
-						  {
-							alvo1 = tmob;
-							continue;
-						  }
-
-						  if(alvo1 == tmob)
-							 continue;
-
-						  if(!alvo2)
-						  {
-							alvo2 = tmob;
-							continue;
-						  }
-						  if(alvo2 == tmob)
-							continue;
-
-						  if(!alvo3)
-						  {
-							alvo3 = tmob;
-							continue;
-						  }
-						  if(alvo3 == tmob)
-							continue;
-
-						  if(!alvo4)
-						  {
-							alvo4 = tmob;
-							continue;
-						  }
-						  if(alvo4 == tmob)
-							continue;
-
-						  if(!alvo6)
-						  {
-							alvo6 = tmob;
-							continue;
-						  }
-
-						  if(alvo6 == tmob || alvo7)
-							 continue;
-
-						  alvo7 = tmob;
-					  }
-				  }
-			  }
-
-			  yv = pMob[idx].TargetY - 4;
-			  xv = pMob[idx].TargetX - 4;
-
-
-			  for(int yy = yv; yy <= (yv + 4); yy++)
-			  {
-				  for(int xx = xv; xx <= (xv + 4); xx++)
-				  {
-					  if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
-						  continue;
-
-					  int tmob = pMobGrid[yy][xx];
-
-					  int tclan = pMob[tmob].MOB.Clan;
-					  int SameClan = 0;
-
-					  if(Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
-						SameClan = 1;
-
-					  if(pMob[tmob].MOB.Merchant & 1)
-						  continue;
-
-					  unsigned char map_attack = GetAttribute(xx, yy);
-
-					  if(map_attack & 1)
-						  continue;
-
-					  if(idx >= MAX_USER)
-						  break;
-
-					  if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
-					  {
-						  if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
-							  continue;
-
-						  int idxleader = pMob[idx].Leader;
-						  
-						  if(!idxleader)
-							idxleader = idx;
-						  
-						  int mobleader = pMob[tmob].Leader;
-						  if(!mobleader)
-							mobleader = tmob;
-
-						  int Guild = pMob[idx].MOB.Guild;
-						  
-						  if(pMob[idx].GuildDisable)
-							Guild = 0;
-
-						  int MobGuild = pMob[tmob].MOB.Guild;
-						  
-						  if(pMob[tmob].GuildDisable)
-							MobGuild = 0;
-
-						  int Ally = g_pGuildAlly[Guild];
-						  
-						  if(!Ally)
-							Ally = -2;
-
-						  if(!Guild && !MobGuild)
-							Guild = -1;
-
-						  if(idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
-							continue;
-
-						  if(!alvo1)
-						  {
-							alvo1 = tmob;
-							continue;
-						  }
-
-						  if(alvo1 == tmob)
-							 continue;
-
-						  if(!alvo2)
-						  {
-							alvo2 = tmob;
-							continue;
-						  }
-						  if(alvo2 == tmob)
-							continue;
-
-						  if(!alvo3)
-						  {
-							alvo3 = tmob;
-							continue;
-						  }
-						  if(alvo3 == tmob)
-							continue;
-
-						  if(!alvo4)
-						  {
-							alvo4 = tmob;
-							continue;
-						  }
-						  if(alvo4 == tmob)
-							continue;
-
-						  if(!alvo6)
-						  {
-							alvo6 = tmob;
-							continue;
-						  }
-
-						  if(alvo6 == tmob || alvo7)
-							 continue;
-
-						  alvo7 = tmob;
-					  }
-				  }
-			  }
-
-			  if(alvo1)
-			  {
-					MSG_Attack sm;
-
-					memset(&sm, 0, sizeof(MSG_Attack));
-
-					sm.Type = _MSG_Attack;
-					sm.ID = idx;
-					sm.Size = sizeof(MSG_Attack);
-
-					sm.ClientTick = 0xE0A1ACA;
-					sm.Motion = 254;
-
-					sm.TargetX = pMob[idx].TargetX;
-					sm.TargetY = pMob[idx].TargetY;
-					
-					sm.CurrentMp = -2;
-					
-					if(pMob[idx].MOB.Equip[0].sIndex == 219)
-						sm.CurrentMp = -4;
-
-					sm.AttackerID = idx;
-					sm.SkillIndex = 52;
-
-					int calc = 5000 + rand()%100 + (pMob[idx].extra.ClassMaster == MORTAL ||  pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
-
-					sm.Dam[0].TargetID = alvo1;
-					sm.Dam[0].Damage = -1;
-
-					if(calc > 300)
+					for (int yy = yv; yy <= (yv + 1); yy++)
 					{
-						sm.Dam[1].TargetID = alvo2;
-						sm.Dam[1].Damage = -1;
+						for (int xx = xv; xx <= (xv + 1); xx++)
+						{
+							if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
+								continue;
+
+							int tmob = pMobGrid[yy][xx];
+
+							int tclan = pMob[tmob].MOB.Clan;
+							int SameClan = 0;
+
+							if (Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
+								SameClan = 1;
+
+							if (pMob[tmob].MOB.Merchant & 1)
+								continue;
+
+							unsigned char map_attack = GetAttribute(xx, yy);
+
+							if (map_attack & 1)
+								continue;
+
+							if (idx >= MAX_USER)
+								break;
+
+							if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= 100 && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
+							{
+								if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
+									continue;
+
+								int idxleader = pMob[idx].Leader;
+
+								if (!idxleader)
+									idxleader = idx;
+
+								int mobleader = pMob[tmob].Leader;
+								if (!mobleader)
+									mobleader = tmob;
+
+								int Guild = pMob[idx].MOB.Guild;
+
+								if (pMob[idx].GuildDisable)
+									Guild = 0;
+
+								int MobGuild = pMob[tmob].MOB.Guild;
+
+								if (pMob[tmob].GuildDisable)
+									MobGuild = 0;
+
+								int Ally = g_pGuildAlly[Guild];
+
+								if (!Ally)
+									Ally = -2;
+
+								if (!Guild && !MobGuild)
+									Guild = -1;
+
+								if (idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
+									continue;
+
+								if (!alvo1)
+								{
+									alvo1 = tmob;
+									continue;
+								}
+
+								if (alvo1 == tmob)
+									continue;
+
+								if (!alvo2)
+								{
+									alvo2 = tmob;
+									continue;
+								}
+								if (alvo2 == tmob)
+									continue;
+
+								if (!alvo3)
+								{
+									alvo3 = tmob;
+									continue;
+								}
+								if (alvo3 == tmob)
+									continue;
+
+								if (!alvo4)
+								{
+									alvo4 = tmob;
+									continue;
+								}
+								if (alvo4 == tmob)
+									continue;
+
+								if (!alvo6)
+								{
+									alvo6 = tmob;
+									continue;
+								}
+
+								if (alvo6 == tmob || alvo7)
+									continue;
+
+								alvo7 = tmob;
+							}
+						}
 					}
 
-					if(calc > 350)
+					yv = pMob[idx].TargetY - 4;
+					xv = pMob[idx].TargetX - 4;
+
+
+					for (int yy = yv; yy <= (yv + 4); yy++)
 					{
-						sm.Dam[2].TargetID = alvo3;
-						sm.Dam[2].Damage = -1;
+						for (int xx = xv; xx <= (xv + 4); xx++)
+						{
+							if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
+								continue;
+
+							int tmob = pMobGrid[yy][xx];
+
+							int tclan = pMob[tmob].MOB.Clan;
+							int SameClan = 0;
+
+							if (Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
+								SameClan = 1;
+
+							if (pMob[tmob].MOB.Merchant & 1)
+								continue;
+
+							unsigned char map_attack = GetAttribute(xx, yy);
+
+							if (map_attack & 1)
+								continue;
+
+							if (idx >= MAX_USER)
+								break;
+
+							if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
+							{
+								if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
+									continue;
+
+								int idxleader = pMob[idx].Leader;
+
+								if (!idxleader)
+									idxleader = idx;
+
+								int mobleader = pMob[tmob].Leader;
+								if (!mobleader)
+									mobleader = tmob;
+
+								int Guild = pMob[idx].MOB.Guild;
+
+								if (pMob[idx].GuildDisable)
+									Guild = 0;
+
+								int MobGuild = pMob[tmob].MOB.Guild;
+
+								if (pMob[tmob].GuildDisable)
+									MobGuild = 0;
+
+								int Ally = g_pGuildAlly[Guild];
+
+								if (!Ally)
+									Ally = -2;
+
+								if (!Guild && !MobGuild)
+									Guild = -1;
+
+								if (idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
+									continue;
+
+								if (!alvo1)
+								{
+									alvo1 = tmob;
+									continue;
+								}
+
+								if (alvo1 == tmob)
+									continue;
+
+								if (!alvo2)
+								{
+									alvo2 = tmob;
+									continue;
+								}
+								if (alvo2 == tmob)
+									continue;
+
+								if (!alvo3)
+								{
+									alvo3 = tmob;
+									continue;
+								}
+								if (alvo3 == tmob)
+									continue;
+
+								if (!alvo4)
+								{
+									alvo4 = tmob;
+									continue;
+								}
+								if (alvo4 == tmob)
+									continue;
+
+								if (!alvo6)
+								{
+									alvo6 = tmob;
+									continue;
+								}
+
+								if (alvo6 == tmob || alvo7)
+									continue;
+
+								alvo7 = tmob;
+							}
+						}
 					}
 
-					if(calc > 400)
+					if (alvo1)
 					{
-						sm.Dam[3].TargetID = alvo4;
-						sm.Dam[3].Damage = -1;
+						MSG_Attack sm;
+
+						memset(&sm, 0, sizeof(MSG_Attack));
+
+						sm.Type = _MSG_Attack;
+						sm.ID = idx;
+						sm.Size = sizeof(MSG_Attack);
+
+						sm.ClientTick = 0xE0A1ACA;
+						sm.Motion = 254;
+
+						sm.TargetX = pMob[idx].TargetX;
+						sm.TargetY = pMob[idx].TargetY;
+
+						sm.CurrentMp = -2;
+
+						if (pMob[idx].MOB.Equip[0].sIndex == 219)
+							sm.CurrentMp = -4;
+
+						sm.AttackerID = idx;
+						sm.SkillIndex = 52;
+
+						int calc = 5000 + rand() % 100 + (pMob[idx].extra.ClassMaster == MORTAL || pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
+
+						sm.Dam[0].TargetID = alvo1;
+						sm.Dam[0].Damage = -1;
+
+						if (calc > 300)
+						{
+							sm.Dam[1].TargetID = alvo2;
+							sm.Dam[1].Damage = -1;
+						}
+
+						if (calc > 350)
+						{
+							sm.Dam[2].TargetID = alvo3;
+							sm.Dam[2].Damage = -1;
+						}
+
+						if (calc > 400)
+						{
+							sm.Dam[3].TargetID = alvo4;
+							sm.Dam[3].Damage = -1;
+						}
+
+						if (calc > 450)
+						{
+							sm.Dam[4].TargetID = alvo6;
+							sm.Dam[4].Damage = -1;
+						}
+
+						if (calc > 500)
+						{
+							sm.Dam[5].TargetID = alvo7;
+							sm.Dam[5].Damage = -1;
+						}
+
+
+						if (idx < MAX_USER)
+							ProcessClientMessage(idx, (char*)&sm, TRUE);
+					}
+				}
+#pragma endregion
+#pragma region Chama Resistente
+				if (Type == 46)
+				{
+					int alvo1 = 0;
+
+					unsigned char map_att = GetAttribute(pMob[idx].TargetX, pMob[idx].TargetY);
+
+					int Clan = pMob[idx].MOB.Clan;
+
+					if (map_att & 1)
+						goto LessAffect;
+
+					int yv = pMob[idx].TargetY - 1;
+					int xv = pMob[idx].TargetX - 1;
+					int leader = pMob[idx].Leader;
+
+					if (leader <= 0)
+						leader = idx;
+
+					for (int yy = yv; yy <= (yv + 1); yy++)
+					{
+						for (int xx = xv; xx <= (xv + 1); xx++)
+						{
+							if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
+								continue;
+
+							int tmob = pMobGrid[yy][xx];
+
+							int tclan = pMob[tmob].MOB.Clan;
+							int SameClan = 0;
+
+							if (Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
+								SameClan = 1;
+
+							if (pMob[tmob].MOB.Merchant & 1)
+								continue;
+
+							unsigned char map_attack = GetAttribute(xx, yy);
+
+							if (map_attack & 1)
+								continue;
+
+							if (idx >= MAX_USER)
+								break;
+
+							if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= 100 && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
+							{
+								if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
+									continue;
+
+								int idxleader = pMob[idx].Leader;
+
+								if (!idxleader)
+									idxleader = idx;
+
+								int mobleader = pMob[tmob].Leader;
+								if (!mobleader)
+									mobleader = tmob;
+
+								int Guild = pMob[idx].MOB.Guild;
+
+								if (pMob[idx].GuildDisable)
+									Guild = 0;
+
+								int MobGuild = pMob[tmob].MOB.Guild;
+
+								if (pMob[tmob].GuildDisable)
+									MobGuild = 0;
+
+								int Ally = g_pGuildAlly[Guild];
+
+								if (!Ally)
+									Ally = -2;
+
+								if (!Guild && !MobGuild)
+									Guild = -1;
+
+								if (idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
+									continue;
+
+								if (!alvo1)
+								{
+									alvo1 = tmob;
+									continue;
+								}
+
+								if (alvo1 == tmob)
+									continue;
+							}
+						}
 					}
 
-					if(calc > 450)
+					yv = pMob[idx].TargetY - 4;
+					xv = pMob[idx].TargetX - 4;
+
+
+					for (int yy = yv; yy <= (yv + 4); yy++)
 					{
-						sm.Dam[4].TargetID = alvo6;
-						sm.Dam[4].Damage = -1;
+						for (int xx = xv; xx <= (xv + 4); xx++)
+						{
+							if (xx < 0 || xx >= MAX_GRIDX || yy < 0 || yy >= MAX_GRIDY || pMobGrid[yy][xx] <= 0 || pMobGrid[yy][xx] >= MAX_MOB || !pMob[pMobGrid[yy][xx]].Mode || pMob[pMobGrid[yy][xx]].MOB.CurrentScore.Hp <= 0 || leader == pMob[pMobGrid[yy][xx]].Leader)
+								continue;
+
+							int tmob = pMobGrid[yy][xx];
+
+							int tclan = pMob[tmob].MOB.Clan;
+							int SameClan = 0;
+
+							if (Clan == 7 && tclan == 7 || Clan == 8 && tclan == 8)
+								SameClan = 1;
+
+							if (pMob[tmob].MOB.Merchant & 1)
+								continue;
+
+							unsigned char map_attack = GetAttribute(xx, yy);
+
+							if (map_attack & 1)
+								continue;
+
+							if (idx >= MAX_USER)
+								break;
+
+							if ((pUser[idx].PKMode || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && (map_att & 0x40 || tmob >= MAX_USER && tclan != 4 && SameClan != 1) && !(pMob[tmob].MOB.Rsv & 0x10))
+							{
+								if (SameClan == 1 && tmob >= MAX_USER || tclan == 6 || tmob == idx)
+									continue;
+
+								int idxleader = pMob[idx].Leader;
+
+								if (!idxleader)
+									idxleader = idx;
+
+								int mobleader = pMob[tmob].Leader;
+								if (!mobleader)
+									mobleader = tmob;
+
+								int Guild = pMob[idx].MOB.Guild;
+
+								if (pMob[idx].GuildDisable)
+									Guild = 0;
+
+								int MobGuild = pMob[tmob].MOB.Guild;
+
+								if (pMob[tmob].GuildDisable)
+									MobGuild = 0;
+
+								int Ally = g_pGuildAlly[Guild];
+
+								if (!Ally)
+									Ally = -2;
+
+								if (!Guild && !MobGuild)
+									Guild = -1;
+
+								if (idxleader == mobleader || Guild == MobGuild || Ally == MobGuild)
+									continue;
+
+								if (!alvo1)
+								{
+									alvo1 = tmob;
+									continue;
+								}
+
+								if (alvo1 == tmob)
+									continue;
+							}
+						}
 					}
 
-					if(calc > 500)
+					if (alvo1)
 					{
-						sm.Dam[5].TargetID = alvo7;
-						sm.Dam[5].Damage = -1;
+						MSG_Attack sm;
+
+						memset(&sm, 0, sizeof(MSG_AttackOne));
+
+						sm.Type = _MSG_AttackOne;
+						sm.ID = idx;
+						sm.Size = sizeof(MSG_AttackOne);
+
+						sm.ClientTick = 0xE0A1ACA;
+						sm.Motion = 254;
+
+						sm.TargetX = pMob[idx].TargetX;
+						sm.TargetY = pMob[idx].TargetY;
+
+						sm.CurrentMp = -2;
+
+						sm.AttackerID = idx;
+						sm.SkillIndex = 48;
+
+						//int calc = 500 + rand() % 100 + (pMob[idx].extra.ClassMaster == MORTAL || pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
+
+						sm.Dam[0].TargetID = alvo1;
+						sm.Dam[0].Damage = -1;
+
+						if (idx < MAX_USER)
+							ProcessClientMessage(idx, (char*)&sm, TRUE);
 					}
-
-
-					if(idx < MAX_USER)
-						ProcessClientMessage(idx, (char*)&sm, TRUE);
-			  }
-		}
+				}
 #pragma endregion
 #pragma region Affects less time
-	LessAffect :
-		if (pMob[idx].Affect[i].Time < 32400000)
-			pMob[idx].Affect[i].Time--;
+				LessAffect :
+						   if (pMob[idx].Affect[i].Time < 32400000)
+							   pMob[idx].Affect[i].Time--;
 
 
-		if (pMob[idx].Affect[i].Time <= 0)
-		{
-			if (pMob[idx].Affect[i].Type == 16)
-				FaceChange = 1;
+						   if (pMob[idx].Affect[i].Time <= 0)
+						   {
+							   if (pMob[idx].Affect[i].Type == 16 || pMob[idx].Affect[i].Type == 33)
+								   FaceChange = 1;
 
-			int summonEnd = 0;
+							   int summonEnd = 0;
 
-			if(pMob[idx].Affect[i].Type == 24 && idx >= MAX_USER)
-				DeleteMob(idx, 3);
+							   if (pMob[idx].Affect[i].Type == 24 && idx >= MAX_USER)
+								   DeleteMob(idx, 3);
 
-
-			pMob[idx].Affect[i].Type = 0;
-			pMob[idx].Affect[i].Time = 0;
-			pMob[idx].Affect[i].Value = 0;
-			pMob[idx].Affect[i].Level = 0;
-			upScore = 1;
-		}
-
+							   pMob[idx].Affect[i].Type = 0;
+							   pMob[idx].Affect[i].Time = 0;
+							   pMob[idx].Affect[i].Value = 0;
+							   pMob[idx].Affect[i].Level = 0;
+							   upScore = 1;
+						   }
 #pragma endregion
-	}
+			}
 
-	
-	if (regen)
-	{
-		if (idx > 0 && idx < MAX_USER)
-		{
-			SetReqHp(idx);
-			SetReqMp(idx);
-		}
-		MSG_SetHpDam dam;
+			if (regen)
+			{
+				if (idx > 0 && idx < MAX_USER)
+				{
+					SetReqHp(idx);
+					SetReqMp(idx);
+				}
+				MSG_SetHpDam dam;
 
-		dam.Type = _MSG_SetHpDam;
-		dam.Size = sizeof(MSG_SetHpDam);
-		dam.ID = idx;
+				dam.Type = _MSG_SetHpDam;
+				dam.Size = sizeof(MSG_SetHpDam);
+				dam.ID = idx;
 
-		dam.Hp = pMob[idx].MOB.CurrentScore.Hp;
-		dam.Dam = Damage;
+				dam.Hp = pMob[idx].MOB.CurrentScore.Hp;
+				dam.Dam = Damage;
 
-		GridMulticast(pMob[idx].TargetX, pMob[idx].TargetY, (MSG_STANDARD*)&dam, 0);
-	}
-	if (upScore)
-	{
-		pMob[idx].GetCurrentScore(idx);
-		SendScore(idx);
-		
-		if (FaceChange)
-			SendEquip(idx, 0);
+				GridMulticast(pMob[idx].TargetX, pMob[idx].TargetY, (MSG_STANDARD*)&dam, 0);
+			}
+			if (upScore)
+			{
+				pMob[idx].GetCurrentScore(idx);
+				SendScore(idx);
 
-		return TRUE;
-	}
-	else
-		return 0;
+				if (FaceChange)
+					SendEquip(idx, 0);
 
-	return 0;
+				return TRUE;
+			}
+			else
+				return 0;
+
+			return 0;
 }
 
 void SendDamage(int x1, int y1, int x2, int y2)
@@ -5453,7 +6471,7 @@ void SendDamage(int x1, int y1, int x2, int y2)
 
 		int hp = pMob[i].MOB.CurrentScore.Hp;
 
-		if(hp < dam_base)
+		if (hp < dam_base)
 			dam_base = hp - 1;
 
 		int dam = hp - dam_base;
@@ -5501,7 +6519,7 @@ void SendDamageKingdom(int x1, int y1, int x2, int y2, int Clan)
 		if (pMob[i].TargetX < x1 || pMob[i].TargetX > x2 || pMob[i].TargetY < y1 || pMob[i].TargetY > y2)
 			continue;
 
-		if(pMob[i].MOB.Clan == Clan)
+		if (pMob[i].MOB.Clan == Clan)
 			continue;
 
 		int UNK = 1048576000;
@@ -5510,7 +6528,7 @@ void SendDamageKingdom(int x1, int y1, int x2, int y2, int Clan)
 
 		int hp = pMob[i].MOB.CurrentScore.Hp;
 
-		if(hp < dam_base)
+		if (hp < dam_base)
 			dam_base = hp - 1;
 
 		int dam = hp - dam_base;
@@ -5548,34 +6566,34 @@ void SendDamageKingdom(int x1, int y1, int x2, int y2, int Clan)
 void SendDamageLeader(int x1, int y1, int x2, int y2)
 {
 	int HaveUser = 0;
-	
-	for(int x = x1; x < x2; x++)
+
+	for (int x = x1; x < x2; x++)
 	{
-		for(int y = y1; y < y2; y++)
+		for (int y = y1; y < y2; y++)
 		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
 				continue;
 
-			if(pMobGrid[y][x] == 0)
+			if (pMobGrid[y][x] == 0)
 				continue;
 
-			if(pMobGrid[y][x] >= MAX_USER)
+			if (pMobGrid[y][x] >= MAX_USER)
 				continue;
 
 			int tmob = pMobGrid[y][x];
 
-			if(tmob == Pista[4].Party[0].LeaderID)
+			if (tmob == Pista[4].Party[0].LeaderID)
 			{
 				HaveUser++;
 				continue;
 			}
 
-			if(tmob == Pista[4].Party[1].LeaderID)
+			if (tmob == Pista[4].Party[1].LeaderID)
 			{
 				HaveUser++;
 				continue;
 			}
-			if(tmob == Pista[4].Party[1].LeaderID)
+			if (tmob == Pista[4].Party[1].LeaderID)
 			{
 				HaveUser++;
 				continue;
@@ -5583,9 +6601,9 @@ void SendDamageLeader(int x1, int y1, int x2, int y2)
 		}
 	}
 
-	if(HaveUser)
+	if (HaveUser)
 		return;
-	
+
 	for (int i = 0; i < MAX_USER; i++)
 	{
 		if (pUser[i].Mode != USER_PLAY)
@@ -5603,7 +6621,7 @@ void SendDamageLeader(int x1, int y1, int x2, int y2)
 
 		int hp = pMob[i].MOB.CurrentScore.Hp;
 
-		if(hp < dam_base)
+		if (hp < dam_base)
 			dam_base = hp - 1;
 
 		int dam = hp - dam_base;
@@ -5751,6 +6769,20 @@ void ClearAreaQuest(int x1, int y1, int x2, int y2)
 	}
 }
 
+void ClearMobArea(int x1, int y1, int x2, int y2)
+{
+	for (int i = MAX_USER; i < MAX_MOB; i++)
+	{
+		if (pMob[i].Mode == USER_EMPTY)
+			continue;
+
+		if (pMob[i].TargetX < x1 || pMob[i].TargetX > x2 || pMob[i].TargetY < y1 || pMob[i].TargetY > y2)
+			continue;
+
+		DeleteMob(i, 1);
+	}
+}
+
 void ClearArea(int x1, int y1, int x2, int y2)
 {
 	for (int i = 0; i < MAX_USER; i++)
@@ -5884,6 +6916,55 @@ void ClearGuildPKZone()
 	}
 }
 
+void SetBigCuboDoor(int state)
+{
+	int gate = 0;
+
+	int height = 0;
+
+	for (int i = 0; i < 10; i++)
+	{
+		gate = i + 49;
+
+		if (pItem[i + 49].ITEM.sIndex <= 0 || pItem[gate].ITEM.sIndex >= MAX_ITEMLIST)
+			continue;
+
+		if (pItem[gate].State == state)
+			continue;
+
+		UpdateItem(gate, state, &height);
+
+		if (state == 1)
+		{
+			MSG_UpdateItem sm;
+			memset(&sm, 0, sizeof(MSG_UpdateItem));
+
+			sm.ID = ESCENE_FIELD;
+			sm.Type = _MSG_UpdateItem;
+
+			sm.ItemID = gate + 10000;
+
+			sm.Size = sizeof(MSG_UpdateItem);
+
+			//		sm.Height = height;
+			sm.State = pItem[gate].State;
+
+			GridMulticast(pItem[gate].PosX, pItem[gate].PosY, (MSG_STANDARD*)&sm, 0);
+		}
+		else
+		{
+			MSG_CreateItem sm;
+			memset(&sm, 0, sizeof(MSG_CreateItem));
+
+			GetCreateItem(gate, &sm);
+
+			GridMulticast(pItem[gate].PosX, pItem[gate].PosY, (MSG_STANDARD*)&sm, 0);
+		}
+
+		pItem[gate].Delay = 0;
+	}
+}
+
 void SetColoseumDoor(int state)
 {
 	int gate = 0;
@@ -5940,9 +7021,9 @@ void SetColoseumDoor2(int state)
 
 	for (int i = 0; i < 5; i++)
 	{
-		gate = i + 14;
+		gate = i + 15;
 
-		if (pItem[i + 14].ITEM.sIndex <= 0 || pItem[gate].ITEM.sIndex >= MAX_ITEMLIST)
+		if (pItem[i + 15].ITEM.sIndex <= 0 || pItem[gate].ITEM.sIndex >= MAX_ITEMLIST)
 			continue;
 
 		if (pItem[gate].State == state)
@@ -6131,7 +7212,7 @@ void DecideWinner()
 		{
 			for (int k = g_pGuildZone[i].WarAreaX1; k <= g_pGuildZone[i].WarAreaX2; k++)
 			{
-				if(j < 0 || j >= MAX_GRIDY || k < 0 || k >= MAX_GRIDX)
+				if (j < 0 || j >= MAX_GRIDY || k < 0 || k >= MAX_GRIDX)
 					continue;
 
 				int tmob = pMobGrid[j][k];
@@ -6189,14 +7270,14 @@ void DecideWinner()
 			SendGuildNotice(ChargeGuild, temp);
 			SendGuildNotice(ChallangeGuild, temp);
 
-			if(g_pGuildZone[i].Victory < 4)
+			if (g_pGuildZone[i].Victory < 4)
 				g_pGuildZone[i].Victory++;
 		}
 
 		g_pGuildZone[i].ChallangeGuild = 0;
 	}
 
-	if(g_pGuildZone[1].ChargeGuild == g_pGuildZone[0].ChargeGuild && g_pGuildZone[2].ChargeGuild == g_pGuildZone[0].ChargeGuild && g_pGuildZone[3].ChargeGuild == g_pGuildZone[0].ChargeGuild)
+	if (g_pGuildZone[1].ChargeGuild == g_pGuildZone[0].ChargeGuild && g_pGuildZone[2].ChargeGuild == g_pGuildZone[0].ChargeGuild && g_pGuildZone[3].ChargeGuild == g_pGuildZone[0].ChargeGuild)
 		g_pGuildZone[4].ChargeGuild = g_pGuildZone[0].ChargeGuild;
 }
 
@@ -6211,16 +7292,16 @@ void GuildProcess()
 	if (timeinfo->tm_hour == 3 && GuildNameInitialized == 0)
 	{
 		BASE_InitializeGuildName();
-		
+
 		Log("sys,GuildName initialized", "-system", 0);
-		
+
 		GuildNameInitialized = 1;
 	}
 
 	if (timeinfo->tm_hour > 3 && GuildNameInitialized == 1)
 		GuildNameInitialized = 0;
 
-	if (CastleServer == 1 && (timeinfo->tm_hour == 21))
+	if (CastleServer == 1 && (timeinfo->tm_hour == 22))
 	{
 		if (CastleState || timeinfo->tm_min >= 5)
 		{
@@ -6245,7 +7326,7 @@ void GuildProcess()
 			else
 			{
 				ClearAreaGuild(1036, 1672, 1144, 1764, g_pGuildZone[4].ChargeGuild);
-				
+
 				ClearAreaTeleport(1129, 1705, 1129, 1709, 1057, 1742);
 				ClearAreaTeleport(1116, 1705, 1116, 1709, 1057, 1742);
 				ClearAreaTeleport(1094, 1688, 1094, 1692, 1057, 1742);
@@ -6253,15 +7334,15 @@ void GuildProcess()
 				ClearAreaTeleport(1050, 1690, 1050, 1690, 1057, 1742);
 				ClearAreaTeleport(1046, 1690, 1047, 1691, 1057, 1742);
 				ClearAreaTeleport(1124, 1708, 1124, 1708, 1057, 1742);
-				
+
 				SetCastleDoor(3);
-				
+
 				for (int i = 0; i < 3; ++i)
 				{
 					GenerateMob(i + TORRE_NOATUM1, 0, 0);
 					LiveTower[i] = 1;
 				}
-				
+
 				sprintf(temp, g_pMessageStringTable[_DN_Castle_opened], timeinfo->tm_hour - 17);
 				SendNotice(temp);
 				CastleState = 2;
@@ -6272,7 +7353,7 @@ void GuildProcess()
 			sprintf(temp, g_pMessageStringTable[_DN_Castle_will_be_open], timeinfo->tm_hour - 17);
 			SendNotice(temp);
 			CastleState = 1;
-			
+
 			for (int j = 0; j < MAX_USER; j++)
 			{
 				if (pUser[j].Mode == USER_PLAY)
@@ -6283,7 +7364,8 @@ void GuildProcess()
 
 	int NewbieServerID = (timeinfo->tm_mday - 1) % NumServerInGroup;
 
-	if ((TESTSERVER || LOCALSERVER || ServerIndex == NewbieServerID) && BRItem > 0)
+	//if ((TESTSERVER || LOCALSERVER || ServerIndex == NewbieServerID) && BRItem > 0)
+	if (BRItem > 0)
 	{
 		int tmmin2 = timeinfo->tm_min / 20;
 		int tmmin = timeinfo->tm_min % 20;
@@ -6303,7 +7385,7 @@ void GuildProcess()
 						BASE_ClearItem(&item);
 						item.sIndex = BRItem;
 
-						int create = CreateItem(2621, 1726, &item, rand()%4, 1);
+						int create = CreateItem(2621, 1726, &item, rand() % 4, 1);
 						sprintf(temp, "etc,britem created %d/%d", BRItem, create);
 						Log(temp, "-system", 0);
 					}
@@ -6357,7 +7439,7 @@ void GuildProcess()
 				}
 				else
 					SendNoticeArea(g_pMessageStringTable[_NN_BR_Ready3], 2580, 1708, 2665, 1765);
-				
+
 			}
 			else
 			{
@@ -6383,15 +7465,15 @@ void GuildProcess()
 		}
 	}
 
-	if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min <  3 || ColoState)
+	if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min < 3 || ColoState)
 	{
-		if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min <  4 || ColoState != 1)
+		if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min < 4 || ColoState != 1)
 		{
 			if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min < 5 || ColoState != 2)
 			{
-				if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min <  7 || ColoState != 3)
+				if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min < 7 || ColoState != 3)
 				{
-					if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min <  9 || ColoState != 4)
+					if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min < 9 || ColoState != 4)
 					{
 						if (timeinfo->tm_hour != GuildHour && timeinfo->tm_hour != NewbieHour || timeinfo->tm_min < 11 || ColoState != 5)
 						{
@@ -6512,7 +7594,7 @@ void GuildProcess()
 
 	if (day < 0)
 		day += 7;
-	
+
 	int fweek = timeinfo->tm_wday;
 
 	if (ForceWeekMode != -1)
@@ -6534,13 +7616,13 @@ void GuildProcess()
 							SendNotice(g_pMessageStringTable[_NN_Guild_Battle_Notice6]);
 							WeekMode = 0;
 
-							for(int i = 0; i < MAX_GUILDZONE; i++)
+							for (int i = 0; i < MAX_GUILDZONE; i++)
 							{
-								if(i == 4)
+								if (i == 4)
 									continue;
 
-								if(g_pGuildZone[i].ChallangeGuild == 0 && g_pGuildZone[i].Victory < 4)
-									g_pGuildZone[i].Victory++; 
+								if (g_pGuildZone[i].ChallangeGuild == 0 && g_pGuildZone[i].Victory < 4)
+									g_pGuildZone[i].Victory++;
 							}
 
 						}
@@ -6595,7 +7677,7 @@ void GuildProcess()
 				if (n != 4)
 				{
 					if (g_pGuildZone[n].ChallangeGuild)
-						SummonGuild(g_pGuildZone[n].ChallangeGuild,	g_pGuildZone[n].ChallangeWarSpawnX, g_pGuildZone[n].ChallangeWarSpawnY, NumGuildBattle, n);
+						SummonGuild(g_pGuildZone[n].ChallangeGuild, g_pGuildZone[n].ChallangeWarSpawnX, g_pGuildZone[n].ChallangeWarSpawnY, NumGuildBattle, n);
 				}
 			}
 		}
@@ -6606,48 +7688,6 @@ void GuildProcess()
 		WeekMode = 1;
 	}
 
-#ifdef RVR_ON
-#pragma region Guerra de Reino
-	if (NewbieEventServer == 1 && timeinfo->tm_wday != 0 && timeinfo->tm_wday != 6 && timeinfo->tm_hour == RvRHour)
-	{
-		if (RvRState == 0 && timeinfo->tm_min < 5)
-		{
-			sprintf(temp, g_pMessageStringTable[_DD_KINGDOMWAR_BEGIN], 5, ServerIndex+1);
-			SendNotice(temp);
-			RvRState = 1;
-		}
-		if (RvRState == 1 && timeinfo->tm_min >= 5)
-		{
-			GenerateMob(RVRTORRE_1, 0, 0);
-			GenerateMob(RVRTORRE_2, 0, 0);
-
-			SendNotice(g_pMessageStringTable[_DD_KINGDOMWAR_START]);
-			RvRState = 2;
-			RvRRedPoint = 0;
-			RvRBluePoint = 0;
-		}
-
-		if (RvRState == 2 && timeinfo->tm_min >= 29)
-			RvRState = 3;
-
-		if (RvRState == 3 && timeinfo->tm_min == 34)
-		{
-			ClearArea(1020, 1916, 1286, 2178);
-
-			for(int i = MAX_USER; i < MAX_MOB; i++)
-			{
-				if(pMob[i].GenerateIndex == RVRTORRE_1 || pMob[i].GenerateIndex == RVRTORRE_2)
-					DeleteMob(i, 1);
-			}
-
-			SendNotice(g_pMessageStringTable[_DD_KINGDOMWAR_END]);
-			RvRState = 0;
-			RvRRedPoint = 0;
-			RvRBluePoint = 0;
-		}
-	}
-#pragma endregion
-#endif
 	CWarTower::GuildProcess(timeinfo);
 }
 
@@ -6661,7 +7701,7 @@ void StartLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(temp, ".\\Log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(temp, ".\\Logs\\server_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
 	fLogFile = fopen(temp, "wt");
 
@@ -6716,14 +7756,13 @@ void Log(char *str1, char *str2, unsigned int ip)
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] IP: %d.%d.%d.%d", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cIP[0], cIP[1], cIP[2], cIP[3]);
 	else
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
-	
+
 	sprintf(LogTemp, "%s %s %s \n", LogTemp, str2, str1);
 
 	if (fLogFile)
 		fprintf(fLogFile, LogTemp);
 
 	SetWindowText(hWndMain, LogTemp);
-	
 }
 
 int  GetUserFromSocket(int Sock)
@@ -6836,6 +7875,15 @@ void CloseUser(int conn)
 	int unk = 0;
 	int unk2 = 0;
 
+	/*
+#pragma region Cubo N
+	if (((pMob[conn].TargetX / 128) == 13 && (pMob[conn].TargetY / 128) == 31) && CuboN.pRoom > 0) // Cubo N
+		CuboN.pRoom--;
+
+	if (CuboN.pRoom < 0)
+		CuboN.pRoom = 0;
+#pragma endregion*/
+
 	if (pUser[conn].Mode == USER_PLAY && pMob[conn].TargetX >= 0 && pMob[conn].TargetX < 4096
 		&& pMob[conn].TargetY >= 0 && pMob[conn].TargetY < 4096)
 		pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] = 0;
@@ -6898,7 +7946,20 @@ void CloseUser(int conn)
 
 			memcpy(&sm.MOB, &pMob[conn], sizeof(STRUCT_MOB));
 			memcpy(sm.Cargo, &pUser[conn].Cargo, sizeof(pUser[conn].Cargo));
-			memcpy(sm.ShortSkill, &pUser[conn].CharShortSkill, 16);
+
+			for (int c = 0; c < MAX_AFFECT; c++)
+			{
+				if (pMob[conn].Affect[c].Type != 33)
+				{
+					if ((pMob[conn].MOB.Equip[0].sIndex == 316 || pMob[conn].MOB.Equip[0].sIndex == 317 || pMob[conn].MOB.Equip[0].sIndex == 297 ||
+						pMob[conn].MOB.Equip[0].sIndex == 202 || pMob[conn].MOB.Equip[0].sIndex == 297 || pMob[conn].MOB.Equip[0].sIndex == 209 ||
+						pMob[conn].MOB.Equip[0].sIndex == 212 || pMob[conn].MOB.Equip[0].sIndex == 230 || pMob[conn].MOB.Equip[0].sIndex == 228))
+						pMob[conn].MOB.Equip[0].sIndex = pMob[conn].extra.ClassMaster == MORTAL ? pMob[conn].extra.MortalFace : pMob[conn].extra.MortalFace + 5 + pMob[conn].MOB.Class;
+				}
+			}
+
+			
+			memcpy(sm.ShortSkill, pUser[conn].CharShortSkill, 16);
 
 			memcpy(sm.affect, pMob[conn].Affect, sizeof(sm.affect));
 			sm.extra = pMob[conn].extra;
@@ -6907,6 +7968,18 @@ void CloseUser(int conn)
 
 			sm.Coin = pUser[conn].Coin;
 			sm.Donate = pUser[conn].Donate;
+
+			pMob[conn].MOB.SPX = pMob[conn].TargetX;
+			pMob[conn].MOB.SPY = pMob[conn].TargetY;
+
+			sm.MOB.SPX = pMob[conn].MOB.SPX;
+			sm.MOB.SPY = pMob[conn].MOB.SPY;
+
+			pUser[conn].File.Char[pUser[conn].Slot].SPX = sm.MOB.SPX;
+			pUser[conn].File.Char[pUser[conn].Slot].SPY = sm.MOB.SPY;
+
+			pUser[conn].SelChar.SPX[pUser[conn].Slot] = pUser[conn].File.Char[pUser[conn].Slot].SPX;
+			pUser[conn].SelChar.SPY[pUser[conn].Slot] = pUser[conn].File.Char[pUser[conn].Slot].SPY;
 
 			sm.Slot = pUser[conn].Slot;
 
@@ -7043,14 +8116,25 @@ void DeleteMob(int conn, int Type)
 					mNPCGen.pList[geneidx].CurrentNumMob = 0;
 			}
 		}
-	
+
 		pMob[conn].MOB.CurrentScore.Hp = 0;
 		pMob[conn].Mode = 0;
+
 		pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] = 0;
 
+		/*if (conn >= MAX_USER && pMob[conn].Evocation)
+		{
+			int Leader = pMob[conn].Leader;
+
+			SendRemoveParty(Leader, conn);
+
+			pMob[conn].Leader = 0;
+			pMob[conn].Evocation = 0;
+		}*/
+
+		RemoveEvocation(conn);
 		RemoveParty(conn);
 	}
-
 }
 
 void SaveUser(int conn, int Export)
@@ -7079,12 +8163,26 @@ void SaveUser(int conn, int Export)
 	memcpy(sm.affect, pMob[conn].Affect, sizeof(sm.affect));
 	sm.extra = pMob[conn].extra;
 
+	pMob[conn].MOB.SPX = pMob[conn].TargetX;
+	pMob[conn].MOB.SPY = pMob[conn].TargetY;
+
+	sm.MOB.SPX = pMob[conn].MOB.SPX;
+	sm.MOB.SPY = pMob[conn].MOB.SPY;
+
+	pUser[conn].File.Char[pUser[conn].Slot].SPX = sm.MOB.SPX;
+	pUser[conn].File.Char[pUser[conn].Slot].SPY = sm.MOB.SPY;
+
+	pUser[conn].SelChar.SPX[pUser[conn].Slot] = pUser[conn].File.Char[pUser[conn].Slot].SPX;
+	pUser[conn].SelChar.SPY[pUser[conn].Slot] = pUser[conn].File.Char[pUser[conn].Slot].SPY;
+
+	pMob[conn].MissPlayer = FALSE;
+
 	DBServerSocket.SendOneMessage((char*)&sm, sizeof(MSG_DBSaveMob));
 }
 
 void CharLogOut(int conn)
 {
-	if(conn < 0 || conn >= MAX_USER)
+	if (conn < 0 || conn >= MAX_USER)
 	{
 		Log("err,char logout - not conn valid", "-system", 0);
 		return;
@@ -7114,11 +8212,29 @@ void CharLogOut(int conn)
 
 	pUser[conn].SelChar.Score[pUser[conn].Slot].Level = pMob[conn].MOB.BaseScore.Level;
 
+	pMob[conn].MOB.SPX = pMob[conn].TargetX;
+	pMob[conn].MOB.SPY = pMob[conn].TargetY;
+
+	pUser[conn].File.Char[pUser[conn].Slot].SPX = pMob[conn].MOB.SPX;
+	pUser[conn].File.Char[pUser[conn].Slot].SPY = pMob[conn].MOB.SPY;
+
+	pUser[conn].SelChar.SPX[pUser[conn].Slot] = pUser[conn].File.Char[pUser[conn].Slot].SPX;
+	pUser[conn].SelChar.SPY[pUser[conn].Slot] = pUser[conn].File.Char[pUser[conn].Slot].SPY;
+
+	for (int c = 0; c < MAX_AFFECT; c++)
+	{
+		if (pMob[conn].Affect[c].Type != 33)
+		{
+			if ((pMob[conn].MOB.Equip[0].sIndex == 316 || pMob[conn].MOB.Equip[0].sIndex == 317 || pMob[conn].MOB.Equip[0].sIndex == 297 ||
+				pMob[conn].MOB.Equip[0].sIndex == 202 || pMob[conn].MOB.Equip[0].sIndex == 297 || pMob[conn].MOB.Equip[0].sIndex == 209 ||
+				pMob[conn].MOB.Equip[0].sIndex == 212 || pMob[conn].MOB.Equip[0].sIndex == 230 || pMob[conn].MOB.Equip[0].sIndex == 228))
+				pMob[conn].MOB.Equip[0].sIndex = pMob[conn].extra.ClassMaster == MORTAL ? pMob[conn].extra.MortalFace : pMob[conn].extra.MortalFace + 5 + pMob[conn].MOB.Class;
+		}
+	}
+
 	SaveUser(conn, 1);
 	DeleteMob(conn, 2);
 
-	pMob[conn].TargetX = pMob[conn].MOB.SPX;
-	pMob[conn].TargetY = pMob[conn].MOB.SPY;
 	pMob[conn].Mode = 0;
 
 	SendClientSignal(conn, conn, _MSG_CNFCharacterLogout);
@@ -7226,18 +8342,16 @@ void SetBattle(int mob, int target)
 	if (pMob[target].Mode == MOB_EMPTY)
 		return;
 
-	if(mob == target)
+	if (mob == target)
 		return;
 
-	if (mob >= MAX_USER && (target >= MAX_USER ||pUser[target].Mode == USER_PLAY) )
+	if (mob >= MAX_USER && (target >= MAX_USER || pUser[target].Mode == USER_PLAY))
 	{
 		if (pMob[mob].TargetX >= pMob[target].TargetX - 23 && pMob[mob].TargetX <= pMob[target].TargetX + 23 && pMob[mob].TargetY >= pMob[target].TargetY - 23 && pMob[mob].TargetY <= pMob[target].TargetY + 23)
 		{
 			pMob[mob].Mode = MOB_COMBAT;
 
 			pMob[mob].AddEnemyList(target);
-
-			
 
 			int generateindex = pMob[mob].GenerateIndex;
 			int say = rand() % 4;
@@ -7258,8 +8372,8 @@ int  CreateItem(int x, int y, STRUCT_ITEM *item, int rotate, int Create)
 
 	GetEmptyItemGrid(&x, &y);
 
-//	if (pHeightGrid[y][x] >= -15 || pHeightGrid[y][x] >= 90)
-//		return FALSE;
+	//	if (pHeightGrid[y][x] >= -15 || pHeightGrid[y][x] >= 90)
+	//		return FALSE;
 
 	if (pItemGrid[y][x])
 		return FALSE;
@@ -7304,9 +8418,9 @@ int  CreateItem(int x, int y, STRUCT_ITEM *item, int rotate, int Create)
 
 	sm.Rotate = rotate;
 	sm.State = pItem[empty].State;
-//	sm.Create = Create;
+	//	sm.Create = Create;
 
-//	sm.Height = pItem[empty].Height;
+	//	sm.Height = pItem[empty].Height;
 
 	if (Create == 2)//Bau
 		sm.Height = -204;
@@ -7387,10 +8501,10 @@ void RemoveParty(int conn)
 					if (partyconn == conn)
 						pMob[leader].PartyList[i] = 0;
 
-					if(pMob[partyconn].Summoner && pMob[partyconn].Summoner == conn)
+					if (pMob[partyconn].Summoner && pMob[partyconn].Summoner == conn)
 						DeleteMob(partyconn, 3);
 
-					if(!pMob[partyconn].Summoner && partyconn >= MAX_USER && leader < MAX_USER)
+					if (!pMob[partyconn].Summoner && partyconn >= MAX_USER && leader < MAX_USER)
 						DeleteMob(partyconn, 3);
 
 					if (partyconn > 0 && partyconn <= MAX_USER && pUser[partyconn].Mode == USER_PLAY)
@@ -7407,15 +8521,15 @@ void RemoveParty(int conn)
 			{
 				int partyconn = pMob[conn].PartyList[i];
 
-				if(partyconn != 0 && partyconn < MAX_USER)
+				if (partyconn != 0 && partyconn < MAX_USER)
 				{
 					novolider = partyconn;
 
-					for(int s = 0; s < 7; s++)
+					for (int s = 0; s < 7; s++)
 					{
-						for(int t = 0; t < 3; t++)
+						for (int t = 0; t < 3; t++)
 						{
-							if(Pista[s].Party[t].LeaderID == conn && strcmp(Pista[s].Party[t].LeaderName, pMob[conn].MOB.MobName) == 0)
+							if (Pista[s].Party[t].LeaderID == conn && strcmp(Pista[s].Party[t].LeaderName, pMob[conn].MOB.MobName) == 0)
 							{
 								strncpy(Pista[s].Party[t].LeaderName, pMob[novolider].MOB.MobName, NAME_LENGTH);
 								Pista[s].Party[t].LeaderID = novolider;
@@ -7446,7 +8560,7 @@ void RemoveParty(int conn)
 
 						pMob[partyconn].Summoner = 0;
 					}
-					if(novolider != 0 && novolider != partyconn && partyconn < MAX_USER && novolider < MAX_USER)
+					if (novolider != 0 && novolider != partyconn && partyconn < MAX_USER && novolider < MAX_USER)
 					{
 						MSG_AcceptParty sm;
 						memset(&sm, 0, sizeof(MSG_AcceptParty));
@@ -7463,6 +8577,55 @@ void RemoveParty(int conn)
 
 						ProcessClientMessage(partyconn, (char*)&sm, TRUE);
 					}
+				}
+			}
+		}
+	}
+}
+
+void RemoveEvocation(int conn)
+{
+	int leader = pMob[conn].Leader;
+
+	if (leader < 0 || leader >= MAX_MOB)
+	{
+		Log("err,RemoveParty but worng leader", pUser[conn].AccountName, pUser[conn].IP);
+		return;
+	}
+
+	if (leader && leader < MAX_USER && pUser[leader].Mode != USER_PLAY)
+	{
+		Log("err,removeparty - conn mode", pUser[conn].AccountName, pUser[conn].IP);
+		Log("err,removeparty - leader mode", pUser[conn].AccountName, pUser[conn].IP);
+
+		pMob[conn].Leader = 0;
+		pMob[conn].Evocation = 0;
+	}
+	else
+	{
+		if (conn > 0 && conn < MAX_USER)
+			memset(&pMob[conn].Evocations, 0, sizeof(pMob[conn].Evocations));
+
+		if (leader)
+		{
+			SendRemoveParty(leader, conn);
+			pMob[conn].Leader = 0;
+			pMob[conn].Evocation = 0;
+
+			for (int i = 0; i < MAX_PARTY; i++)
+			{
+				int partyconn = pMob[leader].Evocations[i];
+
+				if (partyconn)
+				{
+					if (partyconn == conn)
+						pMob[leader].Evocations[i] = 0;
+
+					if (pMob[partyconn].Summoner && pMob[partyconn].Summoner == conn)
+						DeleteMob(partyconn, 3);
+
+					if (!pMob[partyconn].Summoner && partyconn >= MAX_USER && leader < MAX_USER)
+						DeleteMob(partyconn, 3);
 				}
 			}
 		}
@@ -7580,10 +8743,10 @@ void DoRecall(int conn)
 		}
 	}
 
-	if(pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level < FREEEXP)
+	if (pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level < FREEEXP)
 	{
-		x = 2112 + rand()%5 - 3;
-		y = 2042 + rand()%5 - 3;
+		x = 2112 + rand() % 5 - 3;
+		y = 2042 + rand() % 5 - 3;
 	}
 
 	int tret = GetEmptyMobGrid(conn, &x, &y);
@@ -7792,16 +8955,16 @@ void DoDeprivate(int conn, int target)
 	{
 		Disqualified = TRUE;
 
-		if(pMob[target].MOB.GuildLevel >= 6 && pMob[target].MOB.GuildLevel <= 8)
+		if (pMob[target].MOB.GuildLevel >= 6 && pMob[target].MOB.GuildLevel <= 8)
 		{
-			if(GuildInfo[gGuild].Sub1 != 0)
+			if (GuildInfo[gGuild].Sub1 != 0)
 				GuildInfo[gGuild].Sub1 = 0;
-			else if(GuildInfo[gGuild].Sub2 != 0)
+			else if (GuildInfo[gGuild].Sub2 != 0)
 				GuildInfo[gGuild].Sub2 = 0;
-		
-			else if(GuildInfo[gGuild].Sub3 != 0)
+
+			else if (GuildInfo[gGuild].Sub3 != 0)
 				GuildInfo[gGuild].Sub3 = 0;
-		
+
 
 			sprintf(temp, "etc,subdelete subname:%s guild:%d ", pMob[target].MOB.MobName, Guild);
 			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -8091,7 +9254,7 @@ void DoRanking(int tDuel, int conn, int enemy)
 	if (GuildR1 <= 0 || GuildR2 <= 0)
 		return;
 
-	if(GuildR1 == GuildR2)
+	if (GuildR1 == GuildR2)
 		return;
 
 	RankingProgress = tDuel + 1;
@@ -8187,6 +9350,87 @@ void DoRemoveHide(int conn)
 	}
 }
 
+
+void DoRemoveMutation(int conn)
+{
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	for (int i = 0; i < MAX_AFFECT; i++)
+	{
+		if (pMob[conn].Affect[i].Type != 33)
+			continue;
+
+		pMob[conn].Affect[i].Type = 0;
+		pMob[conn].Affect[i].Value = 0;
+		pMob[conn].Affect[i].Level = 0;
+		pMob[conn].Affect[i].Time = 0;
+
+		if ((pMob[conn].MOB.Equip[0].sIndex == 316 || pMob[conn].MOB.Equip[0].sIndex == 317 || pMob[conn].MOB.Equip[0].sIndex == 297 ||
+			pMob[conn].MOB.Equip[0].sIndex == 202 || pMob[conn].MOB.Equip[0].sIndex == 297 || pMob[conn].MOB.Equip[0].sIndex == 209 ||
+			pMob[conn].MOB.Equip[0].sIndex == 212 || pMob[conn].MOB.Equip[0].sIndex == 230 || pMob[conn].MOB.Equip[0].sIndex == 228))
+			pMob[conn].MOB.Equip[0].sIndex = pMob[conn].extra.ClassMaster == MORTAL ? pMob[conn].extra.MortalFace : pMob[conn].extra.MortalFace + 5 + pMob[conn].MOB.Class;
+
+		pMob[conn].GetCurrentScore(conn);
+		SendScore(conn);
+		SendEquip(conn, 0);
+
+		break;
+	}
+}
+
+
+void DoRemoveAbsoluteProtection(int conn)
+{
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	for (int i = 0; i < MAX_AFFECT; i++)
+	{
+		if (pMob[conn].Affect[i].Type != 6)
+			continue;
+
+		pMob[conn].Affect[i].Type = 0;
+		pMob[conn].Affect[i].Value = 0;
+		pMob[conn].Affect[i].Level = 0;
+		pMob[conn].Affect[i].Time = 0;
+
+		pMob[conn].GetCurrentScore(conn);
+		SendScore(conn);
+
+		break;
+	}
+}
+
+void DoRemoveAllBuffs(int conn)
+{
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	for (int i = 0; i < MAX_AFFECT; i++)
+	{
+		if (pMob[conn].Affect[i].Type != 2 || pMob[conn].Affect[i].Type != 6 || pMob[conn].Affect[i].Type != 9 ||
+			pMob[conn].Affect[i].Type != 11 || pMob[conn].Affect[i].Type != 13 || pMob[conn].Affect[i].Type != 14 ||
+			pMob[conn].Affect[i].Type != 15 || pMob[conn].Affect[i].Type != 16 || pMob[conn].Affect[i].Type != 17 ||
+			pMob[conn].Affect[i].Type != 18 || pMob[conn].Affect[i].Type != 19 || pMob[conn].Affect[i].Type != 21 ||
+			pMob[conn].Affect[i].Type != 22 || pMob[conn].Affect[i].Type != 23 || pMob[conn].Affect[i].Type != 24 ||
+			pMob[conn].Affect[i].Type != 25 || pMob[conn].Affect[i].Type != 26 || pMob[conn].Affect[i].Type != 27 ||
+			pMob[conn].Affect[i].Type != 31 || pMob[conn].Affect[i].Type != 36 || pMob[conn].Affect[i].Type != 37 ||
+			pMob[conn].Affect[i].Type != 38 || pMob[conn].Affect[i].Type != 42 || pMob[conn].Affect[i].Type != 43)
+			continue;
+
+		pMob[conn].Affect[i].Type = 0;
+		pMob[conn].Affect[i].Value = 0;
+		pMob[conn].Affect[i].Level = 0;
+		pMob[conn].Affect[i].Time = 0;
+
+		pMob[conn].GetCurrentScore(conn);
+		SendScore(conn);
+
+		break;
+	}
+}
+
 void DoRemoveSamaritano(int conn)
 {
 	if (conn <= 0 || conn >= MAX_USER)
@@ -8267,6 +9511,72 @@ void DoGreatTeleport(int mob, int x, int y)
 	}
 }
 
+BOOL SetAffect1(int conn, int skillnum, int time, int Level)
+{
+	if (skillnum < 104)
+	{
+		if (pMob[conn].MOB.Merchant != 1 || conn <= MAX_USER)
+		{
+			int sAffectType = g_pSpell[skillnum].AffectType;
+			int sAggressive = g_pSpell[skillnum].Aggressive;
+			int sAffectTime = g_pSpell[skillnum].AffectTime;
+			int unk = skillnum / 24 % 4;
+			int unk2 = skillnum % 24 / 8;
+			int sTickType = g_pSpell[skillnum].TickType;
+			int unk3 = 0;
+
+			if (skillnum != 47 && pMob[conn].MOB.Rsv & 0x200 && sAggressive)
+				return FALSE;
+			else
+			{
+				if (skillnum == 47 && pMob[conn].MOB.Rsv & 0x200)
+				{
+					for (int i = 1; i < MAX_AFFECT; i++)
+					{
+						if (pMob[conn].Affect[i].Type == 19)
+						{
+							pMob[conn].Affect[i].Type = 0;
+							pMob[conn].Affect[i].Time = 0;
+							pMob[conn].GetCurrentScore(conn);
+							SendScore(conn);
+							//Level = 0;
+							//return Level;
+
+							return FALSE;
+						}
+					}
+				}
+
+				if (skillnum == 102)
+					unk3 = 15;
+				else
+				{
+					unk3 = GetEmptyAffect(conn, sAffectType);
+
+					if (sAffectType > 0)
+						unk3 = GetEmptyAffect(conn, sAffectType);
+
+					if (sTickType > 0)
+						unk3 = GetEmptyAffect(conn, sTickType);
+				}
+
+				if (unk3 < 0 || unk3 >= 16)
+					return FALSE;
+				else
+				{
+					if (sTickType)
+					{
+
+					}
+					else
+					{
+
+					}
+				}
+			}
+		}
+	}
+}
 BOOL SetAffect(int conn, int skillnum, int time, int Level)
 {
 	if (pMob[conn].MOB.Merchant == 1 || conn > MAX_USER)
@@ -8278,9 +9588,14 @@ BOOL SetAffect(int conn, int skillnum, int time, int Level)
 	if (pMob[conn].MOB.Rsv & RSV_BLOCK && sAggressive)
 		return FALSE;
 
-	int EmptyAffect = GetEmptyAffect(conn, sAffectType);
+	int EmptyAffect = 0;
 
-	if (sAffectType <= 0 || EmptyAffect  < 0 || EmptyAffect >= MAX_AFFECT)
+	if (skillnum == 102)
+		EmptyAffect = 15;
+	else
+		EmptyAffect = GetEmptyAffect(conn, sAffectType);
+
+	if (sAffectType <= 0 || EmptyAffect < 0 || EmptyAffect >= MAX_AFFECT)
 		return FALSE;
 
 	int sType = pMob[conn].Affect[EmptyAffect].Type;
@@ -8290,18 +9605,16 @@ BOOL SetAffect(int conn, int skillnum, int time, int Level)
 
 	int sTime = (g_pSpell[skillnum].AffectTime + 1) * time / 100;
 
-	if(sType == 1 || sType == 3 || sType == 10)
+	if (sType == 1 || sType == 3 || sType == 10)
 		sTime = 4;
 
 	if (sType == sAffectType && (unsigned int)sTime > pMob[conn].Affect[EmptyAffect].Time)
 		pMob[conn].Affect[EmptyAffect].Time = sTime;
-
 	else
 		pMob[conn].Affect[EmptyAffect].Time = sTime;
 
 	if (sType == sAffectType && Level > pMob[conn].Affect[EmptyAffect].Level)
 		pMob[conn].Affect[EmptyAffect].Level = Level;
-
 	else
 		pMob[conn].Affect[EmptyAffect].Level = Level;
 
@@ -8309,7 +9622,6 @@ BOOL SetAffect(int conn, int skillnum, int time, int Level)
 		pMob[conn].Affect[EmptyAffect].Time = 2139062143;
 
 	pMob[conn].GetCurrentScore(conn);
-
 
 	return TRUE;
 }
@@ -8325,9 +9637,14 @@ BOOL SetTick(int mob, int skillnum, int Delay, int Level)
 	if ((pMob[mob].MOB.Rsv & RSV_BLOCK) && (sAggressive != 0))
 		return 0;
 
-	int EmptyAffect = GetEmptyAffect(mob, sTickType);
+	int EmptyAffect = 0;
 
-	if (sTickType > 0 && EmptyAffect >= 0 && EmptyAffect < MAX_AFFECT)
+	if (skillnum == 102)
+		EmptyAffect = 15;
+	else
+		EmptyAffect = GetEmptyAffect(mob, sTickType);
+
+	if (sTickType > 0 && EmptyAffect >= 0 && EmptyAffect < MAX_AFFECT) //EmptyAffect >= 0
 	{
 		pMob[mob].Affect[EmptyAffect].Type = sTickType;
 		pMob[mob].Affect[EmptyAffect].Value = g_pSpell[skillnum].TickValue;
@@ -8336,14 +9653,13 @@ BOOL SetTick(int mob, int skillnum, int Delay, int Level)
 		if (Delay >= 500000000)
 			pMob[mob].Affect[EmptyAffect].Time = 500000000;
 
-		if(pMob[mob].Affect[EmptyAffect].Time >= 3 && (sTickType == 1 || sTickType == 3 || sTickType == 10))
+		if (pMob[mob].Affect[EmptyAffect].Time >= 3 && (sTickType == 1 || sTickType == 3 || sTickType == 10))
 			pMob[mob].Affect[EmptyAffect].Time = 2;
 
 		pMob[mob].Affect[EmptyAffect].Level = Level;
 
 		pMob[mob].GetCurrentScore(mob);
 
-		
 		return TRUE;
 	}
 
@@ -8592,13 +9908,13 @@ int ApplyHp(int conn)
 {
 	int retnValue = FALSE;
 
-	if(pUser[conn].ReqHp > pMob[conn].MOB.CurrentScore.MaxHp)
+	if (pUser[conn].ReqHp > pMob[conn].MOB.CurrentScore.MaxHp)
 		pUser[conn].ReqHp = pMob[conn].MOB.CurrentScore.MaxHp;
 
 	int hp = pMob[conn].MOB.CurrentScore.Hp;
 	int reqhp = pUser[conn].ReqHp;
 
-	if(reqhp > hp)
+	if (reqhp > hp)
 	{
 		int hpdif = reqhp - hp;
 		if (reqhp - hp > 2000)
@@ -8611,7 +9927,7 @@ int ApplyHp(int conn)
 
 		pMob[conn].MOB.CurrentScore.Hp = hp;
 
-		if(pMob[conn].MOB.CurrentScore.Hp > reqhp)
+		if (pMob[conn].MOB.CurrentScore.Hp > reqhp)
 			pMob[conn].MOB.CurrentScore.Hp = reqhp;
 
 		retnValue = TRUE;
@@ -8696,10 +10012,10 @@ void ClearMapa(int x, int y)
 		if (pMob[i].Mode == MOB_EMPTY)
 			continue;
 
-		if ((pMob[i].TargetX /128) != x || (pMob[i].TargetY / 128) != y)
+		if ((pMob[i].TargetX / 128) != x || (pMob[i].TargetY / 128) != y)
 			continue;
 
-		if(pMob[i].MOB.CurrentScore.Hp == 0)
+		if (pMob[i].MOB.CurrentScore.Hp == 0)
 		{
 			pMob[i].MOB.CurrentScore.Hp = 2;
 
@@ -8742,12 +10058,12 @@ void ReadLevelItemConfig(void)
 
 	memset(&LevelItem, 0, sizeof(LevelItem));
 
-	while(1)
+	while (1)
 	{
 		char tmp[256];
 		char *ret = fgets(tmp, 256, fp);
 
-		if(ret == NULL)
+		if (ret == NULL)
 			break;
 
 		int cls = 0;
@@ -8769,7 +10085,7 @@ void ReadLevelItemConfig(void)
 		Item.stEffect[2].cEffect = ival6;
 		Item.stEffect[2].cValue = ival7;
 
-		if(cls == 4 && type != 4)//Item para todas as classes mais nÃ£o para todas build
+		if (cls == 4 && type != 4)//Item para todas as classes mais não para todas build
 		{
 			LevelItem[0][type][level] = Item;
 			LevelItem[1][type][level] = Item;
@@ -8777,17 +10093,17 @@ void ReadLevelItemConfig(void)
 			LevelItem[3][type][level] = Item;
 		}
 
-		else if(cls == 4 && type == 4)//Item para todas as classes e todas as build
+		else if (cls == 4 && type == 4)//Item para todas as classes e todas as build
 		{
-			for(int j = 0; j < 4; j++)
+			for (int j = 0; j < 4; j++)
 			{
-				for(int k = 0; k < 4; k++)
+				for (int k = 0; k < 4; k++)
 					LevelItem[j][k][level] = Item;
 			}
-			
+
 		}
 
-		else if(type == 4)//Item para todas as build
+		else if (type == 4)//Item para todas as build
 		{
 			LevelItem[cls][0][level] = Item;
 			LevelItem[cls][1][level] = Item;
@@ -8806,19 +10122,31 @@ void DoItemLevel(int conn)
 {
 	int type = 0;
 
-	if(pMob[conn].MOB.BaseScore.Str > pMob[conn].MOB.BaseScore.Int && pMob[conn].MOB.BaseScore.Str > pMob[conn].MOB.BaseScore.Dex && pMob[conn].MOB.BaseScore.Str > pMob[conn].MOB.BaseScore.Con)
+	/*if(pMob[conn].MOB.BaseScore.Special[0] > pMob[conn].MOB.BaseScore.Special[1] && pMob[conn].MOB.BaseScore.Special[0] > pMob[conn].MOB.BaseScore.Special[2] && pMob[conn].MOB.BaseScore.Special[0] > pMob[conn].MOB.BaseScore.Special[3])
 		type = 0;
-			
-	else if(pMob[conn].MOB.BaseScore.Int > pMob[conn].MOB.BaseScore.Str && pMob[conn].MOB.BaseScore.Int > pMob[conn].MOB.BaseScore.Dex && pMob[conn].MOB.BaseScore.Int > pMob[conn].MOB.BaseScore.Con)
+
+	else if(pMob[conn].MOB.BaseScore.Special[1] > pMob[conn].MOB.BaseScore.Special[0] && pMob[conn].MOB.BaseScore.Special[1] > pMob[conn].MOB.BaseScore.Special[2] && pMob[conn].MOB.BaseScore.Special[1] > pMob[conn].MOB.BaseScore.Special[3])
 		type = 1;
 
-	else if(pMob[conn].MOB.BaseScore.Dex > pMob[conn].MOB.BaseScore.Str && pMob[conn].MOB.BaseScore.Dex > pMob[conn].MOB.BaseScore.Int && pMob[conn].MOB.BaseScore.Dex > pMob[conn].MOB.BaseScore.Con)
+	else if(pMob[conn].MOB.BaseScore.Special[2] > pMob[conn].MOB.BaseScore.Special[0] && pMob[conn].MOB.BaseScore.Special[2] > pMob[conn].MOB.BaseScore.Special[1] && pMob[conn].MOB.BaseScore.Special[2] > pMob[conn].MOB.BaseScore.Special[3])
+		type = 2;
+
+	else
+		type = 3;*/
+
+	if (pMob[conn].MOB.BaseScore.Str > pMob[conn].MOB.BaseScore.Int && pMob[conn].MOB.BaseScore.Str > pMob[conn].MOB.BaseScore.Dex && pMob[conn].MOB.BaseScore.Str > pMob[conn].MOB.BaseScore.Con)
+		type = 0;
+
+	else if (pMob[conn].MOB.BaseScore.Int > pMob[conn].MOB.BaseScore.Str && pMob[conn].MOB.BaseScore.Int > pMob[conn].MOB.BaseScore.Dex && pMob[conn].MOB.BaseScore.Int > pMob[conn].MOB.BaseScore.Con)
+		type = 1;
+
+	else if (pMob[conn].MOB.BaseScore.Dex > pMob[conn].MOB.BaseScore.Str && pMob[conn].MOB.BaseScore.Dex > pMob[conn].MOB.BaseScore.Int && pMob[conn].MOB.BaseScore.Dex > pMob[conn].MOB.BaseScore.Con)
 		type = 2;
 
 	else
 		type = 3;
 
-	if(LevelItem[pMob[conn].MOB.Class][type][pMob[conn].MOB.BaseScore.Level].sIndex != 0)
+	if (LevelItem[pMob[conn].MOB.Class][type][pMob[conn].MOB.BaseScore.Level].sIndex != 0)
 	{
 		for (int i = 0; i < MAX_CARGO - 2; i++)
 		{
@@ -8851,64 +10179,255 @@ void DoItemLevel(int conn)
 		}
 	}
 }
-	
+
+/*void SetCircletSubGod(int conn)
+{
+	int type1 = pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_SANC;
+	int typefv1 = pMob[conn].MOB.Equip[1].stEffect[0].cValue;
+	int type2 = pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_SANC;
+	int typefv2 = pMob[conn].MOB.Equip[1].stEffect[1].cValue;
+	int type3 = pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_SANC;
+	int typefv3 = pMob[conn].MOB.Equip[1].stEffect[2].cValue;
+
+	if (pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.Equip[1].sIndex >= 3500 && pMob[conn].MOB.Equip[1].sIndex <= 3507)
+	{
+		if (pMob[conn].MOB.BaseScore.Level == 119 && pMob[conn].extra.QuestInfo.Celestial.Add120 == 0) // Nível 120
+		{
+			if (type1)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = typefv1;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 30;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 40;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add120 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type2)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 30;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = typefv2;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 40;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add120 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type3)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 30;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 40;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = typefv3;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add120 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+		}
+		if (pMob[conn].MOB.BaseScore.Level == 149 && pMob[conn].extra.QuestInfo.Celestial.Add150 == 0) // Nível 150
+		{
+			if (type1)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = typefv1;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 35;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 50;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add150 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type2)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 35;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = typefv2;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 50;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add150 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type3)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 35;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 50;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = typefv3;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add150 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+		}
+		if (pMob[conn].MOB.BaseScore.Level == 179 && pMob[conn].extra.QuestInfo.Celestial.Add180 == 0) // Nível 180
+		{
+			if (type1)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = typefv1;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 45;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 60;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add180 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type2)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 45;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = typefv2;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 60;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add180 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type3)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 45;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 60;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = typefv3;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add180 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+		}
+		if (pMob[conn].MOB.BaseScore.Level == 199 && pMob[conn].extra.QuestInfo.Celestial.Add200 == 0) // Nível 200
+		{
+			if (type1)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = typefv1;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 50;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 70;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add200 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type2)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 50;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = typefv2;
+				pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = 70;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add200 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+			else if (type3)
+			{
+				pMob[conn].MOB.Equip[1].stEffect[0].cEffect = EF_AC;
+				pMob[conn].MOB.Equip[1].stEffect[0].cValue = 50;
+				pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_HP;
+				pMob[conn].MOB.Equip[1].stEffect[1].cValue = 70;
+				pMob[conn].MOB.Equip[1].stEffect[2].cValue = typefv3;
+
+				pMob[conn].extra.QuestInfo.Celestial.Add200 = TRUE;
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+			}
+		}
+	}
+}*/
+
 void SetCircletSubGod(int conn)
 {
-	if(pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 120 && pMob[conn].extra.QuestInfo.Celestial.Add120 == 0)
+	if (pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 120 && pMob[conn].extra.QuestInfo.Celestial.Add120 == 0)
 	{
-		pMob[conn].extra.QuestInfo.Celestial.Add120 = 1;
-
-		if(pMob[conn].MOB.Equip[1].sIndex != 0)
+		if (PutAddOnItem(&pMob[conn].MOB.Equip[1], EF_AC, EF_HP, 30, 40))
 		{
-			pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
-			pMob[conn].MOB.Equip[1].stEffect[1].cValue = 30;
-			pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
-			pMob[conn].MOB.Equip[1].stEffect[2].cValue = 40;
+			pMob[conn].extra.QuestInfo.Celestial.Add120 = 1;
 			SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
 		}
 	}
 
-	if(pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 150 && pMob[conn].extra.QuestInfo.Celestial.Add150 == 0)
+	if (pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 150 && pMob[conn].extra.QuestInfo.Celestial.Add150 == 0)
 	{
-		pMob[conn].extra.QuestInfo.Celestial.Add150 = 1;
-
-		if(pMob[conn].MOB.Equip[1].sIndex != 0)
+		if (PutAddOnItem(&pMob[conn].MOB.Equip[1], EF_AC, EF_HP, 35, 50))
 		{
-			pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
-			pMob[conn].MOB.Equip[1].stEffect[1].cValue = 35;
-			pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
-			pMob[conn].MOB.Equip[1].stEffect[2].cValue = 50;
+			pMob[conn].extra.QuestInfo.Celestial.Add150 = 1;
 			SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
 		}
 	}
 
-	if(pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 180 && pMob[conn].extra.QuestInfo.Celestial.Add180 == 0)
+	if (pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 180 && pMob[conn].extra.QuestInfo.Celestial.Add180 == 0)
 	{
-		pMob[conn].extra.QuestInfo.Celestial.Add180 = 1;
-
-		if(pMob[conn].MOB.Equip[1].sIndex != 0)
+		if (PutAddOnItem(&pMob[conn].MOB.Equip[1], EF_AC, EF_HP, 45, 60))
 		{
-			pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
-			pMob[conn].MOB.Equip[1].stEffect[1].cValue = 45;
-			pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
-			pMob[conn].MOB.Equip[1].stEffect[2].cValue = 60;
+			pMob[conn].extra.QuestInfo.Celestial.Add180 = 1;
 			SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
 		}
 	}
 
-	if(pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 199 && pMob[conn].extra.QuestInfo.Celestial.Add200 == 0)
+	if (pMob[conn].extra.ClassMaster == SCELESTIAL && pMob[conn].MOB.BaseScore.Level == 199 && pMob[conn].extra.QuestInfo.Celestial.Add200 == 0)
 	{
-		pMob[conn].extra.QuestInfo.Celestial.Add200 = 1;
-
-		if(pMob[conn].MOB.Equip[1].sIndex != 0)
+		if (PutAddOnItem(&pMob[conn].MOB.Equip[1], EF_AC, EF_HP, 50, 70))
 		{
-			pMob[conn].MOB.Equip[1].stEffect[1].cEffect = EF_AC;
-			pMob[conn].MOB.Equip[1].stEffect[1].cValue = 50;
-			pMob[conn].MOB.Equip[1].stEffect[2].cEffect = EF_HP;
-			pMob[conn].MOB.Equip[1].stEffect[2].cValue = 70;
+			pMob[conn].extra.QuestInfo.Celestial.Add200 = 1;
 			SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
 		}
 	}
+
+}
+
+bool PutAddOnItem(STRUCT_ITEM *Item, UINT8 ef1, UINT8 ef2, UINT8 efv1, UINT8 efv2)
+{
+	if (Item->sIndex < 0 || Item->sIndex > 6500) // Id inválido
+		return false;
+	else if (ef1 && !efv1) // Diz que vai por add mas não tem o valor
+		return false;
+	else if (ef2 && !efv2) // '''''''''''''''''''''''''''''''''''''''
+		return false;
+	else if (!ef1 && efv1) // '''''''''''''''''''''''''''''''''''''''
+		return false;
+	else if (!ef2 && efv2) // '''''''''''''''''''''''''''''''''''''''
+		return false;
+
+	// Salva a sanc do item
+	UINT8 Sanc = 0;
+
+	Sanc = GetItemSanc(Item);
+
+	// Zera os adds prévios do item
+	memset(Item->stEffect, 0x0, 6);
+
+	INT8 value = 0;
+
+	if (Sanc)
+	{
+		value++;
+
+		// Põe a sanc anterior do item nele novamente
+		SetItemSanc(Item, Sanc);
+	}
+	// Seta os novos adicionais
+	Item->stEffect[value].cEffect = ef1;
+	Item->stEffect[value].cValue = efv1;
+
+	Item->stEffect[value + 1].cEffect = ef2;
+	Item->stEffect[value + 1].cValue = efv2;
+
+	return true;
 }
 
 void SummonServer(int tx, int ty)
@@ -8926,18 +10445,18 @@ void SummonServer(int tx, int ty)
 
 void MobAttack(int attacker, MSG_Attack sm)
 {
-	int _rd = rand()%100;
+	int _rd = rand() % 100;
 
-	if(sm.SkillIndex == 109)
+	if (sm.SkillIndex == 109)
 	{
-		if(_rd < 40)
+		if (_rd < 40)
 			sm.SkillIndex = 110;
 
-		else if(_rd < 80)
+		else if (_rd < 80)
 			sm.SkillIndex = 111;
 	}
 
-	for(int i = 0; i < MAX_TARGET; i++)
+	for (int i = 0; i < MAX_TARGET; i++)
 	{
 		int skillbase = sm.SkillIndex;
 		int Target = sm.Dam[i].TargetID;
@@ -8952,8 +10471,8 @@ void MobAttack(int attacker, MSG_Attack sm)
 
 		Target = sm.Dam[i].TargetID;
 
-		if(skillbase != 109)
-			sm.Dam[i].Damage = 500 + rand()%200;
+		if (skillbase != 109)
+			sm.Dam[i].Damage = 500 + rand() % 200;
 
 		sm.SkillIndex = skillbase;
 
@@ -8969,9 +10488,9 @@ void MobAttack(int attacker, MSG_Attack sm)
 			if (kind >= 1 && kind <= 3)
 			{
 				int special = pMob[attacker].MOB.CurrentScore.Special[kind];
-						
+
 				int NeedUpdate = 0;
-						
+
 				if (SetAffect(Target, skill, 100, special) != FALSE)
 					NeedUpdate = 1;
 
@@ -9012,7 +10531,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 		}
 
 		int TargetLeader = pMob[Target].CurrentTarget;
-		
+
 		if (sm.Dam[i].Damage > 0)
 		{
 			if (TargetLeader <= MOB_EMPTY)
@@ -9038,6 +10557,28 @@ void MobAttack(int attacker, MSG_Attack sm)
 					}
 
 					pMob[TargetLeader].PartyList[attacker] = MOB_EMPTY;
+					continue;
+				}
+
+				SetBattle(partyconn, attacker);
+				SetBattle(attacker, partyconn);
+			}
+
+			for (int z = 0; z < MAX_PARTY; z++)
+			{
+				int partyconn = pMob[TargetLeader].Evocations[z];
+				if (partyconn <= MAX_USER)
+					continue;
+
+				if (pMob[partyconn].Mode == MOB_EMPTY || pMob[partyconn].MOB.CurrentScore.Hp <= 0)
+				{
+					if (pMob[partyconn].Mode != MOB_EMPTY)
+					{
+						pMob[partyconn].MOB.CurrentScore.Hp = 0;
+						DeleteMob(partyconn, 1);
+					}
+
+					pMob[TargetLeader].Evocations[attacker] = MOB_EMPTY;
 					continue;
 				}
 
@@ -9103,7 +10644,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 			{
 				if (pMob[Target].Affect[c].Type == 18)
 				{
-					if (pMob[Target].MOB.CurrentScore.Mp >((pMob[Target].MOB.CurrentScore.MaxMp / 100) * 10))
+					if (pMob[Target].MOB.CurrentScore.Mp > ((pMob[Target].MOB.CurrentScore.MaxMp / 100) * 10))
 					{
 						int mana = pMob[Target].MOB.CurrentScore.Mp - (DamageNow >> 1);
 
@@ -9127,7 +10668,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 			if (pMob[Target].MOB.Equip[13].sIndex == 786)
 			{
 				int sanc = pMob[Target].MOB.Equip[13].stEffect[0].cValue;
-				
+
 				if (sanc < 2)
 					sanc = 2;
 
@@ -9136,7 +10677,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 			else if (pMob[Target].MOB.Equip[13].sIndex == 1936)
 			{
 				int sanc = pMob[Target].MOB.Equip[13].stEffect[0].cValue;
-				
+
 				if (sanc < 2)
 					sanc = 2;
 
@@ -9147,7 +10688,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 			else if (pMob[Target].MOB.Equip[13].sIndex == 1937)
 			{
 				int sanc = pMob[Target].MOB.Equip[13].stEffect[0].cValue;
-				
+
 				if (sanc < 2)
 					sanc = 2;
 
@@ -9166,7 +10707,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 
 			}
 
-			if(Target > MAX_USER)
+			if (Target > MAX_USER)
 				SendScore(Target);
 
 			if (Target > MAX_USER && pMob[Target].MOB.Clan == 4)
@@ -9186,7 +10727,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 			else
 				pUser[Target].ReqHp = pUser[Target].ReqHp - sm.Dam[i].Damage;
 
-			if(sm.SkillIndex == 109)
+			if (sm.SkillIndex == 109)
 			{
 				pMob[Target].MOB.CurrentScore.Hp = 0;
 				pUser[Target].ReqHp = 0;
@@ -9199,7 +10740,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 		if (pMob[Target].MOB.CurrentScore.Hp <= 0)
 		{
 			pMob[Target].MOB.CurrentScore.Hp = 0;
-					
+
 			MobKilled(Target, attacker, 0, 0);
 		}
 	}
@@ -9215,7 +10756,11 @@ void StartChatLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(temp, ".\\chat_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(temp, ".\\Logs\\chat_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+
+	char tmg[256];
+	sprintf(tmg, "chat logs started successfully");
+	Log(tmg, "-system", 0);
 
 	fChatLogFile = fopen(temp, "wt");
 
@@ -9237,7 +10782,7 @@ void ChatLog(char *str1, char *str2, unsigned int ip)
 		sprintf(LogTemp, "%02d.%02d.%04d.%02d.%02d.%02d IP: %d.%d.%d.%d", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cIP[0], cIP[1], cIP[2], cIP[3]);
 	else
 		sprintf(LogTemp, "%02d.%02d.%04d.%02d.%02d.%02d ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
-	
+
 	sprintf(LogTemp, "%s %s %s \n", LogTemp, str2, str1);
 
 	if (fChatLogFile)
@@ -9254,7 +10799,11 @@ void StartItemLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(temp, ".\\item_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(temp, ".\\Logs\\item_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+
+	char tmg[256];
+	sprintf(tmg, "item logs started successfully");
+	Log(tmg, "-system", 0);
 
 	fItemLogFile = fopen(temp, "wt");
 
@@ -9276,7 +10825,7 @@ void ItemLog(char *str1, char *str2, unsigned int ip)
 		sprintf(LogTemp, "%02d.%02d.%04d.%02d.%02d.%02d IP: %d.%d.%d.%d", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cIP[0], cIP[1], cIP[2], cIP[3]);
 	else
 		sprintf(LogTemp, "%02d.%02d.%04d.%02d.%02d.%02d ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
-	
+
 	sprintf(LogTemp, "%s %s %s \n", LogTemp, str2, str1);
 
 	if (fItemLogFile)
@@ -9317,7 +10866,7 @@ int  ParseMobMercString(int Num, char *str)
 	char item_str7[256];
 	char item_str8[256];
 
-	int item_value[8] = { 0, 0, 0, 0, 0, 0, 0 , 0};
+	int item_value[8] = { 0, 0, 0, 0, 0, 0, 0 , 0 };
 
 	sscanf(str2, "%s %s %s %s %s %s %s - %s", item_str1, item_str2, item_str3, item_str4, item_str5, item_str6, item_str7, item_str8);
 	item_value[0] = atoi(item_str1);
@@ -9446,4 +10995,679 @@ int  CreateTreasureBox(int x, int y, STRUCT_ITEM *item, int rotate, int State)
 	GridMulticast(x, y, (MSG_STANDARD*)&sm, 0);
 
 	return TRUE;
+}
+
+void RefinarItemMais(STRUCT_ITEM *item, int value)
+{
+	if (item->stEffect[1].cEffect == EF_SANC || (item->stEffect[1].cEffect >= 116 && item->stEffect[1].cEffect <= 125))
+		item->stEffect[1].cValue += value;
+	else if (item->stEffect[2].cEffect == EF_SANC || (item->stEffect[2].cEffect >= 116 && item->stEffect[2].cEffect <= 125))
+		item->stEffect[2].cValue += value;
+	else if (item->stEffect[3].cEffect == EF_SANC || (item->stEffect[3].cEffect >= 116 && item->stEffect[3].cEffect <= 125))
+		item->stEffect[1].cValue += value;
+	else
+	{
+		if (!item->stEffect[1].cEffect)
+		{
+			item->stEffect[1].cEffect = EF_SANC;
+			item->stEffect[1].cValue = value;
+		}
+		else if (!item->stEffect[2].cEffect)
+		{
+			item->stEffect[2].cEffect = EF_SANC;
+			item->stEffect[2].cValue = value;
+		}
+		else if (!item->stEffect[3].cEffect)
+		{
+			item->stEffect[3].cEffect = EF_SANC;
+			item->stEffect[3].cValue = value;
+		}
+	}
+
+	return;
+}
+
+int GetItemSanc(STRUCT_ITEM *item)
+{
+	for (int i = 0; i < 3; i++)
+		if (item->stEffect[i].cEffect == EF_SANC || (item->stEffect[i].cEffect >= 116 && item->stEffect[i].cEffect <= 125))
+			return item->stEffect[i].cValue;
+
+	return 0;
+}
+
+bool CheckArchItem(int id)
+{
+	int retorno = false;
+	///SET'S
+	if (id >= 1221 && id <= 1224) retorno = true;
+	else if (id >= 1356 && id <= 1359) retorno = true;
+	else if (id >= 1506 && id <= 1509) retorno = true;
+	else if (id >= 1656 && id <= 1659) retorno = true;
+	///ARMAS ARCH
+	else if (id == 811 || id == 826 || id == 841) retorno = true;
+	else if (id == 856 || id == 871 || id == 886) retorno = true;
+	else if (id == 871 || id == 886 || id == 903 || id == 904) retorno = true;
+	else if (id == 912 || id == 937 || id == 2379 || id == 2380) retorno = true;
+	///ARMAS ARCH ANCT
+	else if ((id >= 2491 && id <= 2494) || (id >= 2551 && id <= 2554)) retorno = true;
+	else if ((id >= 2611 && id <= 2614) || (id >= 2671 && id <= 2674)) retorno = true;
+	else if ((id >= 2791 && id <= 2794) || (id >= 2859 && id <= 2866)) retorno = true;
+	else if ((id >= 2895 && id <= 2898) || (id >= 2935 && id <= 2938)) retorno = true;
+	else if ((id >= 2731 && id <= 2734)) retorno = true;
+	return retorno;
+}
+
+bool CheckHardItem(int id)
+{
+	int retorno = false;
+	///SET'S
+	if (id >= 1901 && id <= 1910) {
+		retorno = true;
+	}
+
+	///ARMAS ARCH
+	else if (id == 1230 || id == 1231 || id == 1232 || id == 1667)
+		retorno = true;
+	else if (id == 1233 || id == 1365 || id == 1366 || id == 1668)
+		retorno = true;
+	else if (id == 1367 || id == 1368 || id == 1515 || id == 1516)
+		retorno = true;
+	else if (id == 1517 || id == 1518 || id == 1665 || id == 1666)
+		retorno = true;
+
+	return retorno;
+}
+
+void AmountMinus(STRUCT_ITEM *item)
+{
+	int index = 0;
+	int amount = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		if (item->stEffect[i].cEffect == 61)
+		{
+			index = i;
+			amount = item->stEffect[i].cValue;
+			break;
+		}
+	}
+
+	if (amount <= 1)
+		memset(item, 0, sizeof STRUCT_ITEM);
+	else
+		item->stEffect[index].cValue--;
+}
+
+bool CheckMount(STRUCT_ITEM *Item, INT16 Mount)
+{
+	int number = Item->sIndex - 3351;
+
+	for (INT8 e = 0; e < 4; e++)
+		if (MountCheck[number][e] && MountCheck[number][e] == Mount)
+			return true;
+
+	return false;
+}
+
+bool CheckMount2(STRUCT_ITEM *Item, INT16 Mount)
+{
+	int number = Item->sIndex - 3344;
+
+	for (INT8 e = 0; e < 4; e++)
+		if (MountCheck2[number][e] && MountCheck2[number][e] == Mount)
+			return true;
+
+	return false;
+}
+
+void SetItemSanc(STRUCT_ITEM *item, int value)
+{
+	if (item->stEffect[0].cEffect == EF_SANC || (item->stEffect[0].cEffect >= 116 && item->stEffect[0].cEffect <= 125))
+		item->stEffect[0].cValue = value;
+	else if (item->stEffect[1].cEffect == EF_SANC || (item->stEffect[1].cEffect >= 116 && item->stEffect[1].cEffect <= 125))
+		item->stEffect[1].cValue = value;
+	else if (item->stEffect[2].cEffect == EF_SANC || (item->stEffect[2].cEffect >= 116 && item->stEffect[2].cEffect <= 125))
+		item->stEffect[2].cValue = value;
+	else
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			if (!item->stEffect[i].cEffect)
+			{
+				item->stEffect[i].cEffect = EF_SANC;
+				item->stEffect[i].cValue = value;
+				return;
+			}
+		}
+	}
+}
+
+/*
+INT64 SystemTimeDifference(const SYSTEMTIME time1, const SYSTEMTIME time2)
+{
+	union timeunion {
+		FILETIME fileTime;
+		LARGE_INTEGER ul;
+	};
+
+	timeunion ft1;
+	timeunion ft2;
+
+	SystemTimeToFileTime(&time1, &ft1.fileTime);
+	SystemTimeToFileTime(&time2, &ft2.fileTime);
+
+	return ft2.ul.QuadPart - ft1.ul.QuadPart;
+}
+
+bool FileExist(const char* Name )
+{
+	if (FILE * file = fopen(Name, "r"))
+	{
+		fclose(file);
+		return true;
+	}
+	return false;
+}
+
+bool CheckBan(const char *login)
+{	//retorna true se estiver banido
+	try{
+
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/Ban/%s.bin", login);
+
+		if(!FileExist(fileName))
+			return false;
+
+		FILE *pFile = NULL;
+		fopen_s(&pFile, fileName, "rb");
+		INT8 buffer[sizeof SYSTEMTIME];
+		fread(buffer, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+
+		SYSTEMTIME banTime, nowTime;
+		memcpy(&banTime, &buffer, sizeof SYSTEMTIME);
+		GetLocalTime(&nowTime);
+
+		INT64 timeDiff = SystemTimeDifference(nowTime, banTime);
+
+		if(timeDiff > 0)
+			return true;
+
+		remove(fileName);
+		return false;
+	}
+	catch(...)
+	{
+		return true;
+	}
+}
+
+void SendBan(const char *login)
+{
+	//ban permanente
+	__try
+	{
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/Ban/%s.bin", login);
+
+		SYSTEMTIME mTime;
+		GetLocalTime(&mTime);
+		mTime.wYear = 9999;
+
+		FILE *pFile;
+		fopen_s(&pFile, fileName, "wb");
+		fwrite(&mTime, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+	}
+	__except(TRUE)
+	{
+	}
+}
+
+bool Check3HoursAccBan(const char *login)
+{	//retorna true se estiver banido
+	try{
+
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/Ban3HORAS/%s.bin", login);
+
+		if(!FileExist(fileName))
+			return false;
+
+		FILE *pFile = NULL;
+		fopen_s(&pFile, fileName, "rb");
+		INT8 buffer[sizeof SYSTEMTIME];
+		fread(buffer, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+
+		SYSTEMTIME banTime, nowTime;
+		memcpy(&banTime, &buffer, sizeof SYSTEMTIME);
+		GetSystemTime(&nowTime);
+
+		INT64 timeDiff = SystemTimeDifference(nowTime, banTime);
+
+		if(timeDiff > 0)
+			return true;
+
+		remove(fileName);
+		return false;
+	}
+	catch(...)
+	{
+		return true;
+	}
+}
+
+void Send3HoursAccBan(const char *login)
+{
+	//ban permanente
+	__try
+	{
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/Ban3HORAS/%s.bin", login);
+
+		SYSTEMTIME mTime;
+		GetSystemTime(&mTime);
+		mTime.wHour += 3;
+
+		FILE *pFile;
+		fopen_s(&pFile, fileName, "wb");
+		fwrite(&mTime, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+	}
+	__except(TRUE)
+	{
+	}
+}
+
+void SendBan3Hours(unsigned int ip)
+{
+	//ban 3 horas
+	__try
+	{
+		unsigned char *cIP = (unsigned char*)&ip;
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/Ban3HORAS/%d.%d.%d.%d.bin", cIP[0], cIP[1], cIP[2], cIP[3]);
+
+		SYSTEMTIME mTime;
+		GetSystemTime(&mTime);
+		mTime.wHour += 3;
+
+		FILE *pFile;
+		fopen_s(&pFile, fileName, "wb");
+		fwrite(&mTime, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+	}
+	__except(TRUE)
+	{
+	}
+}
+
+bool CheckBan3Hours(unsigned int ip)
+{	//retorna true se estiver banido
+	try{
+
+		unsigned char *cIP = (unsigned char*)&ip;
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/Ban3HORAS/%d.%d.%d.%d.bin", cIP[0], cIP[1], cIP[2], cIP[3]);
+
+		if(!FileExist(fileName))
+			return false;
+
+		FILE *pFile = NULL;
+		fopen_s(&pFile, fileName, "rb");
+		INT8 buffer[sizeof SYSTEMTIME];
+		fread(buffer, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+
+		SYSTEMTIME banTime, nowTime;
+		memcpy(&banTime, &buffer, sizeof SYSTEMTIME);
+		GetSystemTime(&nowTime);
+
+		INT64 timeDiff = SystemTimeDifference(nowTime, banTime);
+
+		if(timeDiff > 0)
+			return true;
+
+		remove(fileName);
+		return false;
+	}
+	catch(...)
+	{
+		return true;
+	}
+}
+
+bool CheckMacBan(const int *mac0, const int *mac1, const int *mac2, const int *mac3)
+{	//retorna true se estiver banido
+	try{
+
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/BanMac/%d.%d.%d.%d.bin", mac0, mac1, mac2, mac3);
+
+		if(!FileExist(fileName))
+			return false;
+
+		FILE *pFile = NULL;
+		fopen_s(&pFile, fileName, "rb");
+		INT8 buffer[sizeof SYSTEMTIME];
+		fread(buffer, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+
+		SYSTEMTIME banTime, nowTime;
+		memcpy(&banTime, &buffer, sizeof SYSTEMTIME);
+		GetLocalTime(&nowTime);
+
+		INT64 timeDiff = SystemTimeDifference(nowTime, banTime);
+
+		if(timeDiff > 0)
+			return true;
+
+		remove(fileName);
+		return false;
+	}
+	catch(...)
+	{
+		return true;
+	}
+}
+
+void SendMacBan(const int *mac0, const int *mac1, const int *mac2, const int *mac3)
+{
+	//ban permanente
+	__try
+	{
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/BanMac/%d.%d.%d.%d.bin", mac0, mac1, mac2, mac3);
+
+		SYSTEMTIME mTime;
+		GetLocalTime(&mTime);
+		mTime.wYear = 9999;
+
+		FILE *pFile;
+		fopen_s(&pFile, fileName, "wb");
+		fwrite(&mTime, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+	}
+	__except(TRUE)
+	{
+	}
+}
+
+bool CheckIpBan(unsigned int ip)
+{	//retorna true se estiver banido
+	try{
+		unsigned char *cIP = (unsigned char*)&ip;
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/BanIP/%d.%d.%d.%d.bin", cIP[0], cIP[1], cIP[2], cIP[3]);
+
+		if(!FileExist(fileName))
+			return false;
+
+		FILE *pFile = NULL;
+		fopen_s(&pFile, fileName, "rb");
+		INT8 buffer[sizeof SYSTEMTIME];
+		fread(buffer, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+
+		SYSTEMTIME banTime, nowTime;
+		memcpy(&banTime, &buffer, sizeof SYSTEMTIME);
+		GetLocalTime(&nowTime);
+
+		INT64 timeDiff = SystemTimeDifference(nowTime, banTime);
+
+		if(timeDiff > 0)
+			return true;
+
+		remove(fileName);
+		return false;
+	}
+	catch(...)
+	{
+		return true;
+	}
+}
+
+void SendIpBan(unsigned int ip)
+{
+	//ban permanente
+	__try
+	{
+		unsigned char *cIP = (unsigned char*)&ip;
+		char fileName[1024];
+		sprintf_s(fileName, "userdata/BanIP/%d.%d.%d.%d.bin",cIP[0], cIP[1], cIP[2], cIP[3]);
+
+		SYSTEMTIME mTime;
+		GetLocalTime(&mTime);
+		mTime.wYear = 9999;
+
+		FILE *pFile;
+		fopen_s(&pFile, fileName, "wb");
+		fwrite(&mTime, 1, sizeof SYSTEMTIME, pFile);
+		fclose(pFile);
+	}
+	__except(TRUE)
+	{
+	}
+}
+
+*/
+bool ReadQuiz()
+{
+	FILE *fp;
+
+	fopen_s(&fp, "RandomQuiz.txt", "rt");
+
+	if (fp == NULL)
+	{
+		MessageBoxA(0, "Missing RandomQuiz.txt file", "Error", MB_ICONERROR | MB_OK);
+		fclose(fp);
+		return false;
+	}
+
+	QuizLineCounter = -1;
+
+	char line[256];
+	while (fgets(line, sizeof(line), fp))
+	{
+		MSG_Quiz UsedQuiz;
+		memset(&UsedQuiz, 0, sizeof(MSG_Quiz));
+
+		char *p = line;
+
+		for (int o = 0; o < 1024; o++)
+		{
+			if (line[o] == ',') { line[o] = ' '; }
+			if (line[o] == '[') { break; }
+		}
+
+		if (line[0] == '#')
+			continue;
+
+		char title[128], str0[32], str1[32], str2[32], str3[32];
+		int test = -1;
+
+		if (sscanf(line, "%s %s %s %s %s %d", title, str0, str1, str2, str3, &test))
+		{
+			strncpy(UsedQuiz.Title, title, 128);
+			strncpy(UsedQuiz.Answer[0], str0, 32);
+			strncpy(UsedQuiz.Answer[1], str1, 32);
+			strncpy(UsedQuiz.Answer[2], str2, 32);
+			strncpy(UsedQuiz.Answer[3], str3, 32);
+			UsedQuiz.CorrectAlternative = test;
+			memcpy(&QuizList[QuizLineCounter], &UsedQuiz, sizeof UsedQuiz);
+			QuizLineCounter++;
+		}
+		else
+		{
+			MessageBoxA(0, "Missing data in quiz", "Error", MB_ICONERROR | MB_OK);
+			fclose(fp);
+			return false;
+		}
+	}
+
+	fclose(fp);
+	return true;
+}
+
+bool ReadCuboQuiz()
+{
+	FILE *fp;
+
+	fopen_s(&fp, "CuboQuiz.txt", "rt");
+
+	if (fp == NULL)
+	{
+		MessageBoxA(0, "Missing CuboQuiz.txt file", "Error", MB_ICONERROR | MB_OK);
+		fclose(fp);
+		return false;
+	}
+
+	CuboQuizLine = -1;
+
+	char line[256];
+	while (fgets(line, sizeof(line), fp))
+	{
+		MSG_BigQuiz qq;
+		memset(&qq, 0, sizeof(MSG_BigQuiz));
+
+		char *p = line;
+
+		for (int o = 0; o < 1024; o++)
+		{
+			if (line[o] == ',') { line[o] = ' '; }
+			if (line[o] == '[') { break; }
+		}
+
+		if (line[0] == '#')
+			continue;
+
+		int num, k;
+		char title[128], string[128];
+
+		int test = -1;
+
+		if (sscanf(line, "%d %d %s", &num, &k, string))
+		{
+			qq.Unknow = num;
+			sprintf(title, "<<_No._%d_>>", num);
+			strncpy(qq.Title, title, 128);
+			strncpy(qq.Line[0], string, 128);
+			memcpy(&CuboList[CuboQuizLine], &qq, sizeof qq);
+			CuboQuizLine++;
+		}
+		else
+		{
+			MessageBoxA(0, "Missing data in quiz", "Error", MB_ICONERROR | MB_OK);
+			fclose(fp);
+			return false;
+		}
+	}
+
+	fclose(fp);
+	return true;
+}
+
+/*
+bool LoadCuboCoord()
+{
+	FILE *fp = fopen("CuboCord.txt", "r+");
+
+	if (fp == NULL)
+		return FALSE;
+
+	char line[1024];
+	int Xr = 0;
+	int Or = 0;
+
+	while (fgets(line, sizeof(line), fp))
+	{
+		if (*line == '\n' || *line == '#')
+			continue;
+
+		char *p = line;
+
+		while (*p != '\0')
+		{
+			if (*p == ',')
+				*p = ' ';
+			else if (*p == '[')
+				*p = ' ';
+			else if (*p == ']')
+				*p = ' ';
+
+			p++;
+		}
+
+		char VF;
+		int indessx;
+
+		sPoint Cord;
+		memset(&Cord, 0, sizeof(sPoint));
+		sscanf(line, "%c %d %4d %4d", &VF, &indessx, &Cord.PosX, &Cord.PosY);
+
+		if (VF == 'O')
+		{
+			Cubo.O[Or].PosX = Cord.PosX;
+			Cubo.O[Or].PosY = Cord.PosY;
+			Or++;
+		}
+		else if (VF == 'X')
+		{
+			Cubo.X[Xr].PosX = Cord.PosX;
+			Cubo.X[Xr].PosY = Cord.PosY;
+			Xr++;
+		}
+	}
+
+	fclose(fp);
+	return TRUE;
+}
+
+bool LoadCubo()
+{
+	FILE *fp = fopen("Cubo.txt", "r+");
+
+	if (fp == NULL)
+		return false;
+
+	char line[1024];
+
+	for (int x = 0; x < 25; x++)
+	{
+		int index = 0, num = 0;
+
+		fgets(line, sizeof(line), fp);
+
+		sscanf(line, "%d %d %100[^=]", &num, &index, Cubo.Question[x]);
+
+		Cubo.CurrentQuestion[x] = num;
+		Cubo.Question[x][strlen(Cubo.Question[x]) - 1] = '\0';
+
+		if (index == 0)
+			Cubo.Answer[x] = FALSE;
+		else if (index == 1)
+			Cubo.Answer[x] = TRUE;
+		else
+			return FALSE;
+	}
+
+	fclose(fp);
+	return TRUE;
+}*/
+
+void ReadDirectory()
+{
+	if ((fReadDir = fopen("Account_Directory.txt", "r")) == NULL)
+	{
+		MessageBox(hWndMain, "Não foi possivel abrir Account_Directory.txt!", "Erro ao iniciar", NULL);
+		return;
+	}
+	else
+	{
+		fscanf(fReadDir, "%s", ACCOUNT_DIRECTORY);
+		fclose(fReadDir);
+	}
 }

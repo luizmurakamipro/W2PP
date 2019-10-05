@@ -1,22 +1,3 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*   Contact at:
-*/
-
 
 #include <windows.h>
 #include <windowsx.h>
@@ -33,6 +14,9 @@
 
 #include "Basedef.h"
 #include "ItemEffect.h"
+#include "./TMSrv/ProcessClientMessage.h"
+
+
 
 #pragma region Defines
 
@@ -44,6 +28,35 @@ int BaseSIDCHM[4][6] = // Define the base Strength, Intelligence, Dexterity, Con
 	{8, 9, 13, 6, 75, 60} // HT
 }; 
 
+int BaseClass[4][4] = // Define Class for Character.
+{
+	{6,  7,   8,  9},	// TK Class 0
+	{16, 17, 18, 19},	// FM Class 1
+	{26 ,27 ,28 ,29},	// BM Class 2
+	{36, 37, 38, 39}	// HT Class 3
+};
+
+int BaseEscudos[1][20] = 
+{
+	{725, 742, 1015, 1701,1704, 1705, 1706, 1707, 1708, 1710, 1712, 1713,1714, 1915, 1916, 1928, 3002, 5043, 5067, 5085}
+};
+
+int BaseArcos[4][19] =
+{
+	{ 729, 749, 816, 817, 818, 819, 820, 821, 822, 823, 824, 825, 923, 943, 950, 971, 972, 973, 974 },
+	{ 975, 998, 1006, 1020, 1021, 1022, 1023, 1933, 2121, 2122, 2123, 2511, 2512, 2513, 2514, 2515, 2516, 2517, 2518},
+	{ 2519, 2520, 2521, 2522, 2523, 2524, 2525, 2526, 2527, 2528, 2529, 2530, 2531, 2532, 2533, 2534, 2535, 2536, 2537},
+	{ 2538, 2539, 2540, 2541, 2542, 2543, 2544, 2545, 2546, 2547, 2548, 2549, 2550, 3005, 3556, 3621, 3622, 3623, 3624 }
+};
+
+int BaseGarras[4][19] =
+{
+	{ 831, 832, 833, 834, 835, 836, 837, 838, 839, 840, 841, 921, 981, 982, 984, 983, 1007, 1934, 2133 },
+	{ 2571, 2572, 2573, 2574, 2575, 2576, 2577, 2578, 2579, 2580, 2581, 2582, 2583, 2584, 2585, 2586, 2587, 2588, 2589 },
+	{ 2590, 2591, 2592, 2593, 2594, 2595, 2596, 2597, 2598, 2599, 2600, 2601, 2602, 2603, 2604, 2605, 2606, 2607, 2608 },
+	{ 2609, 2610, 2611, 2612, 2613, 2614, 3006, 3561, 3641, 3642, 3643, 3644, 3645, 3646, 3647, 3648, 1903, 0, 0 }
+};
+
 STRUCT_GUILDZONE g_pGuildZone[MAX_GUILDZONE] = 
 {
 	{0, 0, 2088, 2148, 2086, 2093, 2052, 2052, 2171, 2163, 197, 213, 238, 230, 205, 220, 228, 220, 5, 0}, // Armia
@@ -53,8 +66,18 @@ STRUCT_GUILDZONE g_pGuildZone[MAX_GUILDZONE] =
 	{0, 0, 1066, 1760, 1050, 1706, 1036, 1700, 1072, 1760, 4000, 4000, 4010, 4010, 4005, 4005, 4005, 4005, 5, 0} // Noatum
 };
 
+ServerInfos Server;
+
+
 int g_pIncrementHp[4] = {3, 1, 1, 2}; // TK, FM, BM, HT. The ammount of HP that they get every level up
 int g_pIncrementMp[4] = {1, 3, 2, 1}; // TK, FM, BM, HT. The ammount of MP that they get every level up
+
+int g_pIncrementHp_2[4] = {4, 1, 1, 2}; // TK, FM, BM, HT. The ammount of HP that they get every level up
+int g_pIncrementMp_2[4] = {1, 3, 4, 2}; // TK, FM, BM, HT. The ammount of MP that they get every level up
+
+int g_pIncrementHp_3[4] = {1600, 800,  800, 940}; // TK, FM, BM, HT. The ammount of HP that they get every level up
+int g_pIncrementMp_3[4] = {300, 1700, 1300, 840}; // TK, FM, BM, HT. The ammount of MP that they get every level up
+
 
 int CurrentClientGuild = -1;
 
@@ -62,7 +85,7 @@ int g_pSancRate[3][12] =
 {
 	100, 100, 100, 85, 70, 40, 10, 00, 00, 00, 00, 00, // PO
 	100, 100, 100, 100, 100, 80, 70, 70, 50, 60, 00, 00, // PL
-	100, 80, 60, 40, 20, 10, 10, 10, 5, 5, 5, 5  // Amagos
+	100, 100, 100, 100, 100, 10, 100, 10, 10, 10, 10, 10  // Amagos
 };
 
 int g_pSancGrade[2][5] =
@@ -76,32 +99,40 @@ int g_pEhreRate[10] =
 {
 	0, 100, 100, 40, 10, 10, 100, 100, 100, 100
 };
+int g_pDedekintoRate[3] =
+{
+	0, 40, 70
+};
+
 
 int g_pOdinRate[12] =
 {
-	0, 35, 100, 40, 10, 10, 100, 100, 100, 100, 100, 100
-};
-
+	0, 35, 100, 40, 100, 100, 100, 100, 100, 100, 100, 100
+};//N  ?    +   R    L    L
+  //A  ?    1   U    4    9
+  //D  ?    2   N    0    0
+  //A  ?        A
+  //            S
 int g_pCelestialRate[15] =
 {
-	100, 100, 100, 100, 100, 100, 100, 100, 70, 50, 40, 40, 40, 10, 5 
+	100, 100, 100, 100, 100, 100, 100, 100, 70, 50, 40, 40, 40, 10, 5
 };
 
 int g_pTinyBase = 15;
 int g_pShanyBase = 35;
-int g_pAilynBase = 10;
+int g_pAilynBase = 100;
 int g_pAgathaBase = 15;
 
 int g_pAnctChance[3] = { 2, 4, 10 };
 
-int g_pItemSancRate12[11] = 
+int g_pItemSancRate12[11] =
 {
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 15
 };
 
 int g_pItemSancRate12Minus[4] = { 2, 3, 4, 5 };
 
-int g_pSuccessRate[11] = {5, 5, 5, 5, 4, 4, 3, 3, 2, 1, 0};
+int g_pSuccessRate[11] = { 5, 5, 5, 5, 4, 4, 3, 3, 2, 1, 0 };
 
 char g_pItemGrid[8][4][2] = 
 {
@@ -159,8 +190,20 @@ char g_pItemGrid[8][4][2] =
 #pragma endregion
 };
 
-int	g_pDistanceTable[7][7] =
+int	g_pDistanceTable[8][8] =
 {	
+	0, 1, 2, 3, 4, 5, 6, 7,
+	1, 1, 2, 3, 4, 5, 6, 7,
+	2, 2, 3, 4, 4, 5, 6, 7,
+	3, 3, 4, 4, 5, 5, 6, 7,
+	4, 4, 4, 5, 5, 5, 6, 7,
+	5, 5, 5, 5, 5, 6, 6, 7,
+	6, 6, 6, 6, 6, 6, 6, 7,
+	7, 7, 7, 7, 7, 7, 7, 7,
+};
+
+/*int	g_pDistanceTable[7][7] =
+{
 	0, 1, 2, 3, 4, 5, 6,
 	1, 1, 2, 3, 4, 5, 6,
 	2, 2, 3, 4, 4, 5, 6,
@@ -168,7 +211,7 @@ int	g_pDistanceTable[7][7] =
 	4, 4, 4, 5, 5, 5, 6,
 	5, 5, 5, 5, 5, 6, 6,
 	6, 6, 6, 6, 6, 6, 6,
-};
+};*/
 
  int g_pGroundMask[MAX_GROUNDMASK][4][6][6];
 
@@ -224,7 +267,7 @@ int g_pMountBonus[30][5] =
 	{10, 1, 0, 0, 4},//Porco
 	{10, 1, 0, 0, 4},//Javali
 	{50, 1, 0, 0, 5},//Lobo
-	{80, 15, 0, 0, 5},//Drag√£o menor
+	{80, 15, 0, 0, 5},//Drag„o menor
 	{100, 20, 0, 0, 4},//Urso
 	{150, 25, 0, 0, 5},//Dente de sabre
 	{250, 50, 40, 0, 6},//Cavalo s/sela N
@@ -241,16 +284,16 @@ int g_pMountBonus[30][5] =
 	{600, 90, 0, 0, 6},//Dragao
 	{550, 90, 0, 20, 6},//Fenrir das sombras
 	{650, 100, 60, 28, 6},//Tigre de fogo
-	{750, 110, 80, 32, 6},//Drag√£o vermelho
-	{570, 90, 20, 16, 6},//Unic√≥rnio
+	{750, 110, 80, 32, 6},//Drag„o vermelho
+	{570, 90, 20, 16, 6},//UnicÛrnio
 	{570, 90, 30, 8, 6},//Pegasus
 	{570, 90, 40, 12, 6},//Unisus
 	{590, 80, 30, 20, 6},//Grifo
 	{615, 90, 40, 16, 6},//HipoGrifo
 	{615, 90, 50, 16, 6},//Sangrento
-	{620, 35, 30, 28, 6},//Svaldfire
-	{250, 95, 0, 28, 6},//Sleipnir
-	{150, 10, 20, 0, 6}//Pantera negra
+	{620, 35, 60, 28, 6},//Svaldfire
+	{250, 95, 60, 28, 6},//Sleipnir
+	{150, 10, 0, 20, 6}//Pantera negra
 };
 
 int g_pMountTempBonus[20][5] =
@@ -268,10 +311,10 @@ int g_pMountTempBonus[20][5] =
 	{ 450, 72, 0, 0, 6 },//Klazedale 30D
 	{ 325, 35, 16, 28, 6 },//Gulfaxi 30D
 	{ 350, 45, 10, 4, 6 },//Tigre de Fogo
-	{ 250, 25, 0, 31, 6 },//Drag√£o Vermelho
-	{ 80, 15, 0, 31, 6 },//Drag√£o Menor
-	{ 950, 145, 60, 20, 6 },//Drag√£o Akelo
-	{ 950, 145, 60, 20, 6 },//Drag√£o Hekalo
+	{ 250, 25, 0, 31, 6 },//Drag„o Vermelho
+	{ 80, 15, 0, 31, 6 },//Drag„o Menor
+	{ 950, 145, 60, 20, 6 },//Drag„o Akelo
+	{ 950, 145, 60, 20, 6 },//Drag„o Hekalo
 };
 unsigned char g_pGuildSub[8] = {0xA5, 0xB0, 0xA5, 0xB1, 0xA5, 0xB2, 0x00, 0x00};
 
@@ -282,7 +325,7 @@ unsigned char g_pGuildIndex[36] =
 	0xA5, 0xB8, 0xA5, 0xB9, 0xA3, 0xC1, 0xA3, 0xC2, 0xA3, 0xC3, 0xA3, 0xC4, 0xA3, 0xC5, 0xA3, 0xC6, 
 	0x00, 0x00, 0x00, 0x00
 };
-//char g_pGuildMark[168] = {"??????????????√ó?????¬ø???????‚Ä†‚Ä°????????¬Æ?????????????????????????"};
+//char g_pGuildMark[168] = {"??????????????◊?????ø???????Üá????????Æ?????????????????????????"};
 unsigned char g_pGuildMark[132] = 
 {
 	0xA5, 0xB0, 0xA5, 0xB1, 0xA5, 0xB2, 0xA5, 0xB3, 0xA5, 0xB4, 0xA5, 0xB5, 0xA5, 0xB6, 0xA5, 0xB7, 
@@ -332,182 +375,182 @@ char g_pAffectTable[32][24] =
 	"Coin Armor"
 };
 
-int g_pBonusValue5[30][4] = 
+int g_pBonusValue5[30][4] =
 {
-	{2, 30, 74, 18},
-	{2, 30, 74, 15},
-	{2, 30, 74, 12},
+	{ 73, 30, 74, 18 },
+	{ 73, 30, 74, 15 },
+	{ 73, 30, 74, 12 },
 
-	{2, 24, 74, 18},
-	{2, 24, 74, 15},
-	{2, 24, 74, 12},
+	{ 73, 24, 74, 18 },
+	{ 73, 24, 74, 15 },
+	{ 73, 24, 74, 12 },
 
-	{2, 18, 74, 18},
-	{2, 18, 74, 15},
-	{2, 18, 74, 12},
+	{ 73, 18, 74, 18 },
+	{ 73, 18, 74, 15 },
+	{ 73, 18, 74, 12 },
 
-	{2, 12, 74, 18},
-	{2, 12, 74, 15},
-	{2, 12, 74, 12},
+	{ 73, 12, 74, 18 },
+	{ 73, 12, 74, 15 },
+	{ 73, 12, 74, 12 },
 
-	{2, 6, 74, 18},
-	{2, 6, 74, 15},
-	{2, 6, 74, 12},
+	{ 73, 6, 74, 18 },
+	{ 73, 6, 74, 15 },
+	{ 73, 6, 74, 12 },
 
-	{2, 30, 60, 10},
-	{2, 30, 60, 8},
-	{2, 30, 60, 6},
+	{ 73, 30, 60, 10 },
+	{ 73, 30, 60, 8 },
+	{ 73, 30, 60, 6 },
 
-	{2, 24, 60, 10},
-	{2, 24, 60, 8},
-	{2, 24, 60, 6},
+	{ 73, 24, 60, 10 },
+	{ 73, 24, 60, 8 },
+	{ 73, 24, 60, 6 },
 
-	{2, 18, 60, 10},
-	{2, 18, 60, 8},
-	{2, 18, 60, 6},
+	{ 73, 18, 60, 10 },
+	{ 73, 18, 60, 8 },
+	{ 73, 18, 60, 6 },
 
-	{2, 12, 60, 10},
-	{2, 12, 60, 8},
-	{2, 12, 60, 6},
+	{ 73, 12, 60, 10 },
+	{ 73, 12, 60, 8 },
+	{ 73, 12, 60, 6 },
 
-	{2, 6, 60, 10},
-	{2, 6, 60, 8},
-	{2, 6, 60, 6}
+	{ 73, 6, 60, 10 },
+	{ 73, 6, 60, 8 },
+	{ 73, 6, 60, 6 }
 };
 
-int g_pBonusValue4[30][4] = 
+int g_pBonusValue4[30][4] =
 {
-	{2, 30, 72, 30},
-	{2, 30, 72, 25},
-	{2, 30, 72, 20},
-	{2, 30, 72, 15},
-	{2, 30, 72, 10},
+	{ 2, 30, 72, 30 },
+	{ 2, 30, 72, 25 },
+	{ 2, 30, 72, 20 },
+	{ 2, 30, 72, 15 },
+	{ 2, 30, 72, 10 },
 
-	{2, 24, 72, 30},
-	{2, 24, 72, 25},
-	{2, 24, 72, 20},
-	{2, 24, 72, 15},
-	{2, 24, 72, 10},
+	{ 2, 24, 72, 30 },
+	{ 2, 24, 72, 25 },
+	{ 2, 24, 72, 20 },
+	{ 2, 24, 72, 15 },
+	{ 2, 24, 72, 10 },
 
-	{2, 18, 72, 30},
-	{2, 18, 72, 25},
-	{2, 18, 72, 20},
-	{2, 18, 72, 15},
-	{2, 18, 72, 10},
+	{ 2, 18, 72, 30 },
+	{ 2, 18, 72, 25 },
+	{ 2, 18, 72, 20 },
+	{ 2, 18, 72, 15 },
+	{ 2, 18, 72, 10 },
 
-	{60, 10, 72, 30},
-	{60, 10, 72, 25},
-	{60, 10, 72, 20},
-	{60, 10, 72, 15},
+	{ 60, 10, 72, 30 },
+	{ 60, 10, 72, 25 },
+	{ 60, 10, 72, 20 },
+	{ 60, 10, 72, 15 },
 
-	{60, 8, 72, 30},
-	{60, 8, 72, 25},
-	{60, 8, 72, 20},
-	{60, 8, 72, 15},
+	{ 60, 8, 72, 30 },
+	{ 60, 8, 72, 25 },
+	{ 60, 8, 72, 20 },
+	{ 60, 8, 72, 15 },
 
-	{60, 6, 72, 30},
-	{60, 6, 72, 25},
-	{60, 6, 72, 20},
-	{60, 6, 72, 15}
+	{ 60, 6, 72, 30 },
+	{ 60, 6, 72, 25 },
+	{ 60, 6, 72, 20 },
+	{ 60, 6, 72, 15 }
 };
 
-int g_pBonusValue3[25][4] = 
+int g_pBonusValue3[25][4] =
 {
-	{4, 60, 26, 18},
-	{4, 60, 26, 15},
-	{4, 60, 26, 12},
+	{ 4, 60, 26, 18 },
+	{ 4, 60, 26, 15 },
+	{ 4, 60, 26, 12 },
 
-	{4, 50, 26, 18},
-	{4, 50, 26, 15},
-	{4, 50, 26, 12},
+	{ 4, 50, 26, 18 },
+	{ 4, 50, 26, 15 },
+	{ 4, 50, 26, 12 },
 
-	{4, 40, 26, 18},
-	{4, 40, 26, 15},
-	{4, 40, 26, 12},
+	{ 4, 40, 26, 18 },
+	{ 4, 40, 26, 15 },
+	{ 4, 40, 26, 12 },
 
-	{4, 30, 26, 18},
-	{4, 30, 26, 15},
-	{4, 30, 26, 12},
+	{ 4, 30, 26, 18 },
+	{ 4, 30, 26, 15 },
+	{ 4, 30, 26, 12 },
 
-	{4, 60, 60, 12},
-	{4, 60, 60, 10},
-	{4, 60, 60, 8},
-	{4, 60, 60, 6},
+	{ 4, 60, 60, 12 },
+	{ 4, 60, 60, 10 },
+	{ 4, 60, 60, 8 },
+	{ 4, 60, 60, 6 },
 
-	{4, 50, 60, 12},
-	{4, 50, 60, 10},
-	{4, 50, 60, 8},
-	{4, 50, 60, 6},
+	{ 4, 50, 60, 12 },
+	{ 4, 50, 60, 10 },
+	{ 4, 50, 60, 8 },
+	{ 4, 50, 60, 6 },
 
-	{4, 40, 60, 12},
-	{4, 40, 60, 10},
-	{4, 40, 60, 8},
-	{4, 40, 60, 6},
-	{4, 40, 60, 4}
+	{ 4, 40, 60, 12 },
+	{ 4, 40, 60, 10 },
+	{ 4, 40, 60, 8 },
+	{ 4, 40, 60, 6 },
+	{ 4, 40, 60, 4 }
 };
 
-int g_pBonusValue2[48][4] = 
+int g_pBonusValue2[48][4] =
 {
-	{2, 30, 3, 30},
-	{2, 30, 3, 25},
-	{2, 30, 3, 20},
-	{2, 30, 3, 10},
+	{ 2, 30, 3, 30 },
+	{ 2, 30, 3, 25 },
+	{ 2, 30, 3, 20 },
+	{ 2, 30, 3, 10 },
 
-	{2, 24, 3, 30},
-	{2, 24, 3, 25},
-	{2, 24, 3, 20},
-	{2, 24, 3, 15},
+	{ 2, 24, 3, 30 },
+	{ 2, 24, 3, 25 },
+	{ 2, 24, 3, 20 },
+	{ 2, 24, 3, 15 },
 
-	{2, 18, 3, 30},
-	{2, 18, 3, 25},
-	{2, 18, 3, 20},
-	{2, 18, 3, 15},
+	{ 2, 18, 3, 30 },
+	{ 2, 18, 3, 25 },
+	{ 2, 18, 3, 20 },
+	{ 2, 18, 3, 15 },
 
-	{2, 30, 71, 50},
-	{2, 30, 71, 60},
-	{2, 30, 71, 70},
+	{ 2, 30, 71, 50 },
+	{ 2, 30, 71, 60 },
+	{ 2, 30, 71, 70 },
 
-	{2, 24, 71, 50},
-	{2, 24, 71, 60},
-	{2, 24, 71, 70},
+	{ 2, 24, 71, 50 },
+	{ 2, 24, 71, 60 },
+	{ 2, 24, 71, 70 },
 
-	{2, 18, 71, 50},
-	{2, 18, 71, 60},
-	{2, 18, 71, 70},
+	{ 2, 18, 71, 50 },
+	{ 2, 18, 71, 60 },
+	{ 2, 18, 71, 70 },
 
-	{60, 10, 3, 30},
-	{60, 10, 3, 25},
-	{60, 10, 3, 20},
-	{60, 10, 3, 15},
-	{60, 10, 3, 10},
+	{ 60, 10, 3, 30 },
+	{ 60, 10, 3, 25 },
+	{ 60, 10, 3, 20 },
+	{ 60, 10, 3, 15 },
+	{ 60, 10, 3, 10 },
 
-	{60, 8, 3, 30},
-	{60, 8, 3, 25},
-	{60, 8, 3, 20},
-	{60, 8, 3, 15},
-	{60, 8, 3, 10},
+	{ 60, 8, 3, 30 },
+	{ 60, 8, 3, 25 },
+	{ 60, 8, 3, 20 },
+	{ 60, 8, 3, 15 },
+	{ 60, 8, 3, 10 },
 
-	{60, 6, 3, 30},
-	{60, 6, 3, 25},
-	{60, 6, 3, 20},
-	{60, 6, 3, 15},
-	{60, 6, 3, 10},
+	{ 60, 6, 3, 30 },
+	{ 60, 6, 3, 25 },
+	{ 60, 6, 3, 20 },
+	{ 60, 6, 3, 15 },
+	{ 60, 6, 3, 10 },
 
-	{60, 10, 71, 50},
-	{60, 10, 71, 60},
-	{60, 10, 71, 70},
+	{ 60, 10, 71, 50 },
+	{ 60, 10, 71, 60 },
+	{ 60, 10, 71, 70 },
 
-	{60, 8, 71, 50},
-	{60, 8, 71, 60},
-	{60, 8, 71, 70},
+	{ 60, 8, 71, 50 },
+	{ 60, 8, 71, 60 },
+	{ 60, 8, 71, 70 },
 
-	{60, 6, 71, 50},
-	{60, 6, 71, 60},
-	{60, 6, 71, 70},
+	{ 60, 6, 71, 50 },
+	{ 60, 6, 71, 60 },
+	{ 60, 6, 71, 70 },
 
-	{60, 4, 71, 50},
-	{60, 4, 71, 60},
-	{60, 4, 71, 70}
+	{ 60, 4, 71, 50 },
+	{ 60, 4, 71, 60 },
+	{ 60, 4, 71, 70 }
 };
 
 
@@ -604,7 +647,7 @@ int DungeonPos[30][2] =
 
 int DungeonItem[10] = {	421, 422, 423, 419, 420, 685, 691, 696, 696, 696 };
 
-long long g_pNextLevel[MAX_LEVEL+2] = 
+long long g_pNextLevel[MAX_LEVEL + 2] =  //[MAX_LEVEL+2] 
 {
 		0, 500 ,1124 ,1826 ,2610 ,3480 ,4440 ,5494 ,6646 ,7900 ,
 		9260 ,10893 ,12817 ,15050 ,17610 ,20515 ,23783 ,27432 ,31480 ,
@@ -653,7 +696,7 @@ long long g_pNextLevel[MAX_LEVEL+2] =
 		3774000000 ,3817000000 ,4000000000, 4100000000
 };
 
-long long g_pNextLevel_2[MAX_CLEVEL + 202] = {
+long long g_pNextLevel_2[MAX_CLEVEL + 202] = { // [MAX_CLEVEL + 202]
 	0, 20000000, 40000000, 60000000, 80000000, 100000000, 120000000, 140000000, 160000000, 180000000, 
 	200000000, 220000000, 240000000, 260000000, 280000000, 300000000, 320000000, 340000000, 360000000, 
 	380000000, 400000000, 420000000, 440000000, 460000000, 480000000, 500000000, 520000000, 540000000, 
@@ -698,35 +741,58 @@ long long g_pNextLevel_2[MAX_CLEVEL + 202] = {
 	7420000000, 7440000000, 7460000000, 7480000000, 7500000000, 7520000000, 7540000000, 7560000000, 7580000000, 
 	7600000000, 7620000000, 7640000000, 7660000000, 7680000000, 7700000000, 7720000000, 7740000000, 7760000000, 
 	7780000000, 7800000000, 7820000000, 7840000000, 7860000000, 7880000000, 7900000000, 7920000000, 7940000000, 
-	7960000000, 7980000000, 8000000000, 8200000000
+	7960000000, 7980000000, 8000000000, 8200000000, 
 };
 
-
-STRUCT_BEASTBONUS pSummonBonus[MAX_SUMMONLIST] = 
+STRUCT_BEASTBONUS pSummonBonus[MAX_SUMMONLIST] =
 {
-	{ 80, 300, 50,  75, 100, 400, 0, 0, 0, 0, 0, 7, 0, 0, 100, 100,   5},
-	{ 80, 250, 50, 150, 125, 400, 0, 0, 0, 0, 0, 7, 0, 0, 100, 100,  20},
-	{ 80, 400, 50, 125, 125, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100,  50},
-	{ 80, 350, 50, 200, 150, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100,  70},
-	{ 80, 500, 50, 175, 150, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100,  90},
-	{ 80, 450, 50, 250, 175, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 110},
-	{100, 500, 50, 250, 174, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 140},
-	{130, 250, 60, 200, 180, 250, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 160},
-	{0,}
+	{ 80, 300, 50, 75, 100, 400, 0, 0, 0, 0, 0, 7, 0, 0, 100, 100, 5 },
+	{ 80, 250, 50, 150, 125, 400, 0, 0, 0, 0, 0, 7, 0, 0, 100, 100, 20 },
+	{ 80, 400, 50, 125, 125, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 50 },
+	{ 80, 350, 50, 200, 150, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 70 },
+	{ 80, 500, 50, 175, 150, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 90 },
+	{ 80, 450, 50, 250, 175, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 110 },
+	{ 100, 500, 50, 250, 174, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 140 },
+	{ 130, 250, 60, 200, 180, 250, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 160 },
+	{ 0, }
 };
 
+
+STRUCT_BEASTBONUS pTransBonus[5] =
+{
+	//MinDam, MaxDam, MinAc, MaxAc, MinHp, MaxHp, RunSpeed, UNK, AttackSpeed
+	{ 110,		130,	95,		105, 95,	105,	1,		0,		20,			0, 100, 100, 100, 100, 100, 100, 15 },
+	{ 80, 100, 100, 110, 110, 140, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 60 },
+	{ 100, 120, 105, 115, 100, 120, 1, 0, 20, 0, 100, 100, 100, 100, 100, 100, 115 },
+	{ 90, 110, 110, 125, 105, 110, 0, 0, 20, 0, 100, 100, 100, 100, 100, 100, 155 },
+	{ 105, 120, 110, 120, 105, 115, 3, 0, 20, 0, 100, 100, 100, 100, 100, 100, 155 }
+};
+/* FORSAKEN DESTINY
+STRUCT_BEASTBONUS pSummonBonus[MAX_SUMMONLIST] =
+{
+	//MinDam, MaxDam, MinAc, MaxAc, MinHp, MaxHp, RunSpeed, UNK, AttackSpeed
+	{ 100, 340, 50, 145, 120, 400, 0, 0, 0, 0, 0, 7, 0, 0, 100, 100, 5 }, //condor
+	{ 80, 250, 50, 150, 125, 400, 0, 0, 0, 0, 0, 7, 0, 0, 100, 100, 20 }, //javali
+	{ 80, 400, 50, 125, 125, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 50 }, //lobo
+	{ 200, 500, 70, 290, 160, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 70 }, //tigre
+	{ 80, 500, 50, 175, 150, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 90 }, //urso
+	{ 80, 450, 50, 250, 175, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 110 }, //gorila
+	{ 120, 500, 50, 300, 174, 400, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 140 }, //dragao
+	{ 140, 250, 60, 200, 180, 250, 0, 0, 0, 0, 0, 6, 0, 0, 100, 100, 160 }, //sucussus
+	{ 0, }
+};
 
 STRUCT_BEASTBONUS pTransBonus[5] = 
 {
 	//MinDam, MaxDam, MinAc, MaxAc, MinHp, MaxHp, RunSpeed, UNK, AttackSpeed
-	{110, 130,  95, 105,  95, 105, 1, 0, 20, 0, 100, 100, 100, 100, 100, 100,  15},
+	{150, 200,  130, 175,  100, 135, 1, 0, 20, 0, 100, 100, 100, 100, 100, 100,  15},
 	{ 80, 100, 100, 110, 110, 140, 0, 0,  0, 0, 100, 100, 100, 100, 100, 100,  60},
-	{100, 120, 105, 115, 100, 120, 1, 0, 20, 0, 100, 100, 100, 100, 100, 100, 115},
+	{100, 150, 115, 175, 100, 120, 1, 0, 20, 0, 100, 100, 100, 100, 100, 100, 115},
 	{ 90, 110, 110, 125, 105, 110, 0, 0, 20, 0, 100, 100, 100, 100, 100, 100, 155 },
 	{ 105, 120, 110, 120, 105, 115, 3, 0, 20, 0, 100, 100, 100, 100, 100, 100, 155 }
-};
+};*/
 
-//char KorFirst[36] = {0,};//"¬§¬°¬§¬¢¬§¬§¬§¬ß¬§¬®¬§¬©¬§¬±¬§¬≤¬§¬≥¬§¬µ¬§¬∂¬§¬∑¬§¬∏¬§¬π¬§¬∫¬§¬ª¬§¬º¬§¬Ω¬§¬æ";
+//char KorFirst[36] = {0,};//"§°§¢§§§ß§®§©§±§≤§≥§µ§∂§∑§∏§π§∫§ª§º§Ω§æ";
 unsigned char KorFirst[36] = 
 {
 	0xA4, 0xA1, 0xA4, 0xA2, 0xA4, 0xA4, 0xA4, 0xA7, 0xA4, 0xA8, 0xA4, 0xA9, 0xA4, 0xB1, 0xA4, 0xB2, 
@@ -743,6 +809,7 @@ char g_pMessageStringTable[MAX_STRING][128];
 
 STRUCT_SPELL g_pSpell[MAX_SKILLINDEX];
 STRUCT_INITITEM g_pInitItem[MAX_INITITEM];
+STRUCT_AVISOGUILD AvisarGuild[4096];
 
 char g_pEnglish[MAX_ENGLISH][3][NAME_LENGTH];
 
@@ -812,10 +879,10 @@ int BASE_GetBonusSkillPoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 	int spellperlevel = mob->CurrentScore.Level * 3;
 
 	if (extra->ClassMaster == ARCH)
-		spellperlevel += 112;
+		spellperlevel += 168;
 
 	if (extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL)
-		spellperlevel += 1500;
+		spellperlevel += 1600;
 
 	int mod = mob->CurrentScore.Level - 199;
 
@@ -859,13 +926,48 @@ int BASE_GetBonusScorePoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 {
 	int cls = mob->Class;
 
-	if(cls < 0 || cls >= MAX_CLASS)
+	if(cls < 0 || cls > MAX_CLASS)
 		return FALSE;
 
 	int usestr = mob->BaseScore.Str - BaseSIDCHM[cls][0];
 	int useint = mob->BaseScore.Int - BaseSIDCHM[cls][1];
 	int usedex = mob->BaseScore.Dex - BaseSIDCHM[cls][2];
 	int usecon = mob->BaseScore.Con - BaseSIDCHM[cls][3];
+
+	/*if (mob->BaseScore.Int > LIMT_INT){ 
+		mob->BaseScore.Int = LIMT_INT;
+		return true;
+	}
+	if (mob->BaseScore.Str > LIMT_STR){ 
+		mob->BaseScore.Str = LIMT_STR;
+		return true;
+	}
+	if (mob->BaseScore.Dex > LIMT_DEX){ 
+		mob->BaseScore.Dex = LIMT_DEX;
+		return true;
+	}
+	if (mob->BaseScore.Con > LIMT_CON){
+		mob->BaseScore.Con = LIMT_CON;
+		return true;
+	}*/
+	if (mob->CurrentScore.MaxHp > MAX_HP){ 
+		mob->CurrentScore.MaxHp = MAX_HP;
+		return true;
+	}
+	if (mob->CurrentScore.MaxMp > MAX_MP){
+		mob->CurrentScore.MaxMp = MAX_MP;
+		return true;
+	}
+
+
+	/*if (mob->CurrentScore.Damage > MAX_DAMAGE){ 
+		mob->CurrentScore.Damage = MAX_DAMAGE;
+		return true;
+	}
+	if (mob->Magic > MAX_DAMAGE_MG){ 
+		mob->Magic = MAX_DAMAGE_MG;
+		return true;
+	}	*/
 
 	if (extra->ClassMaster == MORTAL)
 	{
@@ -912,7 +1014,8 @@ int BASE_GetBonusScorePoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 
 		int leveluse = lvl * 6;
 
-		leveluse += extra->QuestInfo.Arch.MortalLevel * 6;
+		leveluse += extra->QuestInfo.Arch.MortalLevel * 5;
+		leveluse += 28;
 
 		if (lvl >= 354)
 			leveluse += (lvl - 354) * 6;
@@ -945,24 +1048,24 @@ int BASE_GetBonusScorePoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 
 		int leveluse = lvl * 6;
 
-		leveluse += (extra->QuestInfo.Arch.Cristal * 100);
-		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
+		leveluse += (extra->QuestInfo.Arch.Cristal * 100); // +400 Pontos
+		leveluse += (extra->QuestInfo.Celestial.Reset * 200); // N„o sei.
 
-		leveluse += 1001;
+		leveluse += 1007;
 
-		if (extra->QuestInfo.Celestial.ArchLevel == 1)
+		if (extra->QuestInfo.Celestial.ArchLevel == 1) // LV369 <<
 			leveluse += 100;
 
-		else if (extra->QuestInfo.Celestial.ArchLevel == 2)
+		else if (extra->QuestInfo.Celestial.ArchLevel == 2) // LV370 - LV379
 			leveluse += 300;
 
-		else if (extra->QuestInfo.Celestial.ArchLevel == 3)
+		else if (extra->QuestInfo.Celestial.ArchLevel == 3) // LV380 - LV398
 			leveluse += 600;
 
-		else if (extra->QuestInfo.Celestial.ArchLevel == 4)
+		else if (extra->QuestInfo.Celestial.ArchLevel == 4) // LV399
 			leveluse += 900;
 
-		else if (extra->QuestInfo.Celestial.ArchLevel == 5)
+		else if (extra->QuestInfo.Celestial.ArchLevel == 5) // LV400
 			leveluse += 1200;
 
 
@@ -1012,7 +1115,7 @@ int BASE_GetBonusScorePoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 		leveluse += (extra->QuestInfo.Arch.Cristal * 100);
 		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
 
-		leveluse += 1001;
+		leveluse += 1007;
 
 		if (extra->QuestInfo.Celestial.ArchLevel == 1)
 			leveluse += 100;
@@ -1096,7 +1199,345 @@ int BASE_GetBonusScorePoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 		leveluse += (extra->QuestInfo.Arch.Cristal * 100);
 		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
 
-		leveluse += 1001;
+		leveluse += 1000;
+
+		if (extra->QuestInfo.Celestial.ArchLevel == 1)
+			leveluse += 100;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 2)
+			leveluse += 300;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 3)
+			leveluse += 600;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 4)
+			leveluse += 900;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 5)
+			leveluse += 1200;
+
+
+		if (lvl >= 120)
+			leveluse += (lvl - 119) * 6;
+
+		if (lvl >= 150)
+			leveluse += (lvl - 149) * 2;
+
+		if (lvl >= 170)
+			leveluse += (lvl - 169) * 2;
+
+		if (lvl >= 180)
+			leveluse += (lvl - 179) * 2;
+
+		if (lvl >= 190)
+			leveluse += (lvl - 189) * 2;
+
+		lvl = extra->QuestInfo.Celestial.CelestialLevel;
+		leveluse += (lvl * 6)/2;
+
+		if (lvl >= 120)
+			leveluse += ((lvl - 119) * 6);
+
+		if (lvl >= 150)
+			leveluse += ((lvl - 149) * 2);
+
+		if (lvl >= 170)
+			leveluse += ((lvl - 169) * 2);
+
+		if (lvl >= 180)
+			leveluse += ((lvl - 179) * 2);
+
+		if (lvl >= 190)
+			leveluse += ((lvl - 189) * 2);
+			
+
+		if(totaluse > leveluse)
+		{
+			int dif = totaluse - leveluse;
+
+			if(mob->BaseScore.Str >= dif)
+				mob->BaseScore.Str -= dif;
+
+			else if(mob->BaseScore.Int >= dif)
+				mob->BaseScore.Int -= dif;
+
+			else if(mob->BaseScore.Dex >= dif)
+				mob->BaseScore.Dex -= dif;
+
+			else if(mob->BaseScore.Con >= dif)
+				mob->BaseScore.Con -= dif;
+
+			totaluse = mob->BaseScore.Str + mob->BaseScore.Int + mob->BaseScore.Dex + mob->BaseScore.Con - BaseSIDCHM[cls][0] - BaseSIDCHM[cls][1] - BaseSIDCHM[cls][2] - BaseSIDCHM[cls][3];
+		}
+		mob->ScoreBonus = leveluse - totaluse;
+	}
+
+	else if (extra->ClassMaster == HARDCORE)
+	{
+		int totaluse = usestr + useint + usedex + usecon;
+
+		int lvl = mob->BaseScore.Level;
+
+		int leveluse = lvl * 6;
+
+		leveluse += (extra->QuestInfo.Arch.Cristal * 100);
+		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
+
+		leveluse += 1007;
+
+		if (extra->QuestInfo.Celestial.ArchLevel == 1)
+			leveluse += 100;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 2)
+			leveluse += 300;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 3)
+			leveluse += 600;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 4)
+			leveluse += 900;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 5)
+			leveluse += 1200;
+
+
+		if (lvl >= 120)
+			leveluse += (lvl - 119) * 6;
+
+		if (lvl >= 150)
+			leveluse += (lvl - 149) * 2;
+
+		if (lvl >= 170)
+			leveluse += (lvl - 169) * 2;
+
+		if (lvl >= 180)
+			leveluse += (lvl - 179) * 2;
+
+		if (lvl >= 190)
+			leveluse += (lvl - 189) * 2;
+
+		lvl = extra->QuestInfo.Celestial.CelestialLevel;
+		leveluse += (lvl * 6)/2;
+
+		if (lvl >= 120)
+			leveluse += ((lvl - 119) * 6);
+
+		if (lvl >= 150)
+			leveluse += ((lvl - 149) * 2);
+
+		if (lvl >= 170)
+			leveluse += ((lvl - 169) * 2);
+
+		if (lvl >= 180)
+			leveluse += ((lvl - 179) * 2);
+
+		if (lvl >= 190)
+			leveluse += ((lvl - 189) * 2);
+
+
+		if(totaluse > leveluse)
+		{
+			int dif = totaluse - leveluse;
+
+			if(mob->BaseScore.Str >= dif)
+				mob->BaseScore.Str -= dif;
+
+			else if(mob->BaseScore.Int >= dif)
+				mob->BaseScore.Int -= dif;
+
+			else if(mob->BaseScore.Dex >= dif)
+				mob->BaseScore.Dex -= dif;
+
+			else if(mob->BaseScore.Con >= dif)
+				mob->BaseScore.Con -= dif;
+
+			totaluse = mob->BaseScore.Str + mob->BaseScore.Int + mob->BaseScore.Dex + mob->BaseScore.Con - BaseSIDCHM[cls][0] - BaseSIDCHM[cls][1] - BaseSIDCHM[cls][2] - BaseSIDCHM[cls][3];
+		}
+		mob->ScoreBonus = leveluse - totaluse;
+	}
+
+	else if (extra->ClassMaster == HARDCOREA)
+	{
+		int totaluse = usestr + useint + usedex + usecon;
+
+		int lvl = mob->BaseScore.Level;
+		int exp = mob->Exp;
+
+		int leveluse = lvl * 6;
+
+		leveluse += (extra->QuestInfo.Hardcore.Cristal * 100);
+		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
+
+		leveluse += 1007;
+
+		if (extra->QuestInfo.Celestial.ArchLevel == 1)
+			leveluse += 100;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 2)
+			leveluse += 300;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 3)
+			leveluse += 600;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 4)
+			leveluse += 900;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 5)
+			leveluse += 1200;
+
+
+		if (lvl >= 120)
+			leveluse += (lvl - 119) * 6;
+
+		if (lvl >= 150)
+			leveluse += (lvl - 149) * 2;
+
+		if (lvl >= 170)
+			leveluse += (lvl - 169) * 2;
+
+		if (lvl >= 180)
+			leveluse += (lvl - 179) * 2;
+
+		if (lvl >= 190)
+			leveluse += (lvl - 189) * 2;
+
+		lvl = extra->QuestInfo.Celestial.CelestialLevel;
+		leveluse += (lvl * 6)/2;
+
+		if (lvl >= 120)
+			leveluse += ((lvl - 119) * 6);
+
+		if (lvl >= 150)
+			leveluse += ((lvl - 149) * 2);
+
+		if (lvl >= 170)
+			leveluse += ((lvl - 169) * 2);
+
+		if (lvl >= 180)
+			leveluse += ((lvl - 179) * 2);
+
+		if (lvl >= 190)
+			leveluse += ((lvl - 189) * 2);
+
+		if(totaluse > leveluse)
+		{
+			int dif = totaluse - leveluse;
+
+			if(mob->BaseScore.Str >= dif)
+				mob->BaseScore.Str -= dif;
+
+			else if(mob->BaseScore.Int >= dif)
+				mob->BaseScore.Int -= dif;
+
+			else if(mob->BaseScore.Dex >= dif)
+				mob->BaseScore.Dex -= dif;
+
+			else if(mob->BaseScore.Con >= dif)
+				mob->BaseScore.Con -= dif;
+
+			totaluse = mob->BaseScore.Str + mob->BaseScore.Int + mob->BaseScore.Dex + mob->BaseScore.Con - BaseSIDCHM[cls][0] - BaseSIDCHM[cls][1] - BaseSIDCHM[cls][2] - BaseSIDCHM[cls][3];
+		}
+		mob->ScoreBonus = leveluse - totaluse;
+	}
+
+	else if (extra->ClassMaster == HARDCORECS)
+	{
+		int totaluse = usestr + useint + usedex + usecon;
+
+		int lvl = mob->BaseScore.Level;
+
+		int leveluse = lvl * 6;
+
+		leveluse += (extra->QuestInfo.Arch.Cristal * 100);
+		leveluse += (extra->QuestInfo.Hardcore.Reset * 200);
+		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
+
+		leveluse += 1007;
+
+		if (extra->QuestInfo.Celestial.ArchLevel == 1)
+			leveluse += 100;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 2)
+			leveluse += 300;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 3)
+			leveluse += 600;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 4)
+			leveluse += 900;
+
+		else if (extra->QuestInfo.Celestial.ArchLevel == 5)
+			leveluse += 1200;
+
+
+		if (lvl >= 120)
+			leveluse += (lvl - 119) * 6;
+
+		if (lvl >= 150)
+			leveluse += (lvl - 149) * 2;
+
+		if (lvl >= 170)
+			leveluse += (lvl - 169) * 2;
+
+		if (lvl >= 180)
+			leveluse += (lvl - 179) * 2;
+
+		if (lvl >= 190)
+			leveluse += (lvl - 189) * 2;
+
+		lvl = extra->QuestInfo.Celestial.CelestialLevel;
+		leveluse += (lvl * 6)/2;
+
+		if (lvl >= 120)
+			leveluse += ((lvl - 119) * 6);
+
+		if (lvl >= 150)
+			leveluse += ((lvl - 149) * 2);
+
+		if (lvl >= 170)
+			leveluse += ((lvl - 169) * 2);
+
+		if (lvl >= 180)
+			leveluse += ((lvl - 179) * 2);
+
+		if (lvl >= 190)
+			leveluse += ((lvl - 189) * 2);
+
+
+		if(totaluse > leveluse)
+		{
+			int dif = totaluse - leveluse;
+
+			if(mob->BaseScore.Str >= dif)
+				mob->BaseScore.Str -= dif;
+
+			else if(mob->BaseScore.Int >= dif)
+				mob->BaseScore.Int -= dif;
+
+			else if(mob->BaseScore.Dex >= dif)
+				mob->BaseScore.Dex -= dif;
+
+			else if(mob->BaseScore.Con >= dif)
+				mob->BaseScore.Con -= dif;
+
+			totaluse = mob->BaseScore.Str + mob->BaseScore.Int + mob->BaseScore.Dex + mob->BaseScore.Con - BaseSIDCHM[cls][0] - BaseSIDCHM[cls][1] - BaseSIDCHM[cls][2] - BaseSIDCHM[cls][3];
+		}
+		mob->ScoreBonus = leveluse - totaluse;
+	}
+
+	else if (extra->ClassMaster == SHARDCORE)
+	{
+		int totaluse = usestr + useint + usedex + usecon;
+
+		int lvl = mob->BaseScore.Level;
+
+		int leveluse = lvl * 6;
+
+		leveluse += (extra->QuestInfo.Arch.Cristal * 100);
+		leveluse += (extra->QuestInfo.Celestial.Reset * 200);
+		leveluse += (extra->QuestInfo.Hardcore.Reset * 200);
+
+		leveluse += 1000;
 
 		if (extra->QuestInfo.Celestial.ArchLevel == 1)
 			leveluse += 100;
@@ -1175,13 +1616,59 @@ int BASE_GetHpMp(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 {
 	int cls = mob->Class;
 
+	if(cls < 0 || cls > 3)
+		return 0;
+
+	int baseHP = BaseSIDCHM[cls][4];
+	int calcHP = ((mob->BaseScore.Con - BaseSIDCHM[cls][3]) * 2);
+	int calcHPLvl = 0;
+
+	if(extra->ClassMaster == MORTAL)
+		calcHPLvl = mob->BaseScore.Level * g_pIncrementHp[cls]; // Current
+
+	else
+		calcHPLvl = mob->BaseScore.Level * g_pIncrementHp_2[cls];
+
+	int fHP = baseHP + calcHP + calcHPLvl;
+
+	if(fHP > MAX_HP)
+		fHP = MAX_HP; 
+
+	mob->BaseScore.MaxHp = fHP;
+	mob->CurrentScore.MaxHp = fHP;
+
+	int baseMP = BaseSIDCHM[cls][5];
+	int calcMP = ((mob->BaseScore.Int - BaseSIDCHM[cls][1]) * 2);
+	int calcMPLvl = 0;
+
+	if(extra->ClassMaster == MORTAL)
+		calcMPLvl = mob->BaseScore.Level * g_pIncrementMp[cls];
+
+	else
+		calcMPLvl = mob->BaseScore.Level * g_pIncrementMp_2[cls];
+
+	int fMP = baseMP + calcMP + calcMPLvl;
+
+	if(fMP > MAX_MP)
+		fMP = MAX_MP;
+
+	mob->BaseScore.MaxMp = fMP;
+	mob->CurrentScore.MaxMp = fMP;
+
+	return TRUE;
+}
+
+/*int BASE_GetHpMp(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
+{
+	int cls = mob->Class;
+
 	if(cls < 0 || cls >= MAX_CLASS)
 		return FALSE;
 
-
-	int basehp = BaseSIDCHM[cls][4];	
+	int basehp = BaseSIDCHM[cls][4];	  
 	int stathp = (mob->BaseScore.Con - BaseSIDCHM[cls][3]) * 2;
-	int levelhp = ((extra->ClassMaster == ARCH || extra->ClassMaster == MORTAL) ? mob->CurrentScore.Level : mob->CurrentScore.Level + MAX_LEVEL) * g_pIncrementHp[cls];
+	int levelhp = ((extra->ClassMaster == ARCH || extra->ClassMaster == MORTAL) ? (mob->CurrentScore.Level) * g_pIncrementHp[cls] : (mob->CurrentScore.Level + MAX_LEVEL) * g_pIncrementHp_2[cls]);
+	//int levelhp = mob->CurrentScore.Level * g_pIncrementHp[cls];
 
 	int t_hp = basehp + stathp + levelhp;
 
@@ -1191,21 +1678,21 @@ int BASE_GetHpMp(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 	mob->BaseScore.MaxHp = t_hp;
 	mob->CurrentScore.MaxHp = t_hp;
 
-	int basemp = BaseSIDCHM[cls][5];
+	int basemp = BaseSIDCHM[cls][5];	
 	int statmp = (mob->BaseScore.Int - BaseSIDCHM[cls][1]) * 2;
 	int levelmp = ((extra->ClassMaster == ARCH || extra->ClassMaster == MORTAL) ? mob->CurrentScore.Level : mob->CurrentScore.Level + MAX_LEVEL) * g_pIncrementMp[cls];
+	//int levelmp = mob->CurrentScore.Level * g_pIncrementMp[cls];
 
 	int t_mp = basemp + statmp + levelmp;
 
-	if (t_mp >= MAX_MP)
+	if (t_mp > MAX_MP)
 		t_mp = MAX_MP;
-
 
 	mob->BaseScore.MaxMp = t_mp;
 	mob->CurrentScore.MaxMp = t_mp;
 
 	return TRUE;
-}
+}*/
 
 int BASE_GetSpeed(STRUCT_SCORE *score)
 {
@@ -1221,6 +1708,29 @@ int BASE_GetSpeed(STRUCT_SCORE *score)
 
 	return Run;
 }
+
+/*int BASE_GetDamage(int dam, int ac, int combat) //004022C0 - ok
+{
+	int calcDmg = dam - (ac >> 1);
+	if ((combat >> 1) > 7)
+		combat = 7;
+
+	int calcRand = 12 - combat;
+	int incDmg = (rand() % calcRand) + combat + 99;
+
+	calcDmg = (calcDmg * incDmg) / 100;
+	if (calcDmg < -50)
+		calcDmg = 0;
+	else if (calcDmg >= -50 && calcDmg < 0)
+		calcDmg = (calcDmg + 50) / 7;
+	else if (calcDmg >= 0 && calcDmg <= 50)
+		calcDmg = ((calcDmg * 5) >> 2) + 7;
+
+	if (calcDmg <= 0)
+		calcDmg = 1;
+
+	return calcDmg;
+}*/
 
 int BASE_GetDamage(int dam, int ac, int combat)
 {
@@ -1361,7 +1871,7 @@ void BASE_GetClientGuildName(int ServerGroup, unsigned short usGuild, char *szGu
 
 	int Group = ServerGroup;
 	int Server = usGuild / MAX_GUILD;
-	int Guild = usGuild & MAX_GUILD-1;
+	int Guild = usGuild & MAX_GUILD - 1;
 
 	if(CurrentClientGuild != Group)
 		BASE_InitializeClientGuildName(Group);
@@ -1443,9 +1953,10 @@ void BASE_GetClientGuildName(int ServerGroup, unsigned short usGuild, char *szGu
 	}
 }
 
+/*
 int BASE_GetSkillDamage(int dam, int ac, int combat)
 {
-	int tdam = dam - ((ac/ 2));
+	int tdam = dam - ((ac / 2)); // int tdam = dam - ((ac/ 2));  // 14/02/2017 
 
 	if(combat > 15)
 		combat = 15;
@@ -1473,6 +1984,43 @@ int BASE_GetSkillDamage(int dam, int ac, int combat)
 		tdam = 1;
 
 
+	return tdam;
+}*/
+
+int BASE_GetSkillDamage(int dam, int ac, int combat)
+{
+	int tdam = dam - ac / 2; // v10
+
+	if (combat > 15)
+		combat = 15;
+
+	int delta = 21 - combat; // v9
+	int rnd = rand() % (21 - combat) + combat + 90; // v8
+
+	tdam = rnd * tdam / 100;
+
+	if (tdam >= -50)
+	{
+		if (tdam < -50 || tdam >= 0)
+		{
+			if (tdam >= 0 && tdam <= 45)
+			{
+				tdam = 5 * tdam / 4;
+				tdam += 5;
+			}
+		}
+		else
+		{
+			tdam += 50;
+			tdam /= 10;
+		}
+	}
+	else
+		tdam = 0;
+
+	if (tdam <= 0)
+		tdam = 1;
+	
 	return tdam;
 }
 
@@ -1644,113 +2192,113 @@ int BASE_GetItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
 	return value;
 }
 
-int BASE_GetItemAbility(STRUCT_ITEM *item, unsigned char Type)
+int BASE_GetItemAbility(STRUCT_ITEM* item, unsigned char Type)
 {
 	int value = 0;
 
 	int idx = item->sIndex;
 
-	if(idx < 0 || idx >= MAX_ITEMLIST)
+	if (idx < 0 || idx >= MAX_ITEMLIST)
 		return value;
 
 	int nUnique = g_pItemList[idx].nUnique;
-	int nPos	= g_pItemList[idx].nPos;
+	int nPos = g_pItemList[idx].nPos;
 
-	if(Type == EF_DAMAGEADD || Type == EF_MAGICADD)
+	if (Type == EF_DAMAGEADD || Type == EF_MAGICADD)
 	{
-		if(nUnique < 41 || nUnique > 50)
+		if (nUnique < 41 || nUnique > 50)
 			return value;
 	}
 
-	if(Type == EF_CRITICAL)
+	if (Type == EF_CRITICAL)
 	{
-		if(item->stEffect[1].cEffect == EF_CRITICAL2 || item->stEffect[2].cEffect == EF_CRITICAL2)
+		if (item->stEffect[1].cEffect == EF_CRITICAL2 || item->stEffect[2].cEffect == EF_CRITICAL2)
 			Type = EF_CRITICAL2;
 	}
 
-	if(Type == EF_DAMAGE && nPos == 32)
+	if (Type == EF_DAMAGE && nPos == 32)
 	{
-		 if(item->stEffect[1].cEffect == EF_DAMAGE2 || item->stEffect[2].cEffect == EF_DAMAGE2)
-            Type = EF_DAMAGE2;
+		if (item->stEffect[1].cEffect == EF_DAMAGE2 || item->stEffect[2].cEffect == EF_DAMAGE2)
+			Type = EF_DAMAGE2;
 	}
 
-	if(Type == EF_ACADD)
+	if (Type == EF_ACADD)
 	{
-        if(item->stEffect[1].cEffect == EF_ACADD2 || item->stEffect[2].cEffect == EF_ACADD2)
-            Type = EF_ACADD2;
+		if (item->stEffect[1].cEffect == EF_ACADD2 || item->stEffect[2].cEffect == EF_ACADD2)
+			Type = EF_ACADD2;
 	}
 
-	if(Type == EF_LEVEL && idx >= 2330 && idx < 2360)
+	if (Type == EF_LEVEL && idx >= 2330 && idx < 2360)
 		value = (item->stEffect[1].cEffect - 1);
 
-    else if(Type == EF_LEVEL)
-        value += g_pItemList[idx].ReqLvl;
+	else if (Type == EF_LEVEL)
+		value += g_pItemList[idx].ReqLvl;
 
-	if(Type == EF_REQ_STR)
+	if (Type == EF_REQ_STR)
 		value += g_pItemList[idx].ReqStr;
 
-    if(Type == EF_REQ_INT)
-        value += g_pItemList[idx].ReqInt;
+	if (Type == EF_REQ_INT)
+		value += g_pItemList[idx].ReqInt;
 
-    if(Type == EF_REQ_DEX)
-        value += g_pItemList[idx].ReqDex;
+	if (Type == EF_REQ_DEX)
+		value += g_pItemList[idx].ReqDex;
 
-    if(Type == EF_REQ_CON)
-        value += g_pItemList[idx].ReqCon;
+	if (Type == EF_REQ_CON)
+		value += g_pItemList[idx].ReqCon;
 
-	if(Type == EF_POS)
+	if (Type == EF_POS)
 		value += g_pItemList[idx].nPos;
 
-	if(Type != EF_INCUBATE)
+	if (Type != EF_INCUBATE)
 	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
+		for (int i = 0; i < MAX_STATICEFFECT; i++)
 		{
-			if(g_pItemList[idx].stEffect[i].sEffect != Type)
-                continue;
+			if (g_pItemList[idx].stEffect[i].sEffect != Type)
+				continue;
 
 			int tvalue = g_pItemList[idx].stEffect[i].sValue;
 
-            if(Type == EF_ATTSPEED && tvalue == 1)
-                tvalue = 10;
+			if (Type == EF_ATTSPEED && tvalue == 1)
+				tvalue = 10;
 
-            value += tvalue;
+			value += tvalue;
 		}
 	}
 
-	if(idx >= 2330 && idx < 2390)
+	if (idx >= 2330 && idx < 2390)
 	{
-		if(Type == EF_MOUNTHP)
+		if (Type == EF_MOUNTHP)
 			return item->stEffect[0].sValue;
 
-		else if(Type == EF_MOUNTSANC)
-            return item->stEffect[1].cEffect;
+		else if (Type == EF_MOUNTSANC)
+			return item->stEffect[1].cEffect;
 
-		else if(Type == EF_MOUNTLIFE)
+		else if (Type == EF_MOUNTLIFE)
 			return item->stEffect[1].cValue;
 
-        else if(Type == EF_MOUNTFEED)
-            return item->stEffect[2].cEffect;
+		else if (Type == EF_MOUNTFEED)
+			return item->stEffect[2].cEffect;
 
-		else if(Type == EF_MOUNTKILL)
-            return item->stEffect[2].cValue;
+		else if (Type == EF_MOUNTKILL)
+			return item->stEffect[2].cValue;
 
-		if(idx < 2362 || idx >= 2390 || item->stEffect[0].sValue <= 0)
+		if (idx < 2362 || idx >= 2390 || item->stEffect[0].sValue <= 0)
 			return value;
 
 		int lv = item->stEffect[1].cEffect;
 		int cd = item->sIndex - 2360;
 
-		if(Type == EF_DAMAGE)
+		if (Type == EF_DAMAGE)
 			return (lv + 20) * g_pMountBonus[cd][0] / 100; //Retorna o DN da montaria no level atual
 
-		else if(Type == EF_MAGIC)
+		else if (Type == EF_MAGIC)
 			return (lv + 15) * g_pMountBonus[cd][1] / 100;
 
-		else if(Type == EF_PARRY)
+		else if (Type == EF_PARRY)
 			return g_pMountBonus[cd][2];
 
-		else if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-				return g_pMountBonus[cd][3];
+		else if (Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
+			return g_pMountBonus[cd][3];
 		else
 			return value;
 	}
@@ -1774,41 +2322,41 @@ int BASE_GetItemAbility(STRUCT_ITEM *item, unsigned char Type)
 			return value;
 	}
 
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		if(item->stEffect[i].cEffect != Type)
-            continue;
+		if (item->stEffect[i].cEffect != Type)
+			continue;
 
 		int tvalue = item->stEffect[i].cValue;
 
-		if(Type == EF_ATTSPEED && tvalue == 1)
-            tvalue = 10;
+		if (Type == EF_ATTSPEED && tvalue == 1)
+			tvalue = 10;
 
 		value += tvalue;
 	}
 
-	if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-    {
-        for(int i = 0; i < MAX_STATICEFFECT; i++)
-        {
-			if(g_pItemList[idx].stEffect[i].sEffect != EF_RESISTALL)
-                continue;
+	if (Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
+	{
+		for (int i = 0; i < MAX_STATICEFFECT; i++)
+		{
+			if (g_pItemList[idx].stEffect[i].sEffect != EF_RESISTALL)
+				continue;
 
-            value += g_pItemList[idx].stEffect[i].sValue;
-        }
+			value += g_pItemList[idx].stEffect[i].sValue;
+		}
 
-        for(int i = 0; i < 3; i++)
-        {
-			if(item->stEffect[i].cEffect != EF_RESISTALL)
-                continue;
+		for (int i = 0; i < 3; i++)
+		{
+			if (item->stEffect[i].cEffect != EF_RESISTALL)
+				continue;
 
 			value += item->stEffect[i].cValue;
-        }
-    }
+		}
+	}
 
 	int sanc = BASE_GetItemSanc(item);
 
-	if(sanc == 9 && (nPos & 0xF00) != 0)
+	if (sanc == 9 && (nPos & 0xF00) != 0)
 		sanc = 10;
 
 	if (Type != EF_GRID && Type != EF_CLASS && Type != EF_POS && Type != EF_WTYPE && Type != EF_RANGE && Type != EF_LEVEL && Type != EF_REQ_STR && Type != EF_REQ_INT && Type != EF_REQ_DEX && Type != EF_REQ_CON && Type != EF_VOLATILE && Type != EF_INCUBATE && Type != EF_INCUDELAY && Type != EF_MOBTYPE && Type != EF_ITEMTYPE && Type != EF_ITEMLEVEL && Type != EF_NOTRADE && Type != EF_NOSANC && Type != EF_DONATE)
@@ -1817,30 +2365,32 @@ int BASE_GetItemAbility(STRUCT_ITEM *item, unsigned char Type)
 		value /= 10;
 	}
 
-	if(Type == EF_RUNSPEED)
+	if (Type == EF_RUNSPEED)
 	{
-		if(value >= 3)
+		if (value >= 3)
 			value = 2;
 
-		if(value > 0 && sanc == 9)
+		if (value > 0 && sanc == 9)
 			value++;
 	}
-	/* 
+	/*
 	if(Type == EF_HWORDGUILD || Type == EF_LWORDGUILD)
 	{
-		unsigned char v = value;
+	unsigned char v = value;
 
-		value = v;
+	value = v;
 	}
 	*/
-	if(Type == EF_GRID)
+	if (Type == EF_GRID)
 	{
-		if(value < 0 || value > 7)
+		if (value < 0 || value > 7)
 			value = 0;
 	}
 
 	return value;
 }
+
+
 
 int BASE_GetStaticItemAbility(STRUCT_ITEM *item, unsigned char Type)
 {
@@ -2372,7 +2922,138 @@ STRUCT_ITEM *GetItemPointer(STRUCT_MOB *mob, STRUCT_ITEM *cargo, int type, int p
    return sour;
 }
 
-int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
+int BASE_GetMobAbility(STRUCT_MOB* mob, unsigned char Type)
+{
+	int value = 0, result = 0;
+	int nUnique[MAX_EQUIP];
+
+	if (Type == 27)
+	{
+		value = BASE_GetMaxAbility(mob, Type);
+
+		int cls = mob->Class;
+
+		if (value < 2 && cls == 3)
+		{
+			if (mob->LearnedSkill & 0x80000)
+				value = 2;
+		}
+
+		result = value;
+	}
+	else
+	{
+		int i;
+
+		for (i = 0; i < MAX_EQUIP; i++)
+		{
+			nUnique[i] = 0;
+
+			int item = mob->Equip[i].sIndex;
+
+			if (mob->Equip[i].sIndex || i == 7)
+			{
+				if (i >= 1 && i <= 5)
+				{
+					item = i;
+					nUnique[i] = g_pItemList[mob->Equip[i].sIndex].nUnique;
+				}
+
+				int cType = Type;
+
+				if ((Type != 2 || i != 6) && (Type != 60 || i != 7))
+				{
+					if (i != 7 || (item = Type, Type != 2))
+					{
+						item = Type;
+						int itemab = BASE_GetItemAbility(&mob->Equip[i], item);
+						value += itemab;
+					}
+					else
+					{
+						cType = Type;
+
+						int dam = BASE_GetItemAbility(&mob->Equip[6], cType);
+						int dam2 = BASE_GetItemAbility(&mob->Equip[6], EF_DAMAGE2);
+
+						int ldam = dam2 + dam;
+
+						dam2 = Type;
+
+						int dam3 = BASE_GetItemAbility(&mob->Equip[7], dam2);
+						int rdam = BASE_GetItemAbility(&mob->Equip[7], EF_DAMAGE2) + dam3;
+
+						int lidx = mob->Equip[6].sIndex;
+						int ridx = mob->Equip[7].sIndex;
+
+						int ltype = 0;
+
+						if (lidx > 0 && lidx < MAX_ITEMLIST)
+							ltype = g_pItemList[lidx].nUnique;
+
+						int rtype = 0;
+
+						if (ridx > 0 && ridx < MAX_ITEMLIST)
+							rtype = g_pItemList[ridx].nUnique;
+
+						if (ltype && rtype)
+						{
+							int multi = 0;
+
+							if (ltype != 47 || rtype != 45)
+							{
+								if (ltype == rtype)
+									multi = 50;
+								else
+									multi = 30;
+
+								if (!mob->Class && mob->LearnedSkill & 0x200)
+									multi += 15;
+
+								if (mob->Class == 3 && mob->LearnedSkill & 0x400)
+									multi += 10;
+
+								if (ldam <= rdam)
+									value += multi * ldam / 100 + rdam;
+								else
+									value += multi * rdam / 100 + ldam;
+							}
+							else
+							{
+								value += ldam;
+							}
+						}
+						else if (ldam <= rdam)
+						{
+							value += rdam;
+						}
+						else
+						{
+							value += ldam;
+						}
+					}
+				}
+			}
+		}
+
+		if ((Type == 3 || Type == 53) && (!nUnique[0] || nUnique[0] == nUnique[1]) && nUnique[1] && nUnique[1] == nUnique[2] && nUnique[2] == nUnique[3] && nUnique[3] == nUnique[4])
+		{
+			if (mob->Equip[0].sIndex % 10 > 5 && nUnique[1] == 10)
+				return value;
+
+			value = 105 * value / 100;
+		}
+
+		if (value < 0)
+			value = 0;
+
+		result = value;
+	}
+
+	return result;
+}
+
+/*int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
 {
 	int value = 0;
 	int nUnique[MAX_EQUIP];
@@ -2437,12 +3118,12 @@ int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
 				else
 					multi = 30;
 
-				//Pericia do ca√ßador
-				if(mob->LearnedSkill & (1 << 10) && mob->Class == 3)
+				//Pericia do caÁador
+				if((mob->LearnedSkill & 0x400) && mob->Class == 3)
 					multi = 100;
 
 				//Mestre das Armas
-				if(mob->LearnedSkill & (1 << 9) && mob->Class == 0)
+				if((mob->LearnedSkill & 0x200) && mob->Class == 0)
 					multi = 100;
 
 				if(ldam > rdam)
@@ -2478,7 +3159,7 @@ int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
 	 }
 
 	 return value;
-}
+}*/
 
 int BASE_GetMaxAbility(STRUCT_MOB *mob, unsigned char Type)
 {
@@ -2750,7 +3431,7 @@ void BASE_WriteItemList(int nItemList)
 
 		if(fp == NULL)
 		{
-			MessageBox(NULL, "ItemList.bin√Ä¬ª ¬ª√Ω¬º¬∫√á√í¬º√∂ ¬æ√∏¬Ω√Ä¬¥√è¬¥√ô. ", "ERROR", NULL);
+			MessageBox(NULL, "ItemList.bin¿ª ª˝º∫«“ºˆ æ¯Ω¿¥œ¥Ÿ. ", "ERROR", NULL);
 			return;
 		}
 
@@ -2977,8 +3658,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 	int hp = MOB.CurrentScore.Hp;
 	int mp = MOB.CurrentScore.Mp;
-	MOB.CurrentScore = MOB.BaseScore;
 
+	MOB.CurrentScore = MOB.BaseScore;
 	MOB.CurrentScore.Hp = hp;
 	MOB.CurrentScore.Mp = mp;
 
@@ -2997,7 +3678,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 	int isKibitaSoul = 0;
 
-	if(isSummon == 0)
+	if (isSummon == 0)
 	{
 #pragma region Soul Hp/Mp add
 		int bInt = MOB.CurrentScore.Int;
@@ -3010,50 +3691,112 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			if (Type == 29 && extra->ClassMaster != MORTAL && extra->ClassMaster != ARCH)//Soul
 			{
 				if (extra->Soul == SOUL_I)
-					bInt = (int)(bInt * 2.2f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 2.20f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				if (extra->Soul == SOUL_C)
-					bCon = (int)(bCon * 2.2f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 2.20f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 				else if (extra->Soul == SOUL_FI)
-					bInt = (int)(bInt * 1.40f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.40f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				else if (extra->Soul == SOUL_FC)
-					bCon = (int)(bCon * 1.40f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 
 				else if (extra->Soul == SOUL_IF)
-					bInt = (int)(bInt * 1.80f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.80f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				else if (extra->Soul == SOUL_ID)
-					bInt = (int)(bInt * 1.80f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.80f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 
 				else if (extra->Soul == SOUL_IC)
 				{
-					bInt = (int)(bInt * 1.80f);
-					bCon = (int)(bCon * 1.40f);
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.80f);
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
 				}
 
 				else if (extra->Soul == SOUL_DI)
-					bInt = (int)(bInt * 1.40f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.40f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				else if (extra->Soul == SOUL_DC)
-					bCon = (int)(bCon * 1.40f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 
 				else if (extra->Soul == SOUL_CF)
-					bCon = (int)(bCon * 1.80f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.80f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 
 				else if (extra->Soul == SOUL_CI)
 				{
-					bCon = (int)(bCon * 1.80f);
-					bInt = (int)(bInt * 1.40f);
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.80f);
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
 				}
 
 				else if (extra->Soul == SOUL_CD)
-					bCon = (int)(bCon * 1.80f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.80f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 			}
 
 			else if (Type == 29 && extra->ClassMaster == MORTAL && MOB.CurrentScore.Level < 369)//Soul Kibita
@@ -3062,86 +3805,141 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			else if (Type == 29 && extra->ClassMaster == MORTAL)//Soul
 			{
 				if (extra->Soul == SOUL_I)
-					bInt = (int)(bInt * 1.8f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.80f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				if (extra->Soul == SOUL_C)
-					bCon = (int)(bCon * 1.8f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.80f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 				else if (extra->Soul == SOUL_FI)
-					bInt = (int)(bInt * 1.40f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.40f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				else if (extra->Soul == SOUL_FC)
-					bCon = (int)(bCon * 1.40f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 
 				else if (extra->Soul == SOUL_IF)
-					bInt = (int)(bInt * 1.60f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.60f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				else if (extra->Soul == SOUL_ID)
-					bInt = (int)(bInt * 1.60f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.60f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 
 				else if (extra->Soul == SOUL_IC)
 				{
-					bInt = (int)(bInt * 1.60f);
-					bCon = (int)(bCon * 1.40f);
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.60f);
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
 				}
 
 				else if (extra->Soul == SOUL_DI)
-					bInt = (int)(bInt * 1.40f);
+				{
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.40f);
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
+				}
 
 				else if (extra->Soul == SOUL_DC)
-					bCon = (int)(bCon * 1.40f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 
 				else if (extra->Soul == SOUL_CF)
-					bCon = (int)(bCon * 1.60f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.60f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 
 
 				else if (extra->Soul == SOUL_CI)
 				{
-					bCon = (int)(bCon * 1.60f);
-					bInt = (int)(bInt * 1.40f);
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.60f);
+					MOB.CurrentScore.MaxMp += (int)(bInt * 1.40f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+
+					if (MOB.CurrentScore.MaxMp > MAX_MP)
+						MOB.CurrentScore.MaxMp = MAX_MP;
 				}
 
 				else if (extra->Soul == SOUL_CD)
-					bCon = (int)(bCon * 1.60f);
+				{
+					MOB.CurrentScore.MaxHp += (int)(bCon * 1.60f);
+
+					if (MOB.CurrentScore.MaxHp > MAX_HP)
+						MOB.CurrentScore.MaxHp = MAX_HP;
+				}
 			}
+
+			if (MOB.CurrentScore.MaxHp > MAX_HP)
+				MOB.CurrentScore.MaxHp = MAX_HP;
+
+			if (MOB.CurrentScore.MaxMp > MAX_MP)
+				MOB.CurrentScore.MaxMp = MAX_MP;
 		}
-
-		int ItemInt = MOB.CurrentScore.Int - MOB.BaseScore.Int;
-		int ItemCon = MOB.CurrentScore.Con - MOB.BaseScore.Con;
-
-		int MPDelta = ItemInt * 2;
-		int HPDelta = ItemCon * 2;
-
-		unsigned int mhp = MOB.CurrentScore.MaxHp + HPDelta;
-		unsigned int mmp = MOB.CurrentScore.MaxMp + MPDelta;
-
-
-		MOB.CurrentScore.MaxHp += mhp;
-		MOB.CurrentScore.MaxMp += mmp;
 #pragma endregion
 	}
 
 	int special0 = MOB.CurrentScore.Special[0] + BASE_GetMobAbility(&MOB, EF_SPECIAL1);
 
-	if(special0 > 320)
-		special0 = 320;
+	if (special0 > 200)
+		special0 = 200;
 
 	int special1 = MOB.CurrentScore.Special[1] + BASE_GetMobAbility(&MOB, EF_SPECIAL2) + BASE_GetMobAbility(&MOB, EF_SPECIALALL);
 
-	if(special1 > 320)
+	if (special1 > 320)
 		special1 = 320;
 
-	int special2 = MOB.CurrentScore.Special[2] + BASE_GetMobAbility(&MOB, EF_SPECIAL3) + BASE_GetMobAbility(&MOB, EF_SPECIALALL); 
+	int special2 = MOB.CurrentScore.Special[2] + BASE_GetMobAbility(&MOB, EF_SPECIAL3) + BASE_GetMobAbility(&MOB, EF_SPECIALALL);
 
-	if(special2 > 320)
+	if (special2 > 320)
 		special2 = 320;
 
-	int special3 = MOB.CurrentScore.Special[3] + BASE_GetMobAbility(&MOB, EF_SPECIAL4) + BASE_GetMobAbility(&MOB, EF_SPECIALALL); 
+	int special3 = MOB.CurrentScore.Special[3] + BASE_GetMobAbility(&MOB, EF_SPECIAL4) + BASE_GetMobAbility(&MOB, EF_SPECIALALL);
 
-	if(special3 > 320)
+	if (special3 > 320)
 		special3 = 320;
 
 	MOB.CurrentScore.Special[0] = special0;
@@ -3154,37 +3952,37 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	int magic = BASE_GetMobAbility(&MOB, EF_MAGIC) + BASE_GetMobAbility(&MOB, EF_MAGICADD);
 	magic = (magic + 1) / 4;
 
-	int Run = MOB.CurrentScore.AttackRun & 15; 
+	int Run = MOB.CurrentScore.AttackRun & 15;
 	Run += BASE_GetMobAbility(&MOB, EF_RUNSPEED);
 
 	int Att = MOB.BaseScore.AttackRun / 16 * 10;
 	Att += BASE_GetMobAbility(&MOB, EF_ATTSPEED);
 
-	if(Run > 6)
+	if (Run > 6)
 		Run = 6;
 
-	int RegenHP =  BASE_GetMobAbility(&MOB, EF_REGENHP);
+	int RegenHP = BASE_GetMobAbility(&MOB, EF_REGENHP);
 	int RegenMP = BASE_GetMobAbility(&MOB, EF_REGENMP);
 
-	int Critical = (BASE_GetMobAbility(&MOB, EF_CRITICAL)/4);
+	int Critical = (BASE_GetMobAbility(&MOB, EF_CRITICAL) / 4);
 
 	int face = MOB.Equip[0].sIndex / 10;
 
-	if(face < 4)
+	if (face < 4)
 	{
 		MOB.Equip[0].stEffect[0].cEffect = 43;
 		MOB.Equip[0].stEffect[0].cValue = 0;
 
-		if(MOB.Clan == 7 || MOB.Clan == 8 || MOB.Clan == 9)
+		if (MOB.Clan == 7 || MOB.Clan == 8 || MOB.Clan == 9)
 			MOB.Clan = 0;
 	}
 
 	int mantle = MOB.Equip[15].sIndex;
 
-	if(MOB.Clan != 4 && (mantle == 543 || mantle == 545))
+	if (MOB.Clan != 4 && (mantle == 543 || mantle == 545))
 		MOB.Clan = 7;
 
-	if(MOB.Clan != 4 && (mantle == 544 || mantle == 546))
+	if (MOB.Clan != 4 && (mantle == 544 || mantle == 546))
 		MOB.Clan = 8;
 
 	if (MOB.Clan != 4 && (mantle == 734 || mantle == 736))
@@ -3205,17 +4003,96 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	if (MOB.Clan != 4 && (mantle == 3198))
 		MOB.Clan = 8;
 
-	if(MOB.Class == 0)
+
+	if (MOB.Class == 0)
 	{
-		//Armadura Cr√≠tica
-		if(MOB.LearnedSkill & (1 << 15))
+		//Armadura CrÌtica
+		if (MOB.LearnedSkill & 0x8000)
 		{
 			MOB.CurrentScore.Ac = (int)(MOB.CurrentScore.Ac * 1.1f);
 
 			Critical += 24;
 		}
+
+		// Mestre das Armas
+		if (extra->SecLearnedSkill & 0x20)
+			MOB.Critical += 25;
+
+		// Espelho M·gico
+		if (extra->SecLearnedSkill & 0x100)
+		{
+			int calculo = (MOB.CurrentScore.Special[3]) / 10;
+
+			int totalmp = ((MOB.CurrentScore.MaxMp / 100) * calculo) + MOB.CurrentScore.MaxMp;
+
+			if (totalmp > MAX_MP)
+				MOB.CurrentScore.MaxMp = MAX_MP;
+			else
+				MOB.CurrentScore.MaxMp = totalmp;
+		}
 	}
 
+	if (MOB.Class == 2)
+	{
+		// Concha Resistente
+		if (MOB.Equip[0].sIndex >= 20 && MOB.Equip[0].sIndex < 30 || MOB.Equip[0].sIndex == 32)
+		{
+			if (extra->SecLearnedSkill & 0x100)
+				MOB.Critical += 25;
+		}
+	}
+
+	if (MOB.Class == 3)
+	{
+		//Aggressividade
+		if (MOB.LearnedSkill & 0x4)
+		{
+			int lidx = MOB.Equip[6].sIndex;
+
+			if (lidx > 0 && lidx < MAX_ITEMLIST)
+			{
+				int ltype = g_pItemList[lidx].nPos;
+
+				if (ltype == 64)
+				{
+					int fightadd = special1 + 10;
+					MOB.CurrentScore.Damage += fightadd;
+				}
+			}
+		}
+
+		//Tempestade de Raios Bonus em Dano
+		if (MOB.LearnedSkill & 0x80)
+			MOB.CurrentScore.Damage += 200;
+
+		//Vis„o do CaÁador
+		if (MOB.LearnedSkill & 0x40000)
+		{
+			int criticaladd = ((special3 + 1) / 10) + (MOB.CurrentScore.Dex / 75);
+
+			if (criticaladd < 4)
+				criticaladd = 4;
+
+			Critical += criticaladd;
+		}
+
+		//ProteÁ„o das sombras
+		if (MOB.LearnedSkill & 0x400000)
+		{
+			int sombraadd = (special3 / 3) + 10;
+			MOB.CurrentScore.Ac += sombraadd;
+		}
+
+		// Garra Habilidosa
+		if (extra->SecLearnedSkill & 0x200)
+		{
+			if (BASE_GetItemAbility(&MOB.Equip[6], EF_WTYPE) == 41)
+			{
+				MOB.CurrentScore.Damage += 200;
+				MOB.CurrentScore.Dex += 200;
+			}
+		}
+	}
 
 	int HpAdd = BASE_GetMobAbility(&MOB, EF_HPADD) + BASE_GetMobAbility(&MOB, EF_HPADD2) + 100;
 
@@ -3227,22 +4104,30 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 	else
 		MOB.CurrentScore.MaxHp = (int)maxHP;
-	
+
 	int MpAdd = BASE_GetMobAbility(&MOB, EF_MPADD) + BASE_GetMobAbility(&MOB, EF_MPADD2) + 100;
 
 	long long curMP = MOB.CurrentScore.MaxMp;
 	long long maxMP = curMP * MpAdd / 100;
 
-	if (maxMP >= MAX_MP)
+	if (maxMP > MAX_MP)
 		MOB.CurrentScore.MaxMp = MAX_MP;
 
 	else
 		MOB.CurrentScore.MaxMp = (int)maxMP;
 
-	if ((MOB.Equip[0].sIndex >= 20 && MOB.Equip[0].sIndex < 30 || MOB.Equip[0].sIndex == 32))
-		MOB.Equip[0].sIndex = extra->ClassMaster == MORTAL ? extra->MortalFace : extra->MortalFace + 5 + MOB.Class;
+	if (isSummon == 0)
+	{
+		// Pergaminho de TransformaÁ„o
+		if ((MOB.Equip[0].sIndex == 316 || MOB.Equip[0].sIndex == 317 || MOB.Equip[0].sIndex == 297 ||
+			MOB.Equip[0].sIndex == 202 || MOB.Equip[0].sIndex == 297 || MOB.Equip[0].sIndex == 209 ||
+			MOB.Equip[0].sIndex == 212 || MOB.Equip[0].sIndex == 230 || MOB.Equip[0].sIndex == 228))
+			MOB.Equip[0].sIndex = extra->ClassMaster == MORTAL ? extra->MortalFace : extra->MortalFace + 5 + MOB.Class;
 
-
+		// TransformaÁ„o BeastMaster
+		if ((MOB.Equip[0].sIndex >= 20 && MOB.Equip[0].sIndex < 30 || MOB.Equip[0].sIndex == 32))
+			MOB.Equip[0].sIndex = extra->ClassMaster == MORTAL ? extra->MortalFace : extra->MortalFace + 5 + MOB.Class;
+	}
 
 	int AttackSpeedBonus = 0;
 	int RunSpeedBonus = 0;
@@ -3254,20 +4139,21 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	int Gelo = MOB.Resist[3];
 
 #pragma region Buff Loop
-	for(int i = 0; i < MAX_AFFECT; i++)
+	for (int i = 0; i < MAX_AFFECT; i++)
 	{
-		if(Affect == 0)
+		if (Affect == 0)
 			continue;
 
 		int Type = Affect[i].Type;
 
-		if(Type == 0)
+		if (Type == 0)
 			continue;
 
 		int Value = Affect[i].Value;
 		int Level = Affect[i].Level;
 
-		if(Type == 1) // Lentid√£o (?)
+#pragma region Buffs
+		if (Type == 1) // Lentid„o (?)
 		{
 			Run -= Value;
 
@@ -3275,25 +4161,25 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			Att -= tmp;
 
-			if(MOB.Equip[0].sIndex > 50)
+			if (MOB.Equip[0].sIndex > 50)
 			{
 				int tempint = MOB.CurrentScore.Int;
 				tempint -= tmp + 10;
 				MOB.CurrentScore.Int = tempint;
 			}
 		}
-		else if(Type == 2)
+		else if (Type == 2)
 		{
 			Run += Value;
 
 			MOB.Rsv |= RSV_HASTE;
 		}
-		else if(Type == 3)
+		else if (Type == 3)
 		{
 			int val1 = 0;
 			int tval = Value;
 
-			if(MOB.Equip[0].sIndex < 50)
+			if (MOB.Equip[0].sIndex < 50)
 				tval /= 2;
 			else
 				tval -= 10;
@@ -3303,45 +4189,107 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			Trovao -= tval;
 			Gelo -= tval;
 		}
-		else if(Type == 4)
+		else if (Type == 4)
 		{
 			DAMAGEMULTI += 4;
 			MOB.CurrentScore.Damage += 30;
 			magic += 5;
 		}
-		else if(Type == 5)
+		else if (Type == 5)
 		{
 			float fValue = (100 - Value) / 100.0f;
 			MOB.CurrentScore.Dex = (short)(MOB.CurrentScore.Dex * fValue);
 		}
-		else if(Type == 6)
+		else if (Type == 6)
 		{
 			float fValue = (Value + 100) / 100.0f;
 			MOB.CurrentScore.Dex = (short)(MOB.CurrentScore.Dex * fValue);
 		}
-		else if(Type == 7)
+		else if (Type == 7)
 		{
 			int tmp = Level / 10 + 10;
 			Att -= tmp;
 
-			if(MOB.Equip[0].sIndex > 50)
+			if (MOB.Equip[0].sIndex > 50)
 			{
 				int tempint = MOB.CurrentScore.Int;
 				tempint -= (tmp + 10);
 				MOB.CurrentScore.Int = tempint;
 			}
 		}
-		
-		else if(Type == 9)
+
+		else if (Type == 8)
+		{
+			//Resistencia
+			if ((Level & (1 << 1)) != 0)
+			{
+				Sagrado += 25;
+				Fogo += 25;
+				Trovao += 25;
+				Gelo += 25;
+			}
+
+			//Abs
+			if ((Level & (1 << 3)) != 0)
+				*AbsHp += 20;
+
+			//+HP DEF
+			if ((Level & (1 << 4)) != 0)
+			{
+				int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 10) + MOB.CurrentScore.MaxHp;
+
+				if (totalhp >= MAX_HP)
+					MOB.CurrentScore.MaxHp = MAX_HP;
+				else
+					MOB.CurrentScore.MaxHp = totalhp;
+
+				int totalac = ((MOB.CurrentScore.Ac / 100) * 10) + MOB.CurrentScore.Ac;
+
+				MOB.CurrentScore.Ac = totalac;
+			}
+
+			//+HP ATK
+			if ((Level & (1 << 5)) != 0)
+			{
+				int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 10) + MOB.CurrentScore.MaxHp;
+
+				if (totalhp >= MAX_HP)
+					MOB.CurrentScore.MaxHp = MAX_HP;
+				else
+					MOB.CurrentScore.MaxHp = totalhp;
+
+				int totaldam = ((MOB.CurrentScore.Damage / 100) * 10) + MOB.CurrentScore.Damage;
+
+				MOB.CurrentScore.Damage = totaldam;
+			}
+
+			//Precis„o
+			if ((Level & (1 << 6)) != 0)
+				*Accuracy += 50;
+
+			//MP = HP
+			if ((Level & (1 << 7)) != 0)
+			{
+				int mana = ((MOB.CurrentScore.MaxMp + 1) / 2);
+
+				MOB.CurrentScore.MaxHp += mana;
+				MOB.CurrentScore.MaxMp -= mana;
+
+				if (MOB.CurrentScore.MaxHp >= 100000)
+					MOB.CurrentScore.MaxHp = 100000;
+			}
+		}
+
+		else if (Type == 9)
 		{
 			int add = Level * 5 / 20 + Value;
 			add = add * 3 / 2;
 
 			DAMAGEMULTI += 5;
 
-			if(MOB.Class == 1)
+			if (MOB.Class == 1)
 			{
-				if(MOB.LearnedSkill & 0x80000)
+				if (MOB.LearnedSkill & 0x80000)
 				{
 					add *= 3;
 					DAMAGEMULTI += 10;
@@ -3350,25 +4298,25 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			MOB.CurrentScore.Damage += add;
 		}
-		else if(Type == 10)
+		else if (Type == 10)
 		{
 			int sub = Level / 5 + Value;
 
 			MOB.CurrentScore.Damage -= sub;
 		}
-		else if(Type == 11)
+		else if (Type == 11)
 		{
 			int add = Level / 3 + Value;
 
 			MOB.CurrentScore.Ac += add;
 		}
-		else if(Type == 12)
+		else if (Type == 12)
 		{
 			float fvalue = (100 - Value) / 100.0f;
 
 			MOB.CurrentScore.Ac = (int)(MOB.CurrentScore.Ac * fvalue);
 		}
-		else if(Type == 13)
+		else if (Type == 13)
 		{
 			int tv = Level / 10 + Value;
 
@@ -3379,11 +4327,11 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			MOB.CurrentScore.MaxHp = tv;
 		}
-		else if(Type == 14)
+		else if (Type == 14)
 		{
 			int value = Level * 3 / 4 + Value;
 
-			if(extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL)
+			if (extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL)
 				value *= 3;
 
 			MOB.CurrentScore.MaxHp += value * 2;
@@ -3392,152 +4340,165 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			MOB.CurrentScore.Con = tv;
 		}
-		else if(Type == 15)
+		else if (Type == 15) // Toque de Athena
 		{
 			int value = Level / 10 + Value;
 
 			int tv = MOB.CurrentScore.Special[0] + value;
 
-			if(tv > 400)
-				tv = 400;
+			if (tv > 255)
+				tv = 255;
 
 			MOB.CurrentScore.Special[0] = tv;
 
 			tv = MOB.CurrentScore.Special[1] + value;
 
-			if(tv > 400)
-				tv = 400;
+			if ((1 << 0) & extra->SecLearnedSkill)
+			{
+				if (tv > 320)
+					tv = 320;
+			}
+			else
+				if (tv > 255)
+					tv = 255;
 
 			MOB.CurrentScore.Special[1] = tv;
 
 			tv = MOB.CurrentScore.Special[2] + value;
 
-			if(tv > 400)
-				tv = 400;
+			if ((1 << 4) & extra->SecLearnedSkill)
+			{
+				if (tv > 320)
+					tv = 320;
+			}
+			else
+				if (tv > 255)
+					tv = 255;
 
 			MOB.CurrentScore.Special[2] = tv;
 
 			tv = MOB.CurrentScore.Special[3] + value;
 
-			if(tv > 400)
-				tv = 400;
+			if ((1 << 8) & extra->SecLearnedSkill)
+			{
+				if (tv > 320)
+					tv = 320;
+			}
+			else
+				if (tv > 255)
+					tv = 255;
 
-			MOB.CurrentScore.Special[3] = tv;	
+			MOB.CurrentScore.Special[3] = tv;
 		}
-		else if(Type == 16)
+
+		else if (Type == 16)
 		{
 			int value = Value - 1;
 
-			if(value < 0 || value >= 5 || MOB.Class != 2)
+			if (value < 0 || value >= 5 || MOB.Class != 2)
 				continue;
 
 			MOB.Equip[0].sIndex = value == 4 ? 32 : value + 22;
 
-			 int DamAdd = 0;
-			 int HpAdd = 0;
-			 int AcAdd = 0;
-			 int AttAdd = 0;
-			 int IsWolf = MOB.LearnedSkill & 0x20000;
-			 int IsBear = MOB.LearnedSkill & 0x80000;
-			 int IsAsta = MOB.LearnedSkill & 0x200000;
-			 int RegAdd = 0;
+			int DamAdd = 0;
+			int HpAdd = 0;
+			int AcAdd = 0;
+			int AttAdd = 0;
+			int IsWolf = MOB.LearnedSkill & 0x20000;
+			int IsBear = MOB.LearnedSkill & 0x80000;
+			int IsAsta = MOB.LearnedSkill & 0x200000;
+			int RegAdd = 0;
 
-			 if(MOB.Equip[0].sIndex == 22 && IsWolf != 0)
-			 {
-				 DamAdd = 10;
-				 //RegAdd += 15;
-				 Critical += 5;
-			 }
-			 else if(MOB.Equip[0].sIndex == 23 && IsBear != 0)
-			 {
-				 HpAdd = 10;
-				 RegAdd += 20;//Old 30
-				 AttAdd += 20;
-			 }
-			 else if(MOB.Equip[0].sIndex == 24 && IsAsta != 0)
-			 {
-				 DamAdd = 10;
-				 AcAdd = 5;
-				 HpAdd = 5;
-				 RegAdd += 20;//15
-				 AttAdd += 20;
-			 }			
-			 else if(MOB.Equip[0].sIndex == 25)
-				 AttAdd += 30;
+			if (MOB.Equip[0].sIndex == 22 && IsWolf != 0)
+			{
+				DamAdd = 10;
+				//RegAdd += 15;
+				Critical += 5;
+			}
+			else if (MOB.Equip[0].sIndex == 23 && IsBear != 0)
+			{
+				HpAdd = 10;
+				AcAdd = 7; // New 7
+				RegAdd += 20;//Old 30
+				AttAdd += 20;
+			}
+			else if (MOB.Equip[0].sIndex == 24 && IsAsta != 0)
+			{
+				DamAdd = 10;
+				//AcAdd = 5;
+				HpAdd = 5;
+				RegAdd += 20;//15
+				AttAdd += 20;
+			}
+			else if (MOB.Equip[0].sIndex == 25)
+				AttAdd += 30;
 
-			 else if (MOB.Equip[0].sIndex == 32)
-			 {
-				 DamAdd = 10;
-				 AcAdd = 5;
-				 HpAdd = 10;
-				 RegAdd += 10;
-				 AttAdd += 20;
-			 }
+			else if (MOB.Equip[0].sIndex == 32)
+			{
+				DamAdd = 10;
+				AcAdd = 5;
+				HpAdd = 10;
+				RegAdd += 10;
+				AttAdd += 20;
+			}
 
-			 int sanc = (special3 + (extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL ? MOB.CurrentScore.Level+MAX_LEVEL : MOB.CurrentScore.Level) * 2) / 3;
-			 sanc = (sanc - pTransBonus[value].Unk17) / 12;
+			int sanc = (special3 + (extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL ? MOB.CurrentScore.Level + MAX_LEVEL : MOB.CurrentScore.Level) * 2) / 3;
+			sanc = (sanc - pTransBonus[value].Unk17) / 12;
 
-			 if(sanc <= 0)
-				 sanc = 0;
+			if (sanc <= 0)
+				sanc = 0;
 
-			 if(sanc > 9)
-				 sanc = 9;
+			if (sanc > 9)
+				sanc = 9;
 
-			 MOB.Equip[0].stEffect[0].cEffect = EF_SANC;
-			 MOB.Equip[0].stEffect[0].cValue = sanc;
+			MOB.Equip[0].stEffect[0].cEffect = EF_SANC;
+			MOB.Equip[0].stEffect[0].cValue = sanc;
 
-			 int min = DamAdd + pTransBonus[value].Unk;
-			 int max = DamAdd + pTransBonus[value].Unk2;
-			 int delta = max - min;
-			 int multi = delta * Level / 200 + min;
-			 int tv = MOB.CurrentScore.Damage;
+			int min = DamAdd + pTransBonus[value].Unk;
+			int max = DamAdd + pTransBonus[value].Unk2;
+			int delta = max - min;
+			int multi = delta * Level / 200 + min;
+			int tv = MOB.CurrentScore.Damage;
 
-			 if(MOB.Equip[0].sIndex == 22)
-				 tv += 10;
+			if (MOB.Equip[0].sIndex == 22)
+				tv += 10;
 
-			 MOB.CurrentScore.Damage = tv;
+			MOB.CurrentScore.Damage = tv;
 
-			 DAMAGEMULTI = DAMAGEMULTI + multi - 100;
+			DAMAGEMULTI = DAMAGEMULTI + multi - 100;
 
-			 min = AcAdd + pTransBonus[value].Unk3;
-			 max = AcAdd + pTransBonus[value].Unk4;
-			 delta = max - min;
-			 multi = delta * Level / 200 + min;
-			 tv = MOB.CurrentScore.Ac;
-			 tv = tv * multi / 100;
+			min = AcAdd + pTransBonus[value].Unk3;
+			max = AcAdd + pTransBonus[value].Unk4;
+			delta = max - min;
+			multi = delta * Level / 200 + min;
+			tv = MOB.CurrentScore.Ac;
+			tv = tv * multi / 100;
 
-			 if(MOB.Equip[0].sIndex == 22)
-				 tv += 5;
+			if (MOB.Equip[0].sIndex == 22)
+				tv += 5;
 
-			 MOB.CurrentScore.Ac = tv;
+			MOB.CurrentScore.Ac = tv;
 
-			 min = HpAdd + pTransBonus[value].Unk5;
-			 max = HpAdd + pTransBonus[value].Unk6;
-			 delta = max - min;
-			 multi = delta * Level / 200 + min;
-			 tv = MOB.CurrentScore.MaxHp;
-			 tv = tv * multi / 100;
-			 MOB.CurrentScore.MaxHp = tv;
+			min = HpAdd + pTransBonus[value].Unk5;
+			max = HpAdd + pTransBonus[value].Unk6;
+			delta = max - min;
+			multi = delta * Level / 200 + min;
+			tv = MOB.CurrentScore.MaxHp;
+			tv = tv * multi / 100;
+			MOB.CurrentScore.MaxHp = tv;
 
-			 Sagrado += RegAdd;
-			 Fogo += RegAdd;
-			 Trovao += RegAdd;
-			 Gelo += RegAdd;
+			Sagrado += RegAdd;
+			Fogo += RegAdd;
+			Trovao += RegAdd;
+			Gelo += RegAdd;
 
-			 AttackSpeedBonus = pTransBonus[value].Unk9 + AttAdd;
-			 RunSpeedBonus = pTransBonus[value].Unk7;
+			AttackSpeedBonus = pTransBonus[value].Unk9 + AttAdd;
+			RunSpeedBonus = pTransBonus[value].Unk7;
 		}
-		else if(Type == 42)
-		{
-			int mana = MOB.CurrentScore.MaxMp / 5 + (((extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL ? MOB.CurrentScore.Level + MAX_LEVEL : MOB.CurrentScore.Level) + Level) / 2);
-
-			MOB.CurrentScore.MaxHp += mana;
-			MOB.CurrentScore.MaxMp -= mana;
-		}
-		else if(Type == 19)
+		else if (Type == 19)
 			MOB.Rsv |= RSV_BLOCK;
 
-		else if(Type == 21)
+		else if (Type == 21)
 		{
 			int add = Level / 3 + 10;
 
@@ -3547,35 +4508,39 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			DAMAGEMULTI += tv;
 		}
-		else if(Type == 24)
+		else if (Type == 24)
 		{
 			int add = MOB.CurrentScore.Ac / 4 + Value;
 
 			MOB.CurrentScore.Ac += add;
 		}
-		else if(Type == 25)
+		else if (Type == 25)
 		{
 			int add = (Value + Level / 4) / 10;
+			int addac = (Value + Level) + (MOB.CurrentScore.Special[1] + 1);
 
 			if (Level >= 255)
 				add += 20;
+
+			MOB.CurrentScore.Ac += addac;
 
 			Fogo += add;
 			Trovao += add;
 			Gelo += add;
 		}
-		else if(Type == 26)
+#pragma endregion
+		else if (Type == 26)
 			MOB.Rsv |= RSV_PARRY;
-		else if(Type == 27 && BASE_GetItemAbility(&MOB.Equip[6], EF_WTYPE) == 101)
+		else if (Type == 27 && BASE_GetItemAbility(&MOB.Equip[6], EF_WTYPE) == 101)
 			MOB.Rsv |= RSV_FROST;
-		else if(Type == 28)
+		else if (Type == 28)
 			MOB.Rsv |= RSV_HIDE;
-		
-		else if(Type == 36 && BASE_GetItemAbility(&MOB.Equip[6], EF_WTYPE) == 41)
-		    MOB.Rsv |= RSV_DRAIN;
+
+		else if (Type == 36 && BASE_GetItemAbility(&MOB.Equip[6], EF_WTYPE) == 41)
+			MOB.Rsv |= RSV_DRAIN;
 
 		//else if (Type == 30)
-		//	MOB.Rsv |= RSV_VISION;
+		//  MOB.Rsv |= RSV_VISION;
 
 		else if (Type == 29 && extra->ClassMaster != MORTAL)//Soul
 		{
@@ -3590,7 +4555,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			else if (extra->Soul == SOUL_C)
 				MOB.CurrentScore.Con = (int)(MOB.CurrentScore.Con * 2.2f);
-			
+
 			else if (extra->Soul == SOUL_FI)
 			{
 				MOB.CurrentScore.Str = (int)(MOB.CurrentScore.Str * 1.80f);
@@ -3677,7 +4642,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			else if (extra->Soul == SOUL_C)
 				MOB.CurrentScore.Con = (int)(MOB.CurrentScore.Con * 1.8f);
-			
+
 			else if (extra->Soul == SOUL_FI)
 			{
 				MOB.CurrentScore.Str = (int)(MOB.CurrentScore.Str * 1.60f);
@@ -3752,19 +4717,112 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		}
 
 		else if (Type == 30)
-			*ForceMobDamage += Level;
+			*ForceMobDamage += 2000;
+
+		else if (Type == 33)//Transformacoes
+		{
+			switch (Value)
+			{
+			case 1: // Javali
+				MOB.Equip[0].sIndex = 316;
+				break;
+
+			case 2: // Lobo
+				MOB.Equip[0].sIndex = 317;
+				break;
+
+			case 3: // Golem
+				MOB.Equip[0].sIndex = 297;
+				break;
+
+			case 4: // Grem
+				MOB.Equip[0].sIndex = 202;
+				break;
+			
+			case 5: // OrcA
+				MOB.Equip[0].sIndex = 209;
+				break;
+			
+			case 6: // Troll
+				MOB.Equip[0].sIndex = 212;
+				break;
+			
+			case 7: // Carbun
+				MOB.Equip[0].sIndex = 230;
+				break;
+			
+			case 8: // Golem
+				MOB.Equip[0].sIndex = 228;
+				break;
+			}
+		}
+
+		else if (Type == 34)//Divina
+		{
+			int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 20) + MOB.CurrentScore.MaxHp;
+
+			if (totalhp > MAX_HP)
+				MOB.CurrentScore.MaxHp = MAX_HP;
+			else
+				MOB.CurrentScore.MaxHp = totalhp;
+
+			int totalmp = ((MOB.CurrentScore.MaxMp / 100) * 20) + MOB.CurrentScore.MaxMp;
+
+			if (totalmp > MAX_MP)
+				MOB.CurrentScore.MaxMp = MAX_MP;
+			else
+				MOB.CurrentScore.MaxMp = totalmp;
+
+			int totaldn = ((MOB.CurrentScore.Damage / 100) * 20) + MOB.CurrentScore.Damage; //20
+
+			MOB.CurrentScore.Damage = totaldn;
+
+			int totalmg = ((MOB.Magic / 100) * 10) + MOB.Magic; // 10
+
+			MOB.Magic = totalmg;
+
+			/*int totaldn = ((MOB.CurrentScore.Damage / 100) * 20) + MOB.CurrentScore.Damage; //20
+
+			if (totaldn > MAX_DAMAGE)
+			MOB.CurrentScore.Damage = MAX_DAMAGE;
+			else
+			MOB.CurrentScore.Damage = totaldn;
+
+			int totalmg = ((MOB.Magic / 100) * 10) + MOB.Magic; // 10
+
+			if (totalmg > MAX_DAMAGE_MG)
+			MOB.Magic = MAX_DAMAGE_MG;
+			else
+			MOB.Magic = totalmg;*/
+		}
+
+		else if (Type == 35)//Vigor
+		{
+			int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 10) + MOB.CurrentScore.MaxHp;
+
+			if (totalhp >= MAX_HP)
+				MOB.CurrentScore.MaxHp = MAX_HP;
+			else
+				MOB.CurrentScore.MaxHp = totalhp;
+
+			int totalmp = ((MOB.CurrentScore.MaxMp / 100) * 10) + MOB.CurrentScore.MaxMp;
+
+			if (totalmp > MAX_MP)
+				MOB.CurrentScore.MaxMp = MAX_MP;
+			else
+				MOB.CurrentScore.MaxMp = totalmp;
+		}
 
 		else if (Type == 37)
 			*ForceDamage += special2;
 
-		else if (Type == 31)
+		else if (Type == HT_ESCUDO_DOURADO)
 		{
-			int add = Level / 2 + Value;
-
-			MOB.CurrentScore.Ac += add;
+			int incDefense = (Level >> 1) + Value;
+			MOB.CurrentScore.Ac = MOB.CurrentScore.Ac + incDefense;
 		}
-		
-		else if(Type == 38)
+
+		else if (Type == 38)
 		{
 			int mana = MOB.CurrentScore.MaxMp / 2;
 
@@ -3776,26 +4834,24 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			*ExpBonus += 100;
 	}
 #pragma endregion
-
-
-#pragma region Loop affect2
-	for(int i = 0; i < MAX_AFFECT; i++)
+/*#pragma region Loop affect2
+	for (int i = 0; i < MAX_AFFECT; i++)
 	{
-		if(Affect == 0)
+		if (Affect == 0)
 			continue;
 
 		int Type = Affect[i].Type;
 
-		if(Type == 0)
+		if (Type == 0)
 			continue;
 
 		int Value = Affect[i].Value;
 		int Level = Affect[i].Level;
 
-		if(Type == 8)
+		if (Type == 8)
 		{
 			//Resistencia
-			if((Level & (1 << 1)) != 0)
+			if ((Level & (1 << 1)) != 0)
 			{
 				Sagrado += 25;
 				Fogo += 25;
@@ -3804,11 +4860,11 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			}
 
 			//Abs
-			if((Level & (1 << 3)) != 0)
+			if ((Level & (1 << 3)) != 0)
 				*AbsHp += 20;
 
 			//+HP DEF
-			if((Level & (1 << 4)) != 0)
+			if ((Level & (1 << 4)) != 0)
 			{
 				int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 10) + MOB.CurrentScore.MaxHp;
 
@@ -3823,7 +4879,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			}
 
 			//+HP ATK
-			if((Level & (1 << 5)) != 0)
+			if ((Level & (1 << 5)) != 0)
 			{
 				int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 10) + MOB.CurrentScore.MaxHp;
 
@@ -3837,48 +4893,59 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 				MOB.CurrentScore.Damage = totaldam;
 			}
 
-			//Precis√£o
-			if((Level & (1 << 6)) != 0)
+			//Precis„o
+			if ((Level & (1 << 6)) != 0)
 				*Accuracy += 50;
 
 			//MP = HP
-			if((Level & (1 << 7)) != 0)
+			if ((Level & (1 << 7)) != 0)
 			{
 				int mana = ((MOB.CurrentScore.MaxMp + 1) / 2);
 
 				MOB.CurrentScore.MaxHp += mana;
 				MOB.CurrentScore.MaxMp -= mana;
+
+				if (MOB.CurrentScore.MaxHp >= 100000)
+					MOB.CurrentScore.MaxHp = 100000;
 			}
 		}
 		else if (Type == 34)//Divina
 		{
 			int totalhp = ((MOB.CurrentScore.MaxHp / 100) * 20) + MOB.CurrentScore.MaxHp;
 
-			if (totalhp >= MAX_HP)
+			if (totalhp > MAX_HP)
 				MOB.CurrentScore.MaxHp = MAX_HP;
 			else
 				MOB.CurrentScore.MaxHp = totalhp;
 
 			int totalmp = ((MOB.CurrentScore.MaxMp / 100) * 20) + MOB.CurrentScore.MaxMp;
 
-			if (totalmp >= MAX_MP)
+			if (totalmp > MAX_MP)
 				MOB.CurrentScore.MaxMp = MAX_MP;
 			else
 				MOB.CurrentScore.MaxMp = totalmp;
 
-			int totaldn = ((MOB.CurrentScore.Damage / 100) * 20) + MOB.CurrentScore.Damage;
+			int totaldn = ((MOB.CurrentScore.Damage / 100) * 20) + MOB.CurrentScore.Damage; //20
 
-			if (totaldn >= MAX_DAMAGE)
-				MOB.CurrentScore.Damage = MAX_DAMAGE;
+			MOB.CurrentScore.Damage = totaldn;
+
+			int totalmg = ((MOB.Magic / 100) * 10) + MOB.Magic; // 10
+
+			MOB.Magic = totalmg;
+
+			/*int totaldn = ((MOB.CurrentScore.Damage / 100) * 20) + MOB.CurrentScore.Damage; //20
+
+			if (totaldn > MAX_DAMAGE)
+			MOB.CurrentScore.Damage = MAX_DAMAGE;
 			else
-				MOB.CurrentScore.Damage = totaldn;
+			MOB.CurrentScore.Damage = totaldn;
 
-			int totalmg = ((MOB.Magic / 100) * 10) + MOB.Magic;
+			int totalmg = ((MOB.Magic / 100) * 10) + MOB.Magic; // 10
 
-			if (totalmg >= MAX_DAMAGE_MG)
-				MOB.Magic = MAX_DAMAGE_MG;
+			if (totalmg > MAX_DAMAGE_MG)
+			MOB.Magic = MAX_DAMAGE_MG;
 			else
-				MOB.Magic = totalmg;
+			MOB.Magic = totalmg;
 		}
 
 		else if (Type == 35)//Vigor
@@ -3892,88 +4959,183 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			int totalmp = ((MOB.CurrentScore.MaxMp / 100) * 10) + MOB.CurrentScore.MaxMp;
 
-			if (totalmp >= MAX_MP)
+			if (totalmp > MAX_MP)
 				MOB.CurrentScore.MaxMp = MAX_MP;
 			else
 				MOB.CurrentScore.MaxMp = totalmp;
 		}
-	}
-#pragma endregion
 
-	for(int p = 1; p <= 7; p++)
+		else if (Type == 33)//Transformacoes
+		{
+			switch (Value)
+			{
+			case 1: // Javali
+				MOB.Equip[0].sIndex = 316;
+				break;
+
+			case 2: // Lobo
+				MOB.Equip[0].sIndex = 317;
+				break;
+
+			case 3: // Golem
+				MOB.Equip[0].sIndex = 297;
+				break;
+
+			case 4: // Grem
+				MOB.Equip[0].sIndex = 202;
+				break;
+			
+			case 5: // OrcA
+				MOB.Equip[0].sIndex = 209;
+				break;
+			
+			case 6: // Troll
+				MOB.Equip[0].sIndex = 212;
+				break;
+			
+			case 7: // Carbun
+				MOB.Equip[0].sIndex = 230;
+				break;
+			
+			case 8: // Golem
+				MOB.Equip[0].sIndex = 228;
+				break;
+			}
+		}
+	}
+#pragma endregion*/
+
+	for (int p = 1; p <= 7; p++)
 	{
 		int idx = MOB.Equip[p].sIndex;
 
-		if(idx <= 0 || idx > MAX_ITEMLIST)
+		if (idx <= 0 || idx > MAX_ITEMLIST)
 			continue;
 
 		int sa = BASE_GetItemSanc(&MOB.Equip[p]);
 
-		if(sa < 9)
+		if (sa < 9)
 			continue;
 
 		int nPos = g_pItemList[idx].nPos;
 
-		 if(nPos == 4)
+		if (nPos == 4)
 			MOB.CurrentScore.Ac += 25;
-		else if(nPos == 8)
+		else if (nPos == 8)
 			MOB.CurrentScore.Ac += 25;
-		else if(nPos == 16)
+		else if (nPos == 16)
 			MOB.Rsv |= RSV_CAST;
-		else if(nPos == 128)
+		else if (nPos == 128)
 			MOB.CurrentScore.Ac += 25;
-		
-		else if(nPos == 64 || nPos == 192)
+
+		else if (nPos == 64 || nPos == 192)
 		{
 			int nu = g_pItemList[idx].nUnique;
 
-			if(nu == 47)
+			if (nu == 47)
 				magic += 8;
 			else
 				MOB.CurrentScore.Damage += 40;
 		}
 	}
 
-	if(MOB.Class == 3)
+	if (extra->ClassMaster >= CELESTIAL)
 	{
-		//Aggressividade
-		if(MOB.LearnedSkill & (1 << 2))
+		if (MOB.Class == 0)
 		{
-			int lidx = MOB.Equip[6].sIndex;
-
-			if(lidx > 0 && lidx < MAX_ITEMLIST)
+			if (extra->QuestInfo.Arch.Cristal == 1){
+				MOB.CurrentScore.MaxHp += 1600;
+				MOB.CurrentScore.MaxMp += 380;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 2){
+				MOB.CurrentScore.MaxHp += 1600;
+				MOB.CurrentScore.MaxMp += 380;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 3){
+				MOB.CurrentScore.MaxHp += 1680;
+				MOB.CurrentScore.MaxMp += 380;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 4){
+				MOB.CurrentScore.MaxHp += 1740;
+				MOB.CurrentScore.MaxMp += 440;
+			}
+			else
 			{
-				int ltype = g_pItemList[lidx].nUnique;
-
-				if(ltype == 64)
-				{
-					int fightadd = special1 + 10;
-					MOB.CurrentScore.Damage += fightadd;
-				}
+				MOB.CurrentScore.MaxHp += 1600;
+				MOB.CurrentScore.MaxMp += 300;
 			}
 		}
-
-		//Tempestade de Raios Bonus em Dano
-		if(MOB.LearnedSkill & (1 << 7))
-			MOB.CurrentScore.Damage += special1 * 2;
-
-
-		//Vis√£o do Ca√ßador
-		if(MOB.LearnedSkill & (1 << 18))
+		if (MOB.Class == 1)
 		{
-			int criticaladd = ((special3+1)/10) + (MOB.CurrentScore.Dex / 75);
-			
-			if(criticaladd < 4)
-				criticaladd = 4;
-			
-			Critical += criticaladd;
+			if (extra->QuestInfo.Arch.Cristal == 1){
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 1780;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 2){
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 1780;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 3){
+				MOB.CurrentScore.MaxHp += 880;
+				MOB.CurrentScore.MaxMp += 1780;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 4){
+				MOB.CurrentScore.MaxHp += 940;
+				MOB.CurrentScore.MaxMp += 1840;
+			}
+			else
+			{
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 1700;
+			}
 		}
-
-		//Prote√ß√£o das sombras
-		if(MOB.LearnedSkill & (1 << 22))
+		if (MOB.Class == 2)
 		{
-			int sombraadd = (special3 / 3) + 10;
-			MOB.CurrentScore.Ac += sombraadd;
+			if (extra->QuestInfo.Arch.Cristal == 1){
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 1380;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 2){
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 1380;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 3){
+				MOB.CurrentScore.MaxHp += 880;
+				MOB.CurrentScore.MaxMp += 1380;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 4){
+				MOB.CurrentScore.MaxHp += 940;
+				MOB.CurrentScore.MaxMp += 1440;
+			}
+			else
+			{
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 1300;
+			}
+		}
+		if (MOB.Class == 3)
+		{
+			if (extra->QuestInfo.Arch.Cristal == 1){
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 780;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 2){
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 780;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 3){
+				MOB.CurrentScore.MaxHp += 880;
+				MOB.CurrentScore.MaxMp += 780;
+			}
+			else if (extra->QuestInfo.Arch.Cristal == 4){
+				MOB.CurrentScore.MaxHp += 940;
+				MOB.CurrentScore.MaxMp += 840;
+			}
+			else
+			{
+				MOB.CurrentScore.MaxHp += 800;
+				MOB.CurrentScore.MaxMp += 700;
+			}
 		}
 	}
 
@@ -3992,25 +5154,24 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		MOB.CurrentScore.MaxMp += mmp;
 	}
 
-
 	if (face < 4)
-		MOB.CurrentScore.Damage += (MOB.CurrentScore.Str / 2) + (MOB.CurrentScore.Dex / 3) + MOB.CurrentScore.Special[0] + (extra->ClassMaster == ARCH || extra->ClassMaster == MORTAL ? MOB.CurrentScore.Level : MOB.CurrentScore.Level + MAX_LEVEL);
+		MOB.CurrentScore.Damage += (MOB.CurrentScore.Str / 2) + (MOB.CurrentScore.Dex / 4) + MOB.CurrentScore.Special[0] + (extra->ClassMaster == ARCH || extra->ClassMaster == MORTAL ? MOB.CurrentScore.Level : MOB.CurrentScore.Level + MAX_LEVEL);
 
-	if(DAMAGEMULTI != 100)
-		MOB.CurrentScore.Damage = MOB.CurrentScore.Damage * DAMAGEMULTI  / 100;
+	if (DAMAGEMULTI != 100)
+		MOB.CurrentScore.Damage = MOB.CurrentScore.Damage * DAMAGEMULTI / 100;
 
-	if(RegenHP < 0)
+	if (RegenHP < 0)
 		RegenHP = 0;
 
-	if(RegenHP > 255)
+	if (RegenHP > 255)
 		RegenHP = 255;
 
 	MOB.RegenHP = RegenHP;
 
-	if(RegenMP < 0)
+	if (RegenMP < 0)
 		RegenMP = 0;
 
-	if(RegenMP > 255)
+	if (RegenMP > 255)
 		RegenMP = 255;
 
 	MOB.RegenMP = RegenMP;
@@ -4022,7 +5183,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 	int mount = MOB.Equip[14].sIndex;
 
-	if(face <= 4 && (mount >= 2360 && mount <= 2390 || mount >= 3980 && mount <= 3994))
+	if (face <= 4 && (mount >= 2360 && mount <= 2390 || mount >= 3980 && mount <= 3994))
 	{
 		if (mount >= 3980 && mount <= 3994)
 		{
@@ -4032,29 +5193,28 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 				Run = g_pMountTempBonus[code][4];
 		}
 
-		else if(MOB.Equip[14].stEffect[0].sValue > 0 )
+		else if (MOB.Equip[14].stEffect[0].sValue > 0)
 		{
 			int code = mount - 2360;
 
-			if(Run < g_pMountBonus[code][4])
+			if (Run < g_pMountBonus[code][4])
 				Run = g_pMountBonus[code][4];
 		}
 	}
 
-	if(Run <= 0)
+	if (Run <= 0)
 		Run = 0;
-	if(Run > 6)
+	if (Run > 6)
 		Run = 6;
 
-	if(Att < 0)
+	if (Att < 0)
 		Att = 0;
-	if(Att > 150)
+	if (Att > 150)
 		Att = 150;
 
 	Att /= 10;
 
 	MOB.CurrentScore.AttackRun = Att * 16 + Run;
-
 
 	if (MOB.CurrentScore.Hp < 0)
 		MOB.CurrentScore.Hp = 0;
@@ -4062,14 +5222,11 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	if (MOB.CurrentScore.Mp < 0)
 		MOB.CurrentScore.Mp = 0;
 
-	if(MOB.CurrentScore.Hp > MOB.CurrentScore.MaxHp)
+	if (MOB.CurrentScore.Hp > MOB.CurrentScore.MaxHp)
 		MOB.CurrentScore.Hp = MOB.CurrentScore.MaxHp;
 
-	if(MOB.CurrentScore.Mp > MOB.CurrentScore.MaxMp)
+	if (MOB.CurrentScore.Mp > MOB.CurrentScore.MaxMp)
 		MOB.CurrentScore.Mp = MOB.CurrentScore.MaxMp;
-
-	if (magic >= MAX_DAMAGE_MG)
-		magic = MAX_DAMAGE_MG;
 
 	MOB.Magic = magic;
 
@@ -4078,39 +5235,51 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 	MOB.Critical = Critical;
 
-
 	if (Sagrado < 0)
 		Sagrado = 0;
 
-	if (Sagrado > 100)
-		Sagrado = 100;
+	if (Sagrado > 200)
+		Sagrado = 200;
 
 	MOB.Resist[0] = Sagrado;
 
 	if (Trovao < 0)
 		Trovao = 0;
 
-	if (Trovao > 100)
-		Trovao = 100;
+	if (Trovao > 200)
+		Trovao = 200;
 
 	MOB.Resist[1] = Trovao;
 
 	if (Fogo < 0)
 		Fogo = 0;
 
-	if (Fogo > 100)
-		Fogo = 100;
+	if (Fogo > 200)
+		Fogo = 200;
 
 	MOB.Resist[2] = Fogo;
 
 	if (Gelo < 0)
 		Gelo = 0;
 
-	if (Gelo > 100)
-		Gelo = 100;
+	if (Gelo > 200)
+		Gelo = 200;
 
 	MOB.Resist[3] = Gelo;
+
+	if (MOB.CurrentScore.MaxHp > 100000)
+		MOB.CurrentScore.MaxHp = 100000;
+
+	if (MOB.CurrentScore.Hp > 100000)
+		MOB.CurrentScore.Hp = 100000;
+
+	if (MOB.CurrentScore.MaxMp > 100000)
+		MOB.CurrentScore.MaxMp = 100000;
+
+	if (MOB.CurrentScore.Mp > 100000)
+		MOB.CurrentScore.Mp = 100000;
 }
+
 
 void BASE_GetFirstKey(char * source, char * dest)
 {
@@ -4301,6 +5470,7 @@ int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, ST
 	if(Pos == 15)
 		return FALSE;
 
+	
 	if(Pos != -1)
 	{
 		int tpos = BASE_GetItemAbility(item, EF_POS);
@@ -4364,6 +5534,18 @@ int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, ST
 		return FALSE;
 
 	if(extra->ClassMaster != MORTAL && Pos == 1 && item->sIndex != 747 && (item->sIndex < 3500 || item->sIndex > 3507))
+		return FALSE;
+
+	if(extra->ClassMaster == HARDCORE && Pos == 1 && item->sIndex == 3505)
+		return FALSE;
+
+	if(extra->ClassMaster == HARDCOREA && Pos == 1 && item->sIndex == 3505)
+		return FALSE;
+
+	if(extra->ClassMaster == HARDCORECS && Pos == 1 && item->sIndex == 3505)
+		return FALSE;
+
+	if(extra->ClassMaster == SHARDCORE && Pos == 1 && item->sIndex == 3505)
 		return FALSE;
 
 	int lvl = extra->ClassMaster == MORTAL ? BASE_GetItemAbility(item, EF_LEVEL) : 0;
@@ -5222,7 +6404,7 @@ void BASE_InitializeEffectName()
 
 		if(val < 0 || val > MAX_EFFECTINDEX)
 		{
-			MessageBox(NULL, temp,"Effect.h√Ä√á Define Value¬∞¬° ¬º√Ω√Ä√ö¬∞¬° ¬æ√Ü¬¥√è¬∞√Ö¬≥¬™ 0√Ä√å√á√è ¬∂√á¬¥√Ç MAX_EFFECTINDEX√Ä√å¬ª√≥√Ä√å¬¥√ô", MB_OK);
+			MessageBox(NULL, temp,"Effect.h¿« Define Value∞° º˝¿⁄∞° æ∆¥œ∞≈≥™ 0¿Ã«œ ∂«¥¬ MAX_EFFECTINDEX¿ÃªÛ¿Ã¥Ÿ", MB_OK);
 
 			continue;
 		}
@@ -5536,6 +6718,263 @@ int BASE_GetDoubleCritical(STRUCT_MOB *mob, unsigned short *sProgress, unsigned 
 	return ret;
 }
 
+/*int BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight)
+{
+	int lastx = x;
+	int lasty = y;
+	int tx = *targetx;
+	int ty = *targety;
+
+	memset(Route, 0, MAX_ROUTE);
+
+	for (int i = 0; i < distance && i < MAX_ROUTE - 1; i++)
+	{
+		if (x - g_HeightPosX < 1 || y - g_HeightPosY < 1 || x - g_HeightPosX > g_HeightWidth - 2 || y - g_HeightPosY > g_HeightHeight - 2)
+		{
+			Route[i] = 0;
+			break;
+		}
+
+		int n  = pHeight[x + g_HeightWidth   *	(y - g_HeightPosY)     - g_HeightPosX    ];
+		int ne = pHeight[x + g_HeightWidth   *	(y - g_HeightPosY - 1) - g_HeightPosX    ];
+		int e  = pHeight[x + g_HeightWidth   *	(y - g_HeightPosY - 1) - g_HeightPosX + 1];
+		int se = pHeight[x + g_HeightWidth   *	(y - g_HeightPosY)     - g_HeightPosX + 1];
+		int s  = pHeight[x + g_HeightWidth   *	(y - g_HeightPosY + 1) - g_HeightPosX + 1];
+		int sw = pHeight[x + g_HeightWidth   *  (y - g_HeightPosY + 1) - g_HeightPosX    ];
+		int w  = pHeight[x + g_HeightWidth   *  (y - g_HeightPosY + 1) - g_HeightPosX - 1];
+		int wn = pHeight[x + g_HeightWidth   *  (y - g_HeightPosY)     - g_HeightPosX - 1];
+		int na = pHeight[x + g_HeightWidth   *  (y - g_HeightPosY - 1) - g_HeightPosX - 1];
+
+		if (tx == x&& ty == y)
+		{
+			Route[i] = 0;
+			break;
+		}
+
+		if (tx != x || ty <= y || sw >= MH + n || sw <= n - MH)
+		{
+			if (tx != x || ty >= y || ne >= MH + n || ne <= n - MH)
+			{
+				if (tx <= x || ty >= y || e >= MH + n || e <= n - MH || (ne >= MH + n || ne <= n - MH) && (se >= MH + n || se <= n - MH))
+				{
+					if (tx <= x || ty != y || se >= MH + n || se <= n - MH)
+					{
+						if (tx <= x || ty <= y || s >= MH + n || s <= n - MH || (sw >= MH + n || sw <= n - MH) && (se >= MH + n || se <= n - MH))
+						{
+							if (tx >= x || ty <= y || w >= MH + n || w <= n - MH || (sw >= MH + n || sw <= n - MH) && (wn >= MH + n || wn <= n - MH))
+							{
+								if (tx >= x || ty != y || wn >= MH + n || wn <= n - MH)
+								{
+									if (tx >= x || ty >= y || na >= MH + n || na <= n - MH || (ne >= MH + n || ne <= n - MH) && (wn >= MH + n || wn <= n - MH))
+									{
+										if (tx <= x || ty >= y || se >= MH + n || se <= n - MH)
+										{
+											if (tx <= x || ty >= y || ne >= MH + n || ne <= n - MH)
+											{
+												if (tx <= x || ty <= y || se >= MH + n || se <= n - MH)
+												{
+													if (tx <= x || ty <= y || sw >= MH + n || sw <= n - MH)
+													{
+														if (tx >= x || ty <= y || wn >= MH + n || wn <= n - MH)
+														{
+															if (tx >= x || ty <= y || sw >= MH + n || sw <= n - MH)
+															{
+																if (tx >= x || ty >= y || wn >= MH + n || wn <= n - MH)
+																{
+																	if (tx >= x || ty >= y || ne >= MH + n || ne <= n - MH)
+																	{
+																		if (tx == x + 1 || ty == y + 1 || tx == x - 1 || ty == y - 1)
+																		{
+																			Route[i] = 0;
+																			break;
+																		}
+
+																		if (tx != x || ty <= y || s >= MH + n || s <= n - MH || (sw >= MH + n || sw <= n - MH) && (se >= MH + n || se <= n - MH))
+																		{
+																			if (tx != x || ty <= y || w >= MH + n || w <= n - MH || (sw >= MH + n || sw <= n - MH) && (wn >= MH + n || wn <= n - MH))
+																			{
+																				if (tx != x || ty >= y || e >= MH + n || e <= n - MH || (ne >= MH + n || ne <= n - MH) && (se >= MH + n || se <= n - MH))
+																				{
+																					if (tx != x || ty >= y || na >= MH + n || na <= n - MH || (ne >= MH + n || ne <= n - MH) && (wn >= MH + n || wn <= n - MH))
+																					{
+																						if (tx >= x || ty != y || w >= MH + n || w <= n - MH || (sw >= MH + n || sw <= n - MH) && (wn >= MH + n || wn <= n - MH))
+																						{
+																							if (tx >= x || ty != y || na >= MH + n || na <= n - MH || (ne >= MH + n || ne <= n - MH) && (wn >= MH + n || wn <= n - MH))
+																							{
+																								if (tx <= x || ty != y || s >= MH + n || s <= n - MH || (sw >= MH + n || sw <= n - MH) && (se >= MH + n || se <= n - MH))
+																								{
+																									if (tx <= x || ty != y || e >= MH + n || e <= n - MH || (ne >= MH + n || ne <= n - MH) && (se >= MH + n || se <= n - MH))
+																									{
+																										Route[i] = 0;
+																										break;
+																									}
+
+																									Route[i] = 51;
+																									x++;
+																									y--;
+																								}
+																								else
+																								{
+																									Route[i] = 57;
+																									x++;
+																									y++;
+																								}
+																							}
+																							else
+																							{
+																								Route[i] = 49;
+																								x--;
+																								y--;
+																							}
+																						}
+																						else
+																						{
+																							Route[i] = 55;
+																							x--;
+																							y++;
+																						}
+																					}
+																					else
+																					{
+																						Route[i] = 49;
+																						x--;
+																						y--;
+																					}
+																				}
+																				else
+																				{
+																					Route[i] = 51;
+																					x++;
+																					y--;
+																				}
+																			}
+																			else
+																			{
+																				Route[i] = 55;
+																				x--;
+																				y++;
+																			}
+																		}
+																		else
+																		{
+																			Route[i] = 57;
+																			x++;
+																			y++;
+																		}
+																	}
+																	else
+																	{
+																		Route[i] = 50;
+																		y--;
+																	}
+																}
+																else
+																{
+																	Route[i] = 52;
+																	x--;
+																}
+															}
+															else
+															{
+																Route[i] = 56;
+																y++;
+															}
+														}
+														else
+														{
+															Route[i] = 52;
+															x--;
+														}
+													}
+													else
+													{
+														Route[i] = 56;
+														y++;
+													}
+												}
+												else
+												{
+													Route[i] = 54;
+													x++;
+												}
+											}
+											else
+											{
+												Route[i] = 50;
+												y--;
+											}
+										}
+										else
+										{
+											Route[i] = 54;
+											x++;
+										}
+									}
+									else
+									{
+										Route[i] = 49;
+										x--;
+										y--;
+									}
+								}
+								else
+								{
+									Route[i] = 52;
+									x--;
+								}
+							}
+							else
+							{
+								Route[i] = 55;
+								x--;
+								y++;
+							}
+						}
+						else
+						{
+							Route[i] = 57;
+							x++;
+							y++;
+						}
+					}
+					else
+					{
+						Route[i] = 54;
+						x++;
+					}
+				}
+				else
+				{
+					Route[i] = 51;
+					x++;
+					y--;
+				}
+			}
+			else
+			{
+				Route[i] = 50;
+				y--;
+			}
+		}
+		else
+		{
+			Route[i] = 56;
+			y++;
+		}
+	}
+
+	if (lastx == x && lasty == y)
+		return 0;
+
+	if (lastx != x || lasty != y)
+	{
+		*targetx = x;
+		*targety = y;
+	}
+
+	return 1;
+}*/
+
 int BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight)
 {
 	int lastx = x;
@@ -5554,7 +6993,7 @@ int BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int dis
 			break;
 		}
 
-		int cul = pHeight[(y - g_HeightPosY) * g_HeightWidth + x - g_HeightPosX];
+		int cul = pHeight[(y - g_HeightPosY)* g_HeightWidth + x - g_HeightPosX];
 
 		if(cul > MH)
 			int kk = 0;
@@ -5840,13 +7279,13 @@ int BASE_GetDistance(int x1, int y1, int x2, int y2)
 	else       
 		dy = y2 - y1;
 
-	if(dx <= 6 && dy <= 6)
+	if(dx <= 7 && dy <= 7) // 6
 		return g_pDistanceTable[dy][dx];
 
 	if(dx > dy) 
-		return dx+1;
+		return dx + 1;
 	else       
-		return dy+1;
+		return dy + 1;
 }
 
 void BASE_WriteInitItem()
@@ -6340,6 +7779,512 @@ int BASE_GetHttpRequest(char *httpname, char *Request, int MaxBuffer)
 	return 1;
 }
 
+/* DESCOMPILADO POR SWEDKA
+int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage, int unknow)
+{
+	int instanceindex = g_pSpell[skillnum].InstanceType;// v21	
+	int kind = skillnum % MAX_SKILL / 8 + 1;			// v20
+	int level = mob->CurrentScore.Level;				// v19
+
+	if (level < 0)
+		level = 0;
+
+	if (level > MAX_LEVEL)
+		level = MAX_LEVEL;
+
+	int special = mob->CurrentScore.Special[kind];		// v18
+	int base = g_pSpell[skillnum].InstanceValue;		// v17
+	int affectbase = g_pSpell[skillnum].AffectValue;	// v16
+	int fskill = skillnum / 8 % 3;						// v15
+	int dam = 0;										// v14
+	int mgc = 4 * mob->Magic;							// v13
+
+	if (instanceindex)
+	{
+		if (instanceindex < 1 || instanceindex > 5)
+		{
+			if (instanceindex == 6)
+			{
+				dam = 3 * special / 2 + base;
+
+				if (skillnum == 29)
+				{
+					int unk = 128;						// v9
+
+					if (mob->LearnedSkill & 0x80)
+						dam = 120 * dam / 100;
+				}
+			}
+			else
+			{
+				if (instanceindex == 11)
+					dam = base;
+				else
+					dam = 2 * mob->Magic;
+			}
+		}
+		else
+		{
+			int skind = skillnum / 8;					// v12
+			int unk2 = 0;								// v11
+
+			if (unknow % 10 > 5)
+				unk2 = 1;
+
+			if (unk2)
+			{
+				if (skillnum == 97)
+					dam = 15 * level + base;
+				else
+				{
+					if (mob->Class || skind != 1)
+					{
+						if (mob->Class || skind == 1)
+						{
+							switch (mob->Class)
+							{
+							case 1:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
+								break;
+
+							case 2:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
+								break;
+
+							case 3:
+								if (skillnum == 79)
+									dam = mob->CurrentScore.Damage;
+								else
+									dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+								break;
+							}
+						}
+						else
+							dam = level + special + base + weapondamage + mob->CurrentScore.Int / 4 + mob->CurrentScore.Int / 40;
+					}
+					else
+						dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level + special + base;
+				}
+			}
+			else
+			{
+				if (skillnum == 97)
+					dam = 15 * level + base;
+				else
+				{
+					if (mob->Class || skind != 1)
+					{
+						if (mob->Class || skind == 1)
+						{
+							switch (mob->Class)
+							{
+							case 1:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level / 2 + special + base;
+								break;
+
+							case 2:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level / 2 + special + base;
+								break;
+
+							case 3:
+								if (skillnum == 79)
+									dam = mob->CurrentScore.Damage;
+								else
+									dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+								break;
+							}
+						}
+						else
+							dam = level / 2 + special + base + weapondamage + mob->CurrentScore.Int / 4 + mob->CurrentScore.Int / 40;
+					}
+					else
+						dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+				}
+			}
+
+			if (weather == 1)
+			{
+				if (instanceindex == 2)
+					dam = 90 * dam / 100;
+
+				if (instanceindex == 5)
+					dam = 130 * dam / 100;
+			}
+			else
+			{
+				if (weather == 2 && instanceindex == 3)
+					dam = 120 * dam / 100;
+			}
+
+			if (skillnum != 97)
+			{
+				if (skillnum == 97)
+					return dam;
+
+				if ((mob->Class || skind != 1) && mob->Class != 3)
+				{
+					dam = (mgc + 100) * dam / 100;
+					dam = 5 * dam / 4;
+				}
+				else
+					dam = 5 * dam / 4;
+			}
+
+			int learned = 1 << (8 * fskill + 7);
+
+			if (learned & mob->LearnedSkill)
+			{
+				int class1 = mob->Class;
+				int class2 = mob->Class;
+
+				switch (class1)
+				{
+				case 0:
+					if (fskill)
+					{
+						if (fskill == 1)
+							dam = 120 * dam / 100;
+						else
+						{
+							if (fskill == 2)
+								dam = 115 * dam / 100;
+						}
+					}
+					else
+						dam = 115 * dam / 100;
+					break;
+
+				case 1:
+					if (fskill)
+					{
+						if (fskill == 1)
+							dam = 115 * dam / 100;
+						else
+						{
+							if (fskill == 2)
+								dam = 115 * dam / 100;
+						}
+					}
+					else
+						dam = 110 * dam / 100;
+					break;
+
+				case 2:
+					if (!fskill)
+						dam = 110 * dam / 100;
+					break;
+				
+				case 3:
+					if (fskill)
+					{
+						if (fskill == 1)
+							dam = 110 * dam / 100;
+						else
+						{
+							if (fskill == 2)
+								dam = 120 * dam / 100;
+						}
+					}
+					else
+						dam = 110 * dam / 100;
+					break;
+
+				default:
+					return dam;
+				}
+			}
+		}
+	}
+	else
+	{
+		switch (skillnum)
+		{
+		case 11:
+			dam = special / 10 + affectbase;
+			break;
+
+		case 13:
+			dam = 3 * special + affectbase;
+			break;
+
+		case 41:
+			dam = special / 25 + 2;
+			break;
+
+		case 43:
+			dam = affectbase + special / 3 + 15;
+			break;
+
+		case 44:
+			dam = 5 * (special / 3 + 15);
+			break;
+
+		case 45:
+			dam = special / 10 + affectbase;
+			break;
+		}
+	}
+
+	return dam;
+}
+*/
+
+
+int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage, int master)
+{
+	int instanceindex = g_pSpell[skillnum].InstanceType;
+	int kind = skillnum % 24 / 8 + 1;
+	int level = mob->CurrentScore.Level;
+
+	if (level < 0)
+		level = 0;
+
+	if (level >= 400)
+		level = 400;
+
+	int special = mob->CurrentScore.Special[kind];
+	int base = g_pSpell[skillnum].InstanceValue;
+	int affectbase = g_pSpell[skillnum].AffectValue;
+	int fskill = skillnum / 8 % 3;
+	int dam = 0;
+	int mgc = 4 * mob->Magic;
+
+	if (instanceindex)
+	{
+		if (instanceindex < 1 || instanceindex > 5)
+		{
+			if (instanceindex == 6)
+			{
+				dam = 3 * special / 2 + base;
+				if (skillnum == 29)
+				{
+					int unk = 128;
+					if (mob->LearnedSkill & 0x80)
+						dam = 120 * dam / 100;
+				}
+			}
+			else
+			{
+				if (instanceindex == 11)
+					dam = base;
+				else
+					dam = 2 * mob->Magic;
+			}
+		}
+		else
+		{
+			int skind = skillnum / 8;
+			int adc = 0;
+
+			if (master % 10 > 5)
+				adc = 1;
+
+			if (adc)
+			{
+				if (skillnum == 97)
+				{
+					dam = 15 * level + base;
+				}
+				else
+				{
+					if (mob->Class || skind != 1)
+					{
+						if (mob->Class || skind == 1)
+						{
+							switch (mob->Class)
+							{
+							case 1:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
+								break;
+							case 2:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
+								break;
+							case 3:
+								if (skillnum == 79)
+									dam = mob->CurrentScore.Damage;
+								else
+									dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+								break;
+							}
+						}
+						else
+						{
+							dam = level + special + base + weapondamage + mob->CurrentScore.Int / 4 + mob->CurrentScore.Int / 40;
+						}
+					}
+					else
+					{
+						dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level + special + base;
+					}
+				}
+			}
+			else
+			{
+				if (skillnum == 97)
+				{
+					dam = 15 * level + base;
+				}
+				else
+				{
+					if (mob->Class || skind != 1)
+					{
+						if (mob->Class || skind == 1)
+						{
+							switch (mob->Class)
+							{
+							case 1:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level / 2 + special + base;
+								break;
+							case 2:
+								dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level / 2 + special + base;
+								break;
+							case 3:
+								if (skillnum == 79)
+									dam = mob->CurrentScore.Damage;
+								else
+									dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+								break;
+							}
+						}
+						else
+						{
+							dam = level / 2 + special + base + weapondamage + mob->CurrentScore.Int / 4 + mob->CurrentScore.Int / 40;
+						}
+					}
+					else
+					{
+						dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+					}
+				}
+			}
+			if (weather == 1)
+			{
+				if (instanceindex == 2)
+					dam = 90 * dam / 100;
+				if (instanceindex == 5)
+					dam = 130 * dam / 100;
+			}
+			else
+			{
+				if (weather == 2 && instanceindex == 3)
+					dam = 120 * dam / 100;
+			}
+			if (skillnum != 97)
+			{
+				if (skillnum == 79)
+					return dam;
+
+				if ((mob->Class || skind != 1) && mob->Class != 3)
+				{
+					dam = (mgc + 100) * dam / 100;
+					dam = 5 * dam / 4;
+				}
+				else
+				{
+					dam = 5 * dam / 4;
+				}
+			}
+
+			int learned = 1 << (8 * fskill + 7);
+
+			if (learned & mob->LearnedSkill)
+			{
+				int cclass = mob->Class;
+
+				switch (cclass)
+				{
+				case 0:
+					if (fskill)
+					{
+						if (fskill == 1)
+						{
+							dam = 120 * dam / 100;
+						}
+						else
+						{
+							if (fskill == 2)
+								dam = 115 * dam / 100;
+						}
+					}
+					else
+					{
+						dam = 115 * dam / 100;
+					}
+					break;
+				case 1:
+					if (fskill)
+					{
+						if (fskill == 1)
+						{
+							dam = 115 * dam / 100;
+						}
+						else
+						{
+							if (fskill == 2)
+								dam = 115 * dam / 100;
+						}
+					}
+					else
+					{
+						dam = 110 * dam / 100;
+					}
+					break;
+				case 2:
+					if (!fskill)
+						dam = 110 * dam / 100;
+					break;
+				case 3:
+					if (fskill)
+					{
+						if (fskill == 1)
+						{
+							dam = 110 * dam / 100;
+						}
+						else
+						{
+							if (fskill == 2)
+								dam = 120 * dam / 100;
+						}
+					}
+					else
+					{
+						dam = 110 * dam / 100;
+					}
+					break;
+				default:
+					return dam;
+				}
+			}
+		}
+	}
+	else
+	{
+		switch (skillnum)
+		{
+		case 11:
+			dam = special / 10 + affectbase;
+			break;
+		case 13:
+			dam = 3 * special + affectbase;
+			break;
+		case 41:
+			dam = special / 25 + 2;
+			break;
+		case 43:
+			dam = affectbase + special / 3 + 15;
+			break;
+		case 44:
+			dam = 5 * (special / 3 + 15);
+			break;
+		case 45:
+			dam = special / 10 + affectbase;
+			break;
+		}
+	}
+	return dam;
+}
+
+
 int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage)
 {
 	int instanceindex = g_pSpell[skillnum].InstanceType;
@@ -6351,7 +8296,7 @@ int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weaponda
 	if(level < 0)
 		level = 0;
 
-	if(level >= MAX_LEVEL)
+	if(level > MAX_LEVEL)
 		level = MAX_LEVEL;
 
 	int special = mob->CurrentScore.Special[kind];
@@ -6435,12 +8380,102 @@ int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weaponda
 	else
 		dam = mob->Magic;
 
-
 	if(skillnum == 79)
 		dam = mob->CurrentScore.Damage;
 
 	return dam;
 }
+
+
+/* DESCOMPILADO POR GUICAN
+int BASE_GetSkillDamage(int SkillNum, STRUCT_MOB* mob, int weather, int weapondamage) //0040F180 - ok - atualizada(reconhece evolucao)
+{
+	int SkillInstanceType = g_pSpell[SkillNum].InstanceType;
+	int SkillMaster = ((SkillNum % 24) >> 3) + 1;
+	int Level = mob->CurrentScore.Level;
+
+	if (Level < 0)
+		Level = 0;
+
+	if (Level > MAX_LEVEL)
+		Level = MAX_LEVEL;
+
+	int MobAprend = mob->CurrentScore.Special[SkillMaster];
+	int SkillInstanceValue = g_pSpell[SkillNum].InstanceValue;
+	int SkillAffectValue = g_pSpell[SkillNum].AffectValue;
+	int calcSkillDmg = 0;
+
+	if (SkillInstanceType == 0)
+	{
+		if (SkillNum == 11)
+			calcSkillDmg = (MobAprend / 10) + SkillAffectValue;
+		if (SkillNum == 13)
+			calcSkillDmg = ((MobAprend * 3) >> 2) + SkillAffectValue;
+		if (SkillNum == 41)
+			calcSkillDmg = (MobAprend / 25) + 2;
+		if (SkillNum == 43)
+			calcSkillDmg = (MobAprend / 3) + SkillAffectValue;
+		if (SkillNum == 44)
+			calcSkillDmg = ((((MobAprend * 3) / 20) + SkillAffectValue) << 1);
+		if (SkillNum == 45)
+			calcSkillDmg = (MobAprend / 10) + SkillAffectValue;
+
+		return calcSkillDmg;
+	}
+	if (SkillInstanceType >= 1 && SkillInstanceType <= 5)
+	{
+		int calcSkillNum = SkillNum >> 3;
+		if (SkillNum == 97)
+			calcSkillDmg = (Level * 15) + SkillInstanceValue;
+		else if (!mob->Class && calcSkillNum == 1)
+			calcSkillDmg = (SkillInstanceValue + MobAprend + (Level >> 1) + (mob->CurrentScore.Damage >> 1) + (weapondamage * 3));
+		else if (!mob->Class && calcSkillNum != 1)
+			calcSkillDmg = ((SkillInstanceValue + MobAprend) + ((Level >> 1) + weapondamage + (mob->CurrentScore.Str >> 2)));
+		else if (mob->Class == 1 || mob->Class == 2)
+			calcSkillDmg = (SkillInstanceValue + MobAprend + (Level >> 1) + (mob->CurrentScore.Int / 3));
+		else if (mob->Class == 3)
+			calcSkillDmg = (SkillInstanceValue + MobAprend + (Level >> 1) + (mob->CurrentScore.Str >> 1) + (weapondamage * 3));
+
+		if (weather == 1)
+		{
+			if (SkillInstanceType == 2)
+				calcSkillDmg = calcSkillDmg * 90 / 100;
+			if (SkillInstanceType == 5)
+				calcSkillDmg = calcSkillDmg * 130 / 100;
+		}
+		else if (weather == 2 && SkillInstanceType == 3)
+			calcSkillDmg = calcSkillDmg * 120 / 100;
+
+		if (SkillNum == 97)
+			calcSkillDmg = calcSkillDmg;
+		else if (mob->Class || calcSkillNum != 1)
+		{
+			if (mob->Class == 3)
+				calcSkillDmg = ((calcSkillDmg * 5) >> 2);
+			else
+			{
+				calcSkillDmg = ((((mob->Magic * 2) + 100) * calcSkillDmg) / 100);
+				calcSkillDmg = ((calcSkillDmg * 5) >> 2);
+			}
+		}
+		else
+			calcSkillDmg = ((calcSkillDmg * 5) >> 2);
+
+		return calcSkillDmg;
+	}
+	else if (SkillInstanceType == 6)
+		calcSkillDmg = (((MobAprend * 3) >> 1) + SkillInstanceValue);
+	else if (SkillInstanceType == 11)
+		calcSkillDmg = SkillInstanceValue;
+	else
+		calcSkillDmg = mob->Magic;
+
+	if (SkillNum == 79)
+		calcSkillDmg = mob->CurrentScore.Damage;
+
+	return calcSkillDmg;
+}
+*/
 
 int BASE_GetEnglish(char *name)
 {
@@ -6482,10 +8517,10 @@ BOOL BASE_CheckPacket(MSG_STANDARD *m)
 	
 	if	(m->Type==  _MSG_MessagePanel				&& m->Size != sizeof( MSG_MessagePanel			))code = 1;
 	if	(m->Type==  _MSG_MessageBoxOk 				&& m->Size != sizeof( MSG_MessageBoxOk 			))code = 1;
-	if	(m->Type==  _MSG_DBNewAccount   				&& m->Size != sizeof( MSG_NewAccount   		))code = 1;
+	if	(m->Type==  _MSG_DBNewAccount   			&& m->Size != sizeof( MSG_NewAccount   			))code = 1;
 	if	(m->Type==  _MSG_AccountLogin   			&& m->Size != sizeof( MSG_AccountLogin   		))code = 1;
 	if	(m->Type==  _MSG_CNFAccountLogin 			&& m->Size != sizeof( MSG_DBCNFAccountLogin 	))code = 1;
-	if  (m->Type ==  _MSG_CreateCharacter				&& m->Size != sizeof(MSG_CreateCharacter	))code = 1;
+	if  (m->Type==  _MSG_CreateCharacter			&& m->Size != sizeof( MSG_CreateCharacter		))code = 1;
 	if	(m->Type==  _MSG_CNFNewCharacter			&& m->Size != sizeof( MSG_CNFNewCharacter		))code = 1;
 	if	(m->Type==  _MSG_DeleteCharacter			&& m->Size != sizeof( MSG_DeleteCharacter		))code = 1;
 	if	(m->Type==  _MSG_CNFDeleteCharacter 		&& m->Size != sizeof( MSG_CNFDeleteCharacter 	))code = 1;
@@ -6493,7 +8528,7 @@ BOOL BASE_CheckPacket(MSG_STANDARD *m)
 	if	(m->Type==  _MSG_CNFCharacterLogin 			&& m->Size != sizeof( MSG_CNFCharacterLogin 	))code = 1;
 	if	(m->Type==  _MSG_CNFCharacterLogout 		&& m->Size != sizeof( MSG_STANDARD 				))code = 1;
 	if	(m->Type==  _MSG_NewAccountFail    			&& m->Size != sizeof( MSG_STANDARD    			))code = 1;
-	if  (m->Type == _MSG_DBAccountLoginFail_Account	&& m->Size != sizeof(MSG_STANDARD				))code = 1;
+	if  (m->Type==  _MSG_DBAccountLoginFail_Account	&& m->Size != sizeof( MSG_STANDARD				))code = 1;
 	if	(m->Type==  _MSG_CharacterLoginFail			&& m->Size != sizeof( MSG_STANDARD  			))code = 1;
 	if	(m->Type==  _MSG_NewCharacterFail   		&& m->Size != sizeof( MSG_STANDARD   			))code = 1;
 	if	(m->Type==  _MSG_DeleteCharacterFail		&& m->Size != sizeof( MSG_STANDARD 				))code = 1;
@@ -6529,32 +8564,32 @@ BOOL BASE_CheckPacket(MSG_STANDARD *m)
 	if	(m->Type==  _MSG_ShopList					&& m->Size != sizeof( MSG_ShopList				))code = 1;
 //	if	(m->Type==  _MSG_AddParty					&& m->Size != sizeof( MSG_AddParty				))code = 1;
 	if	(m->Type==  _MSG_RemoveParty				&& m->Size != sizeof( MSG_RemoveParty			))code = 1;
-	if (m->Type == _MSG_SendReqParty				&& m->Size != sizeof(MSG_SendReqParty))code = 1;
-	if	(m->Type==  _MSG_CNFAddParty				&& m->Size != sizeof( MSG_CNFAddParty				))code = 1;
+	if  (m->Type==  _MSG_SendReqParty				&& m->Size != sizeof( MSG_SendReqParty			))code = 1;
+	if	(m->Type==  _MSG_CNFAddParty				&& m->Size != sizeof( MSG_CNFAddParty			))code = 1;
 	if	(m->Type==  _MSG_SetHpMp					&& m->Size != sizeof( MSG_SetHpMp				))code = 1;
 	if	(m->Type==  _MSG_SendItem					&& m->Size != sizeof( MSG_SendItem				))code = 1;
 	if	(m->Type==  _MSG_Trade						&& m->Size != sizeof( MSG_Trade					))code = 1;
 	if	(m->Type==  _MSG_QuitTrade					&& m->Size != sizeof( MSG_STANDARD				))code = 1;
-	if (m->Type == _MSG_TradingItem						&& m->Size != sizeof(MSG_TradingItem		))code = 1;
+	if  (m->Type==  _MSG_TradingItem				&& m->Size != sizeof( MSG_TradingItem			))code = 1;
 	if	(m->Type==  _MSG_CNFCheck					&& m->Size != sizeof( MSG_STANDARD				))code = 1;
 	if	(m->Type==  _MSG_Withdraw        			&& m->Size != sizeof( MSG_STANDARDPARM        	))code = 1;
 	if	(m->Type==  _MSG_Deposit					&& m->Size != sizeof( MSG_STANDARDPARM			))code = 1;
 	if	(m->Type==  _MSG_Restart					&& m->Size != sizeof( MSG_STANDARD 				))code = 1;
 	if	(m->Type==  _MSG_SetHpDam					&& m->Size != sizeof( MSG_SetHpDam				))code = 1;
-	if (m->Type == _MSG_UpdateWeather          			&& m->Size != sizeof(MSG_UpdateWeather))code = 1;
+	if  (m->Type==  _MSG_UpdateWeather          	&& m->Size != sizeof( MSG_UpdateWeather			))code = 1;
 	if	(m->Type==  _MSG_Quest             			&& m->Size != sizeof( MSG_STANDARDPARM2         ))code = 1;
 	if	(m->Type==  _MSG_Deprivate        			&& m->Size != sizeof( MSG_STANDARDPARM       	))code = 1;
 	if	(m->Type==  _MSG_ReqChallange       		&& m->Size != sizeof( MSG_STANDARD       		))code = 1;
 	if	(m->Type==  _MSG_Challange        			&& m->Size != sizeof( MSG_STANDARDPARM        	))code = 1;
 	if	(m->Type==  _MSG_ChallangeConfirm  			&& m->Size != sizeof( MSG_STANDARDPARM2  		))code = 1;
 	if	(m->Type==  _MSG_ReqTeleport       			&& m->Size != sizeof( MSG_STANDARDPARM       	))code = 1;
-	if (m->Type ==  _MSG_ChangeCity      			&& m->Size != sizeof(MSG_STANDARDPARM))code = 1;
+	if  (m->Type==  _MSG_ChangeCity      			&& m->Size != sizeof( MSG_STANDARDPARM			))code = 1;
 	if	(m->Type==  _MSG_SetHpMode           		&& m->Size != sizeof( MSG_STANDARDPARM          ))code = 1;
 	if	(m->Type==  _MSG_SetClan             		&& m->Size != sizeof( MSG_STANDARDPARM          ))code = 1;
 //	if	(m->Type==  _MSG_BillingPage				&& m->Size != sizeof( MSG_STANDARDPARM          ))code = 1;
 	if	(m->Type==  _MSG_DBMessagePanel				&& m->Size != sizeof( MSG_MessagePanel			))code = 1;
 	if	(m->Type==  _MSG_DBMessageBoxOk				&& m->Size != sizeof( MSG_MessageBoxOk       	))code = 1;
-//	if	(m->Type==  _MSG_DBCNFNewAccount			&& m->Size != sizeof( MSG_DBCNFNewAccount		))code = 1; // √Ä¬•¬ø¬°¬º¬≠¬∏¬∏√Å√∂¬ø√∏
+//	if	(m->Type==  _MSG_DBCNFNewAccount			&& m->Size != sizeof( MSG_DBCNFNewAccount		))code = 1; // ¿•ø°º≠∏∏¡ˆø¯
 	if	(m->Type==  _MSG_DBCNFAccountLogin			&& m->Size != sizeof( MSG_DBCNFAccountLogin    	))code = 1;
 	if	(m->Type==  _MSG_DBCNFCharacterLogin		&& m->Size != sizeof( MSG_CNFCharacterLogin  	))code = 1;
 	if	(m->Type==  _MSG_DBCNFNewCharacter			&& m->Size != sizeof( MSG_CNFNewCharacter    	))code = 1;
@@ -6571,28 +8606,28 @@ BOOL BASE_CheckPacket(MSG_STANDARD *m)
 	if	(m->Type==  _MSG_DBSetIndex					&& m->Size != sizeof( MSG_STANDARDPARM3			))code = 1;
 	if	(m->Type==  _MSG_DBAccountLoginFail_Block	&& m->Size != sizeof( MSG_STANDARD				))code = 1;
 	if	(m->Type==  _MSG_DBAccountLoginFail_Disable	&& m->Size != sizeof( MSG_STANDARD				))code = 1;
-	if	(m->Type==  _MSG_DBNewAccount				&& m->Size != sizeof(MSG_NewAccount				))code = 1;
-	if	(m->Type==  _MSG_DBCreateCharacter			&& m->Size != sizeof(MSG_CreateCharacter     		))code = 1;
-	if	(m->Type==  _MSG_DBAccountLogin				&& m->Size != sizeof(MSG_AccountLogin     		))code = 1;
-	if	(m->Type==  _MSG_DBCharacterLogin			&& m->Size != sizeof(MSG_CharacterLogin			))code = 1;
-	if	(m->Type==  _MSG_DBNoNeedSave          		&& m->Size != sizeof(MSG_STANDARD       		))code = 1;
-	if	(m->Type==  _MSG_DBSaveMob             		&& m->Size != sizeof(MSG_DBSaveMob				))code = 1;
-	if	(m->Type==  _MSG_DBDeleteCharacter     		&& m->Size != sizeof(MSG_DeleteCharacter		))code = 1;
-	if	(m->Type==  _MSG_NPReqIDPASS           		&& m->Size != sizeof(MSG_NPIDPASS        		))code = 1;
-	if	(m->Type==  _MSG_NPIDPASS              		&& m->Size != sizeof(MSG_NPIDPASS           	))code = 1;
-	if	(m->Type==  _MSG_NPReqAccount          		&& m->Size != sizeof(MSG_NPReqAccount       	))code = 1;
-	if	(m->Type==  _MSG_NPNotFound            		&& m->Size != sizeof(MSG_STANDARD         		))code = 1;
-	if	(m->Type==  _MSG_NPAccountInfo         		&& m->Size != sizeof(MSG_NPAccountInfo      	))code = 1;
-	if	(m->Type==  _MSG_NPReqSaveAccount      		&& m->Size != sizeof(MSG_NPAccountInfo   		))code = 1;
-	if	(m->Type==  _MSG_NPDisable             		&& m->Size != sizeof(MSG_NPEnable          		))code = 1;
-	if	(m->Type==  _MSG_NPEnable              		&& m->Size != sizeof(MSG_NPEnable           	))code = 1;
-	if	(m->Type==  _MSG_NPNotice              		&& m->Size != sizeof(MSG_NPNotice				))code = 1;
-	if	(m->Type==  _MSG_NPState               		&& m->Size != sizeof(MSG_STANDARDPARM			))code = 1;
-	if	(m->Type==  _MSG_War						&& m->Size != sizeof(MSG_STANDARDPARM2			))code = 1;
-	if	(m->Type==	_MSG_ReqTransper				&& m->Size != sizeof(MSG_ReqTransper			))code = 1;
+	if	(m->Type==  _MSG_DBNewAccount				&& m->Size != sizeof( MSG_NewAccount			))code = 1;
+	if	(m->Type==  _MSG_DBCreateCharacter			&& m->Size != sizeof( MSG_CreateCharacter     	))code = 1;
+	if	(m->Type==  _MSG_DBAccountLogin				&& m->Size != sizeof( MSG_AccountLogin     		))code = 1;
+	if	(m->Type==  _MSG_DBCharacterLogin			&& m->Size != sizeof( MSG_CharacterLogin		))code = 1;
+	if	(m->Type==  _MSG_DBNoNeedSave          		&& m->Size != sizeof( MSG_STANDARD       		))code = 1;
+	if	(m->Type==  _MSG_DBSaveMob             		&& m->Size != sizeof( MSG_DBSaveMob				))code = 1;
+	if	(m->Type==  _MSG_DBDeleteCharacter     		&& m->Size != sizeof( MSG_DeleteCharacter		))code = 1;
+	if	(m->Type==  _MSG_NPReqIDPASS           		&& m->Size != sizeof( MSG_NPIDPASS        		))code = 1;
+	if	(m->Type==  _MSG_NPIDPASS              		&& m->Size != sizeof( MSG_NPIDPASS           	))code = 1;
+	if	(m->Type==  _MSG_NPReqAccount          		&& m->Size != sizeof( MSG_NPReqAccount       	))code = 1;
+	if	(m->Type==  _MSG_NPNotFound            		&& m->Size != sizeof( MSG_STANDARD         		))code = 1;
+	if	(m->Type==  _MSG_NPAccountInfo         		&& m->Size != sizeof( MSG_NPAccountInfo      	))code = 1;
+	if	(m->Type==  _MSG_NPReqSaveAccount      		&& m->Size != sizeof( MSG_NPAccountInfo   		))code = 1;
+	if	(m->Type==  _MSG_NPDisable             		&& m->Size != sizeof( MSG_NPEnable          	))code = 1;
+	if	(m->Type==  _MSG_NPEnable              		&& m->Size != sizeof( MSG_NPEnable           	))code = 1;
+	if	(m->Type==  _MSG_NPNotice              		&& m->Size != sizeof( MSG_NPNotice				))code = 1;
+	if	(m->Type==  _MSG_NPState               		&& m->Size != sizeof( MSG_STANDARDPARM			))code = 1;
+	if	(m->Type==  _MSG_War						&& m->Size != sizeof( MSG_STANDARDPARM2			))code = 1;
+	if	(m->Type==	_MSG_ReqTransper				&& m->Size != sizeof( MSG_ReqTransper			))code = 1;
 	
 	return code;
-	*/
+	*/ 
 	return FALSE;
 }
 
@@ -6730,6 +8765,22 @@ int BASE_VisualAnctCode(STRUCT_ITEM *Item)
 	}
 }
 
+void BASE_FadaDate(STRUCT_ITEM *Item, int Time)
+{
+	struct tm when;
+	time_t now;
+	time(&now);
+	when = *localtime(&now);
+
+	Item->stEffect[0].cEffect = EF_WDAY;
+	Item->stEffect[0].cValue = Time;
+
+	Item->stEffect[1].cEffect = 107;
+	Item->stEffect[1].cValue = 23;
+
+	Item->stEffect[2].cEffect = 108;
+	Item->stEffect[2].cValue = 59;
+}
 void BASE_SetItemDate(STRUCT_ITEM *Item, int day)
 {
 	struct tm when;
@@ -6812,4 +8863,339 @@ void  BASE_CheckFairyDate(STRUCT_ITEM *Item)
 	Item->stEffect[0].cValue = day;
 	Item->stEffect[1].cValue = hour;
 	Item->stEffect[2].cValue = min;
+}
+
+void BASE_GetHitPosition(int sx, int sy, int *tx, int *ty, char *pHeight, int mh)
+{
+	int i; // [esp+4Ch] [ebp-40h]
+	int v7; // [esp+50h] [ebp-3Ch]
+	int v8; // [esp+54h] [ebp-38h]
+	int j; // [esp+5Ch] [ebp-30h]
+	int v10; // [esp+60h] [ebp-2Ch]
+	int v11; // [esp+6Ch] [ebp-20h]
+	int v12; // [esp+6Ch] [ebp-20h]
+	int v13; // [esp+70h] [ebp-1Ch]
+	int v14; // [esp+74h] [ebp-18h]
+	int v15; // [esp+74h] [ebp-18h]
+	int v16; // [esp+78h] [ebp-14h]
+	int v17; // [esp+78h] [ebp-14h]
+	int v18; // [esp+7Ch] [ebp-10h]
+	int v19; // [esp+7Ch] [ebp-10h]
+	signed int v20; // [esp+80h] [ebp-Ch]
+	signed int v21; // [esp+80h] [ebp-Ch]
+	int v22; // [esp+84h] [ebp-8h]
+	int v23; // [esp+88h] [ebp-4h]
+	int sxa; // [esp+94h] [ebp+8h]
+	int sya; // [esp+98h] [ebp+Ch]
+
+	if ((sx != *tx || sy != *ty) && sx && sy && *tx && *ty)
+	{
+		v23 = sx <= *tx ? *tx - sx : sx - *tx;
+		v22 = sy <= *ty ? *ty - sy : sy - *ty;
+		v13 = BASE_GetDistance(sx, sy, *tx, *ty);
+		if (v13 > 1)
+		{
+			if (v13 <= 30)
+			{
+				if (v23 <= v22)
+				{
+					if (*ty != sy)
+					{
+						v17 = 1000 * (*tx - sx) / (*ty - sy);
+						v15 = 1000 * sx - sy * v17;
+						if (sy >= *ty)
+							v21 = -1;
+						else
+							v21 = 1;
+						sya = v21 + sy;
+						if (v23 == v22)
+							*tx;
+						v12 = *(pHeight + (v15 + sya * v17) / 1000 + g_HeightWidth * (sya - g_HeightPosY) - g_HeightPosX);
+						if (v12 == 127)
+						{
+							*tx = 0;
+							*ty = 0;
+						}
+						else
+						{
+							v7 = v22;
+							for (i = sya; i != *ty; i += v21)
+							{
+								if (i == sya)
+								{
+									if (--v7 < 1)
+										return;
+								}
+								else
+								{
+									v8 = (v15 + i * v17) / 1000;
+									v19 = v12;
+									v12 = *(pHeight + v8 + g_HeightWidth * (i - g_HeightPosY) - g_HeightPosX);
+									if (v12 == 127)
+									{
+										*tx = 0;
+										*ty = 0;
+										return;
+									}
+									if (v12 > mh + v19 || v12 < v19 - mh)
+									{
+										*tx = v8;
+										*ty = i;
+										return;
+									}
+									if (--v7 < 1)
+										return;
+								}
+							}
+						}
+					}
+				}
+				else if (*tx != sx)
+				{
+					v16 = 1000 * (*ty - sy) / (*tx - sx);
+					v14 = 1000 * sy - sx * v16;
+					if (sx >= *tx)
+						v20 = -1;
+					else
+						v20 = 1;
+					sxa = v20 + sx;
+					v11 = *(pHeight + sxa + g_HeightWidth * ((v14 + sxa * v16) / 1000 - g_HeightPosY) - g_HeightPosX);
+					if (v11 == 127)
+					{
+						*tx = 0;
+						*ty = 0;
+					}
+					else
+					{
+						v10 = v23;
+						for (j = sxa; j != *tx; j += v20)
+						{
+							if (j == sxa)
+							{
+								if (v10-- < 1)
+									return;
+							}
+							else
+							{
+								v18 = v11;
+								v11 = *(pHeight + j + g_HeightWidth * ((v14 + j * v16) / 1000 - g_HeightPosY) - g_HeightPosX);
+								if (v11 == 127)
+								{
+									*tx = 0;
+									*ty = 0;
+									return;
+								}
+								if (v11 > mh + v18 || v11 < v18 - mh)
+								{
+									*tx = j;
+									*ty = (v14 + j * v16) / 1000;
+									return;
+								}
+								if (v10-- < 1)
+									return;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				*tx = 0;
+				*ty = 0;
+			}
+		}
+	}
+}
+
+void BASE_GetHitPosition(int sx, int sy, int *tx, int *ty, char *pHeight)
+{
+	int dx, dy, dir, Last, a, b;
+
+	if (sx == *tx && sy == *ty) 
+		return;
+
+	if (sx == 0 || sy == 0 || *tx == 0 || *ty == 0) 
+		return;
+
+	if (sx > *tx) 
+		dx = sx - *tx;
+	else        
+		dx = *tx - sx;
+
+	if (sy > *ty) 
+		dy = sy - *ty;
+	else        
+		dy = *ty - sy;
+
+	int dis = BASE_GetDistance(sx, sy, *tx, *ty);
+
+	if (dis <= 1)
+		return;
+
+	int This = pHeight[(sy - g_HeightPosY) * g_HeightWidth + sx - g_HeightPosX];
+
+	if (dx > dy)
+	{
+		if ((*tx - sx) == 0) 
+			return;
+
+		a = ((*ty - sy) * 1000) / (*tx - sx);
+		b = (sy * 1000) - (a * sx);
+
+		if (sx < *tx) 
+			dir = 1;
+		else          
+			dir = -1;
+
+		sx = sx + dir;
+
+		if (dx == dy)
+		{
+			if (sy < *ty) 
+				sy++;
+			else          
+				sy--;
+		}
+
+		int ttyp = (a * sx + b);
+
+		int yp = ttyp / 1000;
+
+		This = pHeight[(yp - g_HeightPosY) * g_HeightWidth + sx - g_HeightPosX];
+
+		if (This == 127) 
+		{
+			*tx = 0; 
+			*ty = 0; 
+			return; 
+		}
+		int leng = dx;
+
+		for (int x = sx; x != *tx; x = x + dir)
+		{
+			if (x == sx)
+			{
+				leng--;
+
+				if (leng < 1) 
+					break;
+
+				continue;
+			}
+
+			ttyp = (a * x + b);
+
+			yp = ttyp / 1000;
+
+			Last = This;
+
+			if ((yp - g_HeightPosY) < 0 || (yp - g_HeightPosY) >= 256 || (x - g_HeightPosX) < 0 || (x - g_HeightPosX) >= 256)
+			{ 
+				*tx = 0;
+				*ty = 0; 
+				return; 
+			}
+
+			This = pHeight[(yp - g_HeightPosY) * g_HeightWidth + x - g_HeightPosX];
+
+			if (This == 127) 
+			{ 
+				*tx = 0; 
+				*ty = 0; 
+				return; 
+			}
+			if (This > Last + MH || This < Last - MH)
+			{
+				*tx = x; 
+				*ty = yp;
+				return;
+			}
+
+			leng--;
+
+			if (leng < 1) 
+				break;
+		}
+	}
+	else
+	{
+		if ((*ty - sy) == 0) 
+			return;
+
+		a = ((*tx - sx) * 1000) / (*ty - sy);
+		b = (sx * 1000) - (a * sy);
+
+		if (sy < *ty) 
+			dir = 1;
+		else          
+			dir = -1;
+
+		sy = sy + dir;
+		if (dx == dy)
+		{
+			if (sx < *tx) 
+				sx++;
+			else          
+				sx--;
+		}
+
+		int ttxp = (a * sy + b);
+		int xp = ttxp / 1000;
+
+		This = pHeight[(sy - g_HeightPosY) * g_HeightWidth + xp - g_HeightPosX];
+
+		if (This == 127) 
+		{ 
+			*tx = 0; 
+			*ty = 0; 
+			return; 
+		}
+
+		int leng = dy;
+
+		for (int y = sy; y != *ty; y = y + dir)
+		{
+			if (y == sy)
+			{
+				leng--;
+
+				if (leng < 1) 
+					break;
+
+				continue;
+			}
+
+			ttxp = (a * y + b);
+			xp = ttxp / 1000;
+			Last = This;
+
+			if ((y - g_HeightPosY) < 0 || (y - g_HeightPosY) >= 256 || (xp - g_HeightPosX) < 0 || (xp - g_HeightPosX) >= 256)
+			{
+				*tx = 0; 
+				*ty = 0; 
+				return; 
+			}
+
+			This = pHeight[(y - g_HeightPosY) * g_HeightWidth + xp - g_HeightPosX];
+
+			if (This == 127) 
+			{ 
+				*tx = 0; 
+				*ty = 0; 
+				return; 
+			}
+
+			if (This > Last + MH || This < Last - MH)
+			{
+				*tx = xp; *ty = y;
+				return;
+			}
+
+			leng--;
+
+			if (leng < 1) 
+				break;
+		}
+	}
+	return;
 }

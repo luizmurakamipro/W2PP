@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -59,6 +59,8 @@ void Exec_MSG_Action(int conn, char *pMsg)
 		}
 	}
 
+	if (pMob[conn].MOB.Equip[0].sIndex == 358)
+		return;
 
 	int movetime = m->ClientTick;
 	int checktime = 0;
@@ -68,7 +70,7 @@ void Exec_MSG_Action(int conn, char *pMsg)
 	else
 		checktime = CurrentTime - 120000;
 
-	//Skill IlusÃ£o
+	//Skill Ilusão
 	if (m->Type == _MSG_Action3)
 	{
 		if (pMob[conn].MOB.Class != 3 || (pMob[conn].MOB.LearnedSkill & 2) == 0)
@@ -195,7 +197,7 @@ void Exec_MSG_Action(int conn, char *pMsg)
 		return;
 	}
 
-	if(pUser[conn].OnlyTrade)
+	/*if(pUser[conn].OnlyTrade)
 	{
 		int Village = BASE_GetVillage(m->TargetX, m->TargetY);
 		unsigned char mapAttribute = GetAttribute(m->TargetX, m->TargetY) & 0x80;
@@ -206,7 +208,7 @@ void Exec_MSG_Action(int conn, char *pMsg)
 			DoRecall(conn);
 			return;
 		}
-	}
+	}*/
 
 	if (m->TargetX != pMob[conn].TargetX || m->TargetY != pMob[conn].TargetY)
 	{

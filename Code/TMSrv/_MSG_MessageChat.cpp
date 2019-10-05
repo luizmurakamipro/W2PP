@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -33,6 +34,39 @@ void Exec_MSG_MessageChat(int conn, char *pMsg)
 	char szString[256];
 
 	sscanf(m->String, "%s %s", szCmd, szString);
+
+	/*if (szCmd[0] == '#')// Anti wHook - Swedka "Fase de Testes".
+	{
+		char tmg[256];
+
+		SendClientMessage(conn, "Se você digitar [#] novamente será expurgado (Punimento de 3 Horas.)");
+
+		if (pUser[conn].Message != 0)
+		{
+			int isTime = GetTickCount() - pUser[conn].Message;
+
+			pUser[conn].Message = GetTickCount();
+
+			if (isTime < 10000)
+			{
+				SendBan3Hours(pUser[conn].IP);
+				Send3HoursAccBan(pUser[conn].AccountName);
+
+				CloseUser(conn);
+
+				SendClientMessage(conn, "Você foi banido por comandos ilegais, contate o suporte.");
+
+				sprintf(tmg, "Jogador [%s] foi banido temporariamente por uso de comandos ilegais: '#'.", pMob[conn].MOB.MobName);
+
+				SendNotice(tmg);
+
+				return;
+			}
+		}
+		pUser[conn].Message = GetTickCount();
+
+		return;
+	}*/
 
 	if (strcmp(szCmd, "guildon") == 0)
 	{
@@ -107,6 +141,38 @@ void Exec_MSG_MessageChat(int conn, char *pMsg)
 
 		return;
 	}
+	/*else if (strcmp(szCmd, "#") == 0) // Anti wHook - Swedka "Fase de Testes".
+	{
+		char tmg[256];
+
+		SendClientMessage(conn, "Se você digitar [#] novamente será expurgado (Punimento de 3 Horas.)");
+
+		if(pUser[conn].Message != 0)
+		{
+			int isTime = GetTickCount() - pUser[conn].Message;			
+
+			pUser[conn].Message = GetTickCount();
+
+			if(isTime < 10000)
+			{
+				SendBan3Hours(pUser[conn].IP);
+				Send3HoursAccBan(pUser[conn].AccountName);
+
+				CloseUser(conn);
+
+				SendClientMessage(conn, "Você foi banido por comandos ilegais, contate o suporte.");
+
+				sprintf(tmg, "Jogador [%s] foi banido temporariamente por uso de comandos ilegais: '#'.", pMob[conn].MOB.MobName);
+
+				SendNotice(tmg);
+
+				return;
+			}
+		}
+		pUser[conn].Message = GetTickCount();
+
+		return;
+	}*/
 
 	else if (strcmp(szCmd, "whisper") == 0)
 	{

@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -68,7 +68,7 @@ void Exec_MSG_AcceptParty(int conn, char *pMsg)
 		return;
 	}
 
-	if (pUser[myindex].OnlyTrade)
+	/*if (pUser[myindex].OnlyTrade)
 	{
 		SendClientMessage(myindex, g_pMessageStringTable[_NN_ONLYTRADE]);
 		return;
@@ -78,7 +78,7 @@ void Exec_MSG_AcceptParty(int conn, char *pMsg)
 	{
 		SendClientMessage(leaderID, g_pMessageStringTable[_NN_ONLYTRADE]);
 		return;
-	}
+	}*/
 
 	int i = 0;
 	for (i = 0; i < MAX_PARTY; i++)
@@ -93,7 +93,7 @@ void Exec_MSG_AcceptParty(int conn, char *pMsg)
 	int leaderLV =  pMob[leaderID].extra.ClassMaster == MORTAL || pMob[leaderID].extra.ClassMaster == ARCH ? pMob[leaderID].MOB.BaseScore.Level : pMob[leaderID].MOB.BaseScore.Level+MAX_CLEVEL+1;
 	int myLV = pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH ? pMob[conn].MOB.BaseScore.Level : pMob[conn].MOB.BaseScore.Level+MAX_CLEVEL;
 
-	if (myLV >= leaderLV - PARTY_DIF && myLV < leaderLV + PARTY_DIF || leaderLV >= 1000 || myLV >= 1000 || pMob[conn].extra.ClassMaster == pMob[leaderID].extra.ClassMaster)
+	if (myLV >= leaderLV - PARTY_DIF && myLV < leaderLV + PARTY_DIF || leaderLV >= 1000 || myLV >= 1000) //|| pMob[conn].extra.ClassMaster == pMob[leaderID].extra.ClassMaster)
 	{
 		if (!BrState || conn >= MAX_USER || BRItem <= 0 || pMob[conn].TargetX < 2604
 			|| pMob[conn].TargetY < 1708 || pMob[conn].TargetX > 2648 || pMob[conn].TargetY > 1744)
@@ -105,8 +105,7 @@ void Exec_MSG_AcceptParty(int conn, char *pMsg)
 					slot++;
 			}
 
-			for (i = 0; i < MAX_PARTY && pMob[leaderID].PartyList[i]; i++)
-				;
+			for (i = 0; i < MAX_PARTY && pMob[leaderID].PartyList[i]; i++);
 
 			if (i == MAX_PARTY)
 			{

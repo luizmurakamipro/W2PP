@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -127,7 +128,7 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 		return;
 	}
 
-	if (pUser[conn].Whisper || pUser[OpponentID].Whisper)
+	/*if (pUser[conn].Whisper || pUser[OpponentID].Whisper)
 	{
 		SendClientMessage(conn, g_pMessageStringTable[_NN_Deny_Whisper]);
 		SendClientMessage(OpponentID, g_pMessageStringTable[_NN_Deny_Whisper]);
@@ -136,7 +137,7 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 		RemoveTrade(OpponentID);
 		return;
 	}
-
+	*/
 	int MyGuild = pMob[conn].MOB.Guild;
 	int OpponentGuild = pMob[OpponentID].MOB.Guild;
 	int MyGuildLevel = pMob[conn].MOB.GuildLevel;

@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #pragma once
 
@@ -548,3 +548,5 @@
 #define _NN_GUILDCREATECLAN 535
 #define _SS_BASEWORKILLTOWER 536
 #define _NN_ENCAMPMENTBORN 537
+#define _NN_Check_User_Info_Guild 538
+#define _NN_Chat_Desmute 539 

@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -92,6 +93,7 @@ void Exec_MSG_CombineItemTiny(int conn, char *pMsg)
 
 	if (_rand <= combine || LOCALSERVER)
 	{
+
 		pMob[conn].MOB.Carry[ipos].stEffect[0].cEffect = m->Item[1].stEffect[0].cEffect;
 		pMob[conn].MOB.Carry[ipos].stEffect[0].cValue = m->Item[1].stEffect[0].cValue;
 		pMob[conn].MOB.Carry[ipos].stEffect[1].cEffect = m->Item[1].stEffect[1].cEffect;
@@ -99,8 +101,12 @@ void Exec_MSG_CombineItemTiny(int conn, char *pMsg)
 		pMob[conn].MOB.Carry[ipos].stEffect[2].cEffect = m->Item[1].stEffect[2].cEffect;
 		pMob[conn].MOB.Carry[ipos].stEffect[2].cValue = m->Item[1].stEffect[2].cValue;
 
-		memset(&pMob[conn].MOB.Carry[m->InvenPos[1]], 0, sizeof(STRUCT_ITEM));
+
+		memset(&pMob[conn].MOB.Carry[m->InvenPos[1]], 0, sizeof(STRUCT_ITEM)); // Deleta o Item Mortal
 		SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[1], &pMob[conn].MOB.Carry[m->InvenPos[1]]);
+
+		memset(&pMob[conn].MOB.Carry[m->InvenPos[2]], 0, sizeof(STRUCT_ITEM)); // Deleta o Item D
+		SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[2], &pMob[conn].MOB.Carry[m->InvenPos[2]]);
 
 		BASE_SetItemSanc(&pMob[conn].MOB.Carry[ipos], 7, 0);
 
@@ -127,14 +133,17 @@ void Exec_MSG_CombineItemTiny(int conn, char *pMsg)
 	}
 	else
 	{
-		memset(&pMob[conn].MOB.Carry[m->InvenPos[0]], 0, sizeof(STRUCT_ITEM));
-		SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[0], &pMob[conn].MOB.Carry[m->InvenPos[0]]);
+		memset(&pMob[conn].MOB.Carry[m->InvenPos[2]], 0, sizeof(STRUCT_ITEM));
+		SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[2], &pMob[conn].MOB.Carry[m->InvenPos[2]]);
 
 		sprintf(temp, "%s", g_pMessageStringTable[_NN_CombineFailed]);
 		SendClientMessage(conn, temp);
 
 		SendClientSignalParm(conn, ESCENE_FIELD, _MSG_CombineComplete, 2);
 		ItemLog("*** Combine tiny fail ***", pUser[conn].AccountName, pUser[conn].IP);
+
+		pMob[conn].MOB.Coin -= 100000000;
+		SendEtc(conn);
 
 		return;
 	}

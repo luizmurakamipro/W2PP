@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -95,7 +95,10 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 				if((1 << 7) & pMob[conn].MOB.LearnedSkill && m->Detail == 1 || (1 << 15) & pMob[conn].MOB.LearnedSkill && m->Detail == 2 || (1 << 23) & pMob[conn].MOB.LearnedSkill && m->Detail == 3)
 					max_special = 255;
 
-				if (pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS || pMob[conn].extra.ClassMaster == SCELESTIAL)
+				if((1 << 0) & pMob[conn].extra.SecLearnedSkill || (1 << 4) & pMob[conn].extra.SecLearnedSkill || (1 << 8) & pMob[conn].extra.SecLearnedSkill)
+					max_special = 320;
+
+				if (pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS || pMob[conn].extra.ClassMaster == SCELESTIAL || pMob[conn].extra.ClassMaster == HARDCORE || pMob[conn].extra.ClassMaster == HARDCOREA || pMob[conn].extra.ClassMaster == HARDCORECS || pMob[conn].extra.ClassMaster == SHARDCORE)
 					max_special_level += 3 * 400;
 
 				if (pMob[conn].MOB.BaseScore.Special[m->Detail] < (max_special_level >> 1))
@@ -172,7 +175,7 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 								return;
 							}
 
-							int coin = pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH ? 50000000 : 50000000;
+							int coin = pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH ? 30000000 : 30000000;
 
 							if(skillin == 7 && pMob[conn].MOB.Coin < coin)
 							{
@@ -196,7 +199,7 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 									&& pMob[conn].MOB.CurrentScore.Special[2] >= g_pItemList[m->Detail].ReqDex
 									&& pMob[conn].MOB.CurrentScore.Special[3] >= g_pItemList[m->Detail].ReqCon)
 								{
-									int coin = pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH ? 50000000 : 50000000;
+									int coin = pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH ? 30000000 : 30000000;
 
 									if(skillpos == 7 || skillpos == 15 || skillpos == 23)
 										pMob[conn].MOB.Coin -= coin;

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -14,25 +14,29 @@
     <ProjectGuid>{1729E469-5121-44D6-82E5-48D2381D3098}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TMSrv</RootNamespace>
-    <SccProjectName>Svn</SccProjectName>
-    <SccAuxPath>Svn</SccAuxPath>
-    <SccLocalPath>Svn</SccLocalPath>
-    <SccProvider>SubversionScc</SccProvider>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <SccProjectName>
+    </SccProjectName>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccProvider>
+    </SccProvider>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -46,7 +50,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)Build\$(Configuration)\Server\$(ProjectName)\run\</OutDir>
+    <OutDir>..\..\..\..\Debug\Server\TMSrv\run</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -56,7 +60,7 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_PACKET_DEBUG;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -90,6 +94,7 @@
     <ClCompile Include="..\Basedef.cpp" />
     <ClCompile Include="..\CPSock.cpp" />
     <ClCompile Include="CCastleZakum.cpp" />
+    <ClCompile Include="CCubo.cpp" />
     <ClCompile Include="CItem.cpp" />
     <ClCompile Include="CMob.cpp" />
     <ClCompile Include="CNPCGene.cpp" />
@@ -97,7 +102,9 @@
     <ClCompile Include="CUser.cpp" />
     <ClCompile Include="CWarTower.cpp" />
     <ClCompile Include="GetFunc.cpp" />
-    <ClCompile Include="imple.cpp" />
+    <ClCompile Include="_MSG_Quiz.cpp" />
+    <ClCompile Include="_MSG_Imple.cpp" />
+    <ClCompile Include="_MSG_GriffinMaster.cpp" />
     <ClCompile Include="MobKilled.cpp" />
     <ClCompile Include="ProcessClientMessage.cpp" />
     <ClCompile Include="ProcessDBMessage.cpp" />
@@ -121,6 +128,7 @@
     <ClCompile Include="_MSG_CombineItemAgatha.cpp" />
     <ClCompile Include="_MSG_CombineItemAilyn.cpp" />
     <ClCompile Include="_MSG_CombineItemAlquimia.cpp" />
+    <ClCompile Include="_MSG_CombineItemDedekinto.cpp" />
     <ClCompile Include="_MSG_CombineItemEhre.cpp" />
     <ClCompile Include="_MSG_CombineItemExtracao.cpp" />
     <ClCompile Include="_MSG_CombineItemLindy.cpp" />
@@ -168,6 +176,7 @@
     <ClInclude Include="..\CPSock.h" />
     <ClInclude Include="..\ItemEffect.h" />
     <ClInclude Include="CCastleZakum.h" />
+    <ClInclude Include="CCubo.h" />
     <ClInclude Include="CItem.h" />
     <ClInclude Include="CMob.h" />
     <ClInclude Include="CNPCGene.h" />
@@ -176,6 +185,7 @@
     <ClInclude Include="CWarTower.h" />
     <ClInclude Include="GetFunc.h" />
     <ClInclude Include="Language.h" />
+    <ClInclude Include="ProcessClientMessage-BYPOLLY.h" />
     <ClInclude Include="ProcessClientMessage.h" />
     <ClInclude Include="ProcessDBMessage.h" />
     <ClInclude Include="resource.h" />

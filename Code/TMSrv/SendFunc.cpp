@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <memory>
 
@@ -23,6 +23,20 @@
 #include "GetFunc.h"
 #include "Server.h"
 #include "Language.h"
+
+BOOL bFile_exists(const char *filename)
+{
+	FILE *arquivo;
+	arquivo = fopen(filename, "rb");
+
+	if (arquivo)
+	{
+		fclose(arquivo);
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 void SendClientMessage(int conn, char *Message)
 {
@@ -42,6 +56,108 @@ void SendClientMessage(int conn, char *Message)
 	sm_mp.String[MESSAGE_LENGTH - 2] = 0;
 
 	pUser[conn].cSock.AddMessage((char*)&sm_mp, sizeof(MSG_MessagePanel));
+}
+
+void SendBigMessage(int conn, char *Title, char *String)
+{
+	int Num, i, j, sLine = 1;
+
+	char sString[128];
+
+	strcpy(sString, String);
+
+	Num = strlen(String);
+
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	MSG_BigQuiz sm_mp;
+	memset(&sm_mp, 0, sizeof(MSG_BigQuiz));
+
+	sm_mp.Size = sizeof(MSG_BigQuiz);
+	sm_mp.Type = _MSG_BigQuiz;
+	sm_mp.ID = conn;
+
+	memcpy(sm_mp.Title, Title, 128);
+
+	if (Num < 64)
+		memcpy(sm_mp.Line[1], String, 128);
+	else
+	{
+		for (int i = 0; i < 64; i++)
+			sm_mp.Line[sLine][i] = sString[i];
+
+		sLine++;
+
+		for (int i = 64, j = 0; i < Num; i++, j++)
+			sm_mp.Line[sLine][j] = sString[i];
+	}
+
+	pUser[conn].cSock.AddMessage((char*)&sm_mp, sizeof(MSG_BigQuiz));
+}
+
+void SendWindowMessage(int conn, char *Message)
+{
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	MSG_MessageWindow sm_mp;
+	memset(&sm_mp, 0, sizeof(MSG_MessageWindow));
+
+	sm_mp.Size = sizeof(MSG_MessageWindow);
+	sm_mp.Type = _MSG_MessageWindow;
+	sm_mp.ID = 0;
+
+	memcpy(sm_mp.String, Message, MESSAGE_LENGTH);
+
+	sm_mp.String[MESSAGE_LENGTH - 1] = 0;
+	sm_mp.String[MESSAGE_LENGTH - 2] = 0;
+
+	pUser[conn].cSock.AddMessage((char*)&sm_mp, sizeof(MSG_MessageWindow));
+}
+
+void SendQuizMessage(int conn, char *Title, char *Answer0, char *Answer1, char *Answer2, char *Answer3, char correct)
+{
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	MSG_Quiz sm_mp;
+	memset(&sm_mp, 0, sizeof(MSG_Quiz));
+
+	sm_mp.Size = sizeof(MSG_Quiz);
+	sm_mp.Type = _MSG_Quiz;
+	sm_mp.ID = conn;
+
+	strcpy(sm_mp.Title, Title);
+	strcpy(sm_mp.Answer[0], Answer0);
+	strcpy(sm_mp.Answer[1], Answer1);
+	strcpy(sm_mp.Answer[2], Answer2);
+	strcpy(sm_mp.Answer[3], Answer3);
+
+	pUser[conn].cSock.AddMessage((char*)&sm_mp, sizeof(MSG_Quiz));
+
+	SendQuiz[conn].Status = TRUE;
+	SendQuiz[conn].RespostaCorreta = correct;
+}
+
+void SendMessageBox(int conn, char *Message)
+{
+	if (conn <= 0 || conn >= MAX_USER)
+		return;
+
+	MSG_MessageBoxOk sm_mp;
+	memset(&sm_mp, 0, sizeof(MSG_MessageBoxOk));
+
+	sm_mp.Size = sizeof(MSG_MessageBoxOk);
+	sm_mp.Type = _MSG_MessageBoxOk;
+	sm_mp.ID = 0;
+
+	memcpy(sm_mp.String, Message, MESSAGE_LENGTH);
+
+	sm_mp.String[MESSAGE_LENGTH - 1] = 0;
+	sm_mp.String[MESSAGE_LENGTH - 2] = 0;
+
+	pUser[conn].cSock.AddMessage((char*)&sm_mp, sizeof(MSG_MessageBoxOk));
 }
 
 void SendNotice(char *Message)
@@ -323,7 +439,7 @@ void SendCreateItem(int conn, int item, int bSend)
 	memset(&sm, 0, sizeof(MSG_CreateItem));
 
 	GetCreateItem(item, &sm);
-	
+
 	pUser[conn].cSock.AddMessage((char*)&sm, sizeof(MSG_CreateItem));
 
 	if (bSend)
@@ -343,6 +459,72 @@ void SendChat(int conn, char *Message)
 	memcpy(sm.String, Message, MESSAGE_LENGTH);
 
 	GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&sm, conn);
+}
+
+void SendClientChat(int conn, char *pMsg, int color)
+{
+	MSG_MagicTrumpet m;
+	m.Type = 0xD1E;
+	m.ID = 0x7530;
+	strcpy_s(m.String, pMsg);
+
+	char buffer[sizeof MSG_MagicTrumpet + 4];
+	memcpy(&buffer, &m, sizeof buffer);
+	*(int*)&buffer[108] = color;
+	DBServerSocket.SendOneMessage((char*)&m, sizeof(MSG_MagicTrumpet));
+}
+
+void SendGuildChat(int conn, char *Message)
+{
+	MSG_MessageWhisper m;
+	memset(&m, 0, sizeof(MSG_MessageWhisper));
+
+	m.Type = _MSG_MessageWhisper;
+	m.Size = sizeof(MSG_MessageWhisper);
+	m.ID = conn;
+
+	Message = m.String;
+
+	strncpy(m.MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
+
+	m.String[MESSAGE_LENGTH] = 3;
+
+	int guild = pMob[conn].MOB.Guild;
+
+	if (guild == 0)
+	{
+		SendClientMessage(conn, g_pMessageStringTable[_NN_Only_Guild_Member_Can]);
+		return;
+	}
+
+	int guildlevel = pMob[conn].MOB.GuildLevel;
+	for (int i = 1; i < MAX_USER; i++)
+	{
+		if (pUser[i].Mode != USER_PLAY)
+			continue;
+
+		if (pMob[i].MOB.Guild != guild && m.String[1] != '-')
+			continue;
+
+		if (pMob[i].MOB.Guild != guild && m.String[1] == '-' && (pMob[i].MOB.Guild != g_pGuildAlly[guild] || g_pGuildAlly[guild] == 0))
+			continue;
+
+		if (i == conn)
+			continue;
+
+		if (pUser[i].Guildchat)
+			continue;
+
+		m.ID = conn;
+		pUser[i].cSock.AddMessage((char*)&m, sizeof(MSG_MessageWhisper));
+	}
+
+	char guildname[256];
+	BASE_GetGuildName(ServerGroup, guild, guildname);
+
+	sprintf(temp, "chat_guild, %s : %s guild:%s", m.MobName, m.String, guildname);
+	ChatLog(temp, pUser[conn].AccountName, pUser[conn].IP);
+	return;
 }
 
 void SendEnvEffect(int x1, int y1, int x2, int y2, int Effect, int EffectParm)
@@ -366,19 +548,19 @@ void SendEnvEffect(int x1, int y1, int x2, int y2, int Effect, int EffectParm)
 	/*
 	for(int x = x1; x < x2; x++)
 	{
-		for(int y = y1; y < y2; y++)
-		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
-				continue;
+	for(int y = y1; y < y2; y++)
+	{
+	if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+	continue;
 
-			if(pMobGrid[y][x] == 0)
-				continue;
+	if(pMobGrid[y][x] == 0)
+	continue;
 
-			if(pMobGrid[y][x] >= MAX_USER)
-				continue;
+	if(pMobGrid[y][x] >= MAX_USER)
+	continue;
 
-			pUser[pMobGrid[y][x]].cSock.AddMessage((char*)&sm, sizeof(MSG_EnvEffect));
-		}
+	pUser[pMobGrid[y][x]].cSock.AddMessage((char*)&sm, sizeof(MSG_EnvEffect));
+	}
 	}*/
 
 	GridMulticast(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2), (MSG_STANDARD*)&sm, 0);
@@ -403,30 +585,30 @@ void SendEnvEffectKingdom(int x1, int y1, int x2, int y2, int Effect, int Effect
 	sm.EffectParm = EffectParm;
 
 	int HaveUser = 0;
-	
-	for(int x = x1; x < x2; x++)
+
+	for (int x = x1; x < x2; x++)
 	{
-		for(int y = y1; y < y2; y++)
+		for (int y = y1; y < y2; y++)
 		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
 				continue;
 
-			if(pMobGrid[y][x] == 0)
+			if (pMobGrid[y][x] == 0)
 				continue;
 
-			if(pMobGrid[y][x] >= MAX_USER)
+			if (pMobGrid[y][x] >= MAX_USER)
 				continue;
 
 			int tmob = pMobGrid[y][x];
 
-			if(pMob[tmob].MOB.Clan == Clan)
+			if (pMob[tmob].MOB.Clan == Clan)
 				continue;
 
 			HaveUser++;
 		}
 	}
 
-	if(HaveUser)
+	if (HaveUser)
 		GridMulticast(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2), (MSG_STANDARD*)&sm, 0);
 }
 
@@ -451,33 +633,33 @@ void SendEnvEffectLeader(int x1, int y1, int x2, int y2, int Effect, int EffectP
 	int HaveUser = 0;
 	int bSend = 0;
 
-	for(int x = x1; x < x2; x++)
+	for (int x = x1; x < x2; x++)
 	{
-		for(int y = y1; y < y2; y++)
+		for (int y = y1; y < y2; y++)
 		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
 				continue;
 
-			if(pMobGrid[y][x] == 0)
+			if (pMobGrid[y][x] == 0)
 				continue;
 
-			if(pMobGrid[y][x] >= MAX_USER)
+			if (pMobGrid[y][x] >= MAX_USER)
 				continue;
 
 			int tmob = pMobGrid[y][x];
 
-			if(tmob == Pista[4].Party[0].LeaderID)
+			if (tmob == Pista[4].Party[0].LeaderID)
 			{
 				HaveUser++;
 				continue;
 			}
 
-			if(tmob == Pista[4].Party[1].LeaderID)
+			if (tmob == Pista[4].Party[1].LeaderID)
 			{
 				HaveUser++;
 				continue;
 			}
-			if(tmob == Pista[4].Party[1].LeaderID)
+			if (tmob == Pista[4].Party[1].LeaderID)
 			{
 				HaveUser++;
 				continue;
@@ -487,7 +669,7 @@ void SendEnvEffectLeader(int x1, int y1, int x2, int y2, int Effect, int EffectP
 		}
 	}
 
-	if(HaveUser == 0 && bSend)
+	if (HaveUser == 0 && bSend)
 		GridMulticast(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2), (MSG_STANDARD*)&sm, 0);
 }
 
@@ -598,7 +780,7 @@ void SendGridMob(int conn)
 			if (tmob > 0 && tmob < MAX_MOB && tmob != conn)
 			{
 				if (pMob[tmob].Mode == MOB_EMPTY)
-					pMobGrid[y][x] = 0;
+					pMobGrid[y][x] = 0; // Testar 1
 				else
 				{
 					SendCreateMob(conn, tmob, 0);
@@ -617,6 +799,434 @@ void SendGridMob(int conn)
 	}
 }
 
+/*
+void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
+{
+int tmob; // [sp+54h] [bp-14Ch]@61
+int titem; // [sp+58h] [bp-148h]@61
+int k; // [sp+5Ch] [bp-144h]@58
+int j; // [sp+64h] [bp-13Ch]@32
+int i; // [sp+68h] [bp-138h]@30
+int ty2; // [sp+70h] [bp-130h]@30
+int tx2; // [sp+74h] [bp-12Ch]@30
+int ty1; // [sp+78h] [bp-128h]@30
+int tx1; // [sp+7Ch] [bp-124h]@30
+int sy2; // [sp+80h] [bp-120h]@22
+int sx2; // [sp+84h] [bp-11Ch]@22
+int sy1; // [sp+88h] [bp-118h]@22
+int sx1; // [sp+8Ch] [bp-114h]@22
+int StartY; // [sp+90h] [bp-110h]@14
+int StartX; // [sp+94h] [bp-10Ch]@14
+int SizeY; // [sp+98h] [bp-108h]@14
+int SizeX; // [sp+9Ch] [bp-104h]@14
+
+if (conn && pMob[conn].TargetX)
+{
+tmob = pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX];
+
+if (tmob != conn && tmob)
+{
+if (conn < MAX_USER)
+Log("PC do not have his own grid", "-system", 0);
+else
+Log("NPC do not have his own grid", "-system", 0);
+}
+
+pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] = 0;
+
+if (pMobGrid[ty][tx] != conn && pMobGrid[ty][tx])
+{
+if (conn < MAX_USER)
+Log("PC step in other mob's grid", "-system", 0);
+else
+Log("NPC charge other mob's grid", "-system", 0);
+}
+
+pMobGrid[ty][tx] = conn;
+SizeY = VIEWGRIDY;
+SizeX = VIEWGRIDX;
+StartX = pMob[conn].TargetX - HALFGRIDX;
+StartY = pMob[conn].TargetY - HALFGRIDY;
+
+if (StartX + VIEWGRIDX >= MAX_GRIDX)
+SizeX -= StartX + SizeX - MAX_GRIDX;
+
+if (SizeY + StartY >= MAX_GRIDY)
+SizeY -= StartY + SizeY - MAX_GRIDY;
+
+if (StartX < 0)
+StartX = 0;
+
+if (StartY < 0)
+StartY = 0;
+
+sx1 = StartX;
+sy1 = StartY;
+sx2 = SizeX + StartX;
+sy2 = SizeY + StartY;
+
+SizeY = VIEWGRIDY;
+SizeX = VIEWGRIDX;
+
+StartX = tx - VIEWGRIDX;
+StartY = ty - VIEWGRIDY;
+
+if (tx - 16 + 33 >= MAX_GRIDX)
+SizeX -= StartX + SizeX - MAX_GRIDX;
+
+if (SizeY + StartY >= MAX_GRIDY)
+SizeY -= StartY + SizeY - MAX_GRIDY;
+
+if (StartX < 0)
+StartX = 0;
+
+if (StartY < 0)
+StartY = 0;
+
+tx1 = StartX;
+ty1 = StartY;
+tx2 = SizeX + StartX;
+ty2 = SizeY + StartY;
+
+for (i = sy1; i < sy2; ++i)
+{
+for (j = sx1; j < sx2; ++j)
+{
+tmob = pMobGrid[i][j];
+
+if (tmob && tmob != conn)
+{
+if (pMob[tmob].Mode)
+{
+if (msg && tmob < MAX_USER)
+pUser[tmob].cSock.AddMessage((char*)msg, msg->Size);
+
+if ((j < tx1 || j >= tx2 || i < ty1 || i >= ty2) && tx)
+{
+if (tmob < MAX_USER)
+SendRemoveMob(tmob, conn, 0, 0);
+
+if (conn < MAX_USER)
+SendRemoveMob(conn, tmob, 0, 0);
+}
+}
+else
+{
+Log("Dest Empty grid", "-system", 0);
+pMobGrid[i][j] = 0;
+}
+}
+}
+}
+
+for (i = ty1; i < ty2; ++i)
+{
+for (k = tx1; k < tx2; ++k)
+{
+titem = pItemGrid[i][k];
+tmob = pMobGrid[i][k];
+
+if (k < sx1 || k >= sx2 || i < sy1 || i >= sy2)
+{
+if (titem > 0 && titem < MAX_ITEM && pItem[titem].Mode && pItem[titem].ITEM.sIndex && conn < MAX_USER)
+{
+if (pItem[titem].Mode)
+SendCreateItem(conn, titem, 0);
+
+else
+pItemGrid[i][k] = 0;
+}
+
+if (tmob != conn && tmob)
+{
+if (pMob[tmob].Mode)
+{
+if (tmob < MAX_USER)
+{
+if (pMob[conn].Mode)
+SendCreateMob(tmob, conn, 0);
+
+else
+pMobGrid[i][k] = 0;
+}
+
+if (conn < MAX_USER)
+{
+if (pMob[tmob].Mode)
+SendCreateMob(conn, tmob, 0);
+
+else
+pMobGrid[i][k] = 0;
+}
+
+if (msg && tmob > 0 && tmob < MAX_USER)
+{
+if (pMob[tmob].Mode == 22)
+{
+if (!pUser[tmob].cSock.AddMessage((char*)msg, msg->Size))
+{
+pUser[tmob].AccountName[ACCOUNTNAME_LENGTH - 1] = 0;
+pUser[tmob].AccountName[ACCOUNTNAME_LENGTH - 2] = 0;
+sprintf(temp, "err,gridmulticast add %d-%d %s", tmob, pUser[tmob].Mode, pUser[tmob].AccountName);
+Log(temp, "-system", 0);
+pMobGrid[i][k] = 0;
+CloseUser(tmob);
+}
+}
+else
+{
+pUser[tmob].AccountName[ACCOUNTNAME_LENGTH - 1] = 0;
+pUser[tmob].AccountName[ACCOUNTNAME_LENGTH - 2] = 0;
+sprintf(temp, "err,grid-1 empty %d-%d %s", tmob, pUser[tmob].Mode, pUser[tmob].AccountName);
+Log(temp, "-system", 0);
+pMobGrid[i][k] = 0;
+CloseUser(tmob);
+}
+}
+}
+else
+{
+pMobGrid[i][k] = 0;
+Log("MOB GRID HAS EMPTY MOB", "-system", 0);
+}
+}
+}
+}
+}
+
+if (pUser[conn].Mode == USER_PLAY)
+{
+if (pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] == 0 || pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] != conn)
+Log("USER PLAYING WITH MOBGRID OFFLINE", "-system", 0);
+}
+
+MSG_Action *sm = (MSG_Action*)msg;
+
+pMob[conn].LastTime = sm->ClientTick;
+pMob[conn].LastSpeed = sm->Speed;
+pMob[conn].LastX = sm->PosX;
+pMob[conn].LastY = sm->PosY;
+pMob[conn].TargetX = tx;
+pMob[conn].TargetY = ty;
+
+}
+else
+Log("err,GridMulticast mobidx,pos", "-system", 0);
+
+return;
+}
+*/
+/*
+void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
+{
+int SizeX, SizeY, StartX, StartY;
+int sx1, sy1, sx2, sy2;        // Source Rect
+int dx1, dy1, dx2, dy2;		   // Dest Rect
+
+if (conn == 0 || pMob[conn].TargetX == 0)
+{
+Log("err GridMulticast mobidx,pos","-system", 0);
+return;
+}
+
+int mobx = pMob[conn].TargetX;
+int moby = pMob[conn].TargetY;
+
+if (mobx < 0 || mobx >= MAX_GRIDX || moby < 0 || moby >= MAX_GRIDY)
+return;
+
+int currentgrid = pMobGrid[moby][mobx];
+
+if (currentgrid != conn && currentgrid != 0)
+{
+if (conn >= MAX_USER)
+Log("NPC do not have his own grid","-system",0);
+else
+Log("PC do not have his own grid","-system",0);
+
+pMobGrid[moby][mobx] = 0;
+
+}
+else
+pMobGrid[moby][mobx] = 0;
+
+if  (pMobGrid[ty][tx] != conn && pMobGrid[ty][tx] != 0)
+{
+if (conn >= MAX_USER)
+Log("NPC charge other mob's grid","-system",0);
+else
+Log("PC step in other mob's grid","-system",0);
+
+pMobGrid[ty][tx] = conn;
+}
+else
+pMobGrid[ty][tx] = conn;
+
+SizeY  = VIEWGRIDY;
+SizeX  = VIEWGRIDX;
+StartX = pMob[conn].TargetX - HALFGRIDX;
+StartY = pMob[conn].TargetY - HALFGRIDY;
+
+if  (StartX+SizeX >= MAX_GRIDX)
+SizeX = SizeX - (StartX + SizeX - MAX_GRIDX);
+
+if  (StartY+SizeY >= MAX_GRIDY)
+SizeY = SizeY - (StartY + SizeY - MAX_GRIDY);
+
+if  (StartX < 0)
+{
+StartX = 0;
+SizeX = SizeX + StartX;
+}
+
+if  (StartY < 0)
+{
+StartY = 0;
+SizeY = SizeY + StartY;
+}
+
+sx1 = StartX;
+sy1 = StartY;
+sx2 = StartX + SizeX;
+sy2 = StartY + SizeY;
+
+SizeY  = VIEWGRIDY;
+SizeX  = VIEWGRIDX;
+StartX = tx - HALFGRIDX;
+StartY = ty - HALFGRIDY;
+
+if  (StartX + SizeX >= MAX_GRIDX)
+SizeX = SizeX - (StartX + SizeX - MAX_GRIDX);
+
+if  (StartY+SizeY >= MAX_GRIDY)
+SizeY = SizeY - (StartY + SizeY - MAX_GRIDY);
+
+if  (StartX < 0)
+{
+StartX = 0;
+SizeX = SizeX + StartX;
+}
+
+if  (StartY < 0)
+{
+StartY = 0;
+SizeY = SizeY + StartY;
+}
+
+dx1 = StartX;
+dy1 = StartY;
+dx2 = StartX + SizeX;
+dy2 = StartY + SizeY;
+
+for (int y = sy1; y < sy2; y++)
+{
+for (int x = sx1; x < sx2; x++)
+{
+int tmob = pMobGrid[y][x];
+
+if (tmob == 0 || tmob == conn)
+continue;
+
+if  (msg && tmob < MAX_USER)
+pUser[tmob].cSock.AddMessage((char*)msg, msg->Size);
+
+if	((x < dx1 || x >= dx2 || y < dy1 || y >= dy2) && tx != 0)
+{
+if	(tmob < MAX_USER)
+SendRemoveMob(tmob, conn, 0, 0);
+
+if (conn < MAX_USER)
+SendRemoveMob(conn, tmob, 0, 0);
+}
+}
+}
+
+for (int y = sy1; y < sy2; y++)
+{
+for (int x = sx1; x < sx2; x++)
+{
+int titem = pItemGrid[y][x];
+
+if (titem == 0)
+continue;
+
+if (x < dx1 || x >= dx2 || y < dy1 || y >= dy2 && tx)
+{
+if (titem > 0 && titem < MAX_ITEM && pItem[titem].Mode && pItem[titem].ITEM.sIndex && conn > 0 && conn < MAX_USER)
+SendRemoveItem(conn, titem, 0);
+}
+}
+}
+
+pMob[conn].TargetX = tx;
+pMob[conn].TargetY = ty;
+
+for (int y = dy1; y < dy2; y++)
+{
+for (int x = dx1; x < dx2; x++)
+{
+int titem = pItemGrid[y][x];
+int tmob  = pMobGrid[y][x];
+
+if  (x < sx1 || x >= sx2 || y < sy1 || y >= sy2)
+{
+if  (titem > 0 && titem < MAX_ITEM && pItem[titem].Mode != 0 && pItem[titem].ITEM.sIndex != 0 && conn < MAX_USER)
+{
+if (pItem[titem].Mode == 0)
+pItemGrid[y][x] = 0;
+else
+SendCreateItem(conn, titem, FALSE);
+}
+
+if (tmob == conn || tmob == 0)
+continue;
+
+if (pMob[tmob].Mode == MOB_EMPTY)
+{
+pMobGrid[y][x] = 0;
+Log("MOB GRID HAS EMPTY MOB","-system",0);
+continue;
+}
+
+if (tmob < MAX_USER)
+{
+if (pMob[conn].Mode == MOB_EMPTY)
+pMobGrid[y][x] = 0;
+else
+SendCreateMob(tmob, conn, FALSE);
+}
+
+if (conn < MAX_USER)
+{
+if (pMob[tmob].Mode == MOB_EMPTY)
+pMobGrid[y][x] = 0;
+else
+SendCreateMob(conn, tmob, FALSE);
+}
+
+if (conn < MAX_USER)
+{
+if (pUser[conn].Mode == USER_PLAY)
+pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] = pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] == 0 ? conn : conn;
+}
+
+if (msg && tmob < MAX_USER)
+pUser[tmob].cSock.AddMessage((char*)msg, msg->Size);
+
+
+}
+}
+}
+
+MSG_Action * act    = (MSG_Action*)msg;
+pMob[conn].LastTime  = act->ClientTick;
+pMob[conn].LastSpeed = act->Speed;
+pMob[conn].LastX     = act->PosX;
+pMob[conn].LastY     = act->PosY;
+pMob[conn].TargetX = tx;
+pMob[conn].TargetY = ty;
+}*/
+
 void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
 {
 	if (conn == 0 || pMob[conn].TargetX == 0)
@@ -630,16 +1240,21 @@ void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
 
 	if (tmob != conn && tmob)
 		GetEmptyMobGrid(conn, &pMob[conn].TargetX, &pMob[conn].TargetY);
- 
+
 	if (tmob != conn && tmob)
 	{
 		if (conn < MAX_USER)
 			Log("PC do not have his own grid", "-system", 0);
 
 		else
-			Log("NPC do not have his own grid", "-system", 0);
+		{
+			char tmg[256];
+			sprintf(tmg, "NPC %s do not have his own grid", pMob[conn].MOB.MobName);
+			Log(tmg, "-system", 0);
+		}
 
 	}
+
 	pMobGrid[pMob[conn].TargetY][pMob[conn].TargetX] = 0;
 
 	if (pMobGrid[ty][tx] != conn && pMobGrid[ty][tx] != 0)
@@ -651,7 +1266,11 @@ void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
 			Log("PC step in other mob's grid", "-system", 0);
 
 		else
-			Log("NPC charge other mob's grid", "-system", 0);
+		{
+			char tmg[256];
+			sprintf(tmg, "NPC %s charge other mob's grid", pMob[conn].MOB.MobName);
+			Log(tmg, "-system", 0);
+		}
 	}
 
 	pMobGrid[ty][tx] = conn;
@@ -766,7 +1385,15 @@ void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
 					{
 						pMobGrid[y][x] = 0;
 
-						Log("MOB GRID HAS EMPTY MOB", "-system", 0);
+						char cLog[128];
+
+						if (tmob < MAX_USER)
+							sprintf(cLog, "MOB GRID HAS EMPTY MOB [MobName: %s] [tmob: %d]", pMob[tmob].MOB.MobName, tmob);
+						else
+							sprintf(cLog, "MOB GRID HAS EMPTY MOB [MobName: %s] [tmob: %d]", mNPCGen.pList->Leader.MobName, tmob);
+
+						Log(cLog, "-system", 0);
+
 						continue;
 					}
 
@@ -774,7 +1401,6 @@ void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
 					{
 						if (pMob[conn].Mode == MOB_EMPTY)
 							pMobGrid[y][x] = 0;
-
 						else
 						{
 							SendCreateMob(tmob, conn, 0);
@@ -786,7 +1412,6 @@ void GridMulticast(int conn, int tx, int ty, MSG_STANDARD *msg)
 					{
 						if (pMob[tmob].Mode == MOB_EMPTY)
 							pMobGrid[y][x] = 0;
-
 						else
 						{
 							SendCreateMob(conn, tmob, 0);
@@ -895,7 +1520,7 @@ void GridMulticast(int tx, int ty, MSG_STANDARD *msg, int skip)
 					int xx = ((MSG_CreateMob*)msg)->PosX;
 					int yy = ((MSG_CreateMob*)msg)->PosY;
 
-					if(xx >= 896 && yy >= 1405 && xx <= 1150 && yy <= 1538)
+					if (xx >= 896 && yy >= 1405 && xx <= 1150 && yy <= 1538)
 					{
 						STRUCT_ITEM hcitem;
 
@@ -931,7 +1556,7 @@ void GridMulticast(int tx, int ty, MSG_STANDARD *msg, int skip)
 							SetCircletSubGod(tmob);
 							SendClientMessage(tmob, g_pMessageStringTable[_NN_Level_Up]);
 
-							if(pMob[tmob].extra.ClassMaster == MORTAL)
+							if (pMob[tmob].extra.ClassMaster == MORTAL)
 								DoItemLevel(tmob);
 						}
 						if (Segment == 3)
@@ -1042,7 +1667,6 @@ void PartyGridMulticast(int tx, int ty, MSG_STANDARD *msg, int skip, int Leaderc
 			if (pUser[partyconn].Mode != USER_PLAY || pUser[partyconn].PartyChat != 0)
 				continue;
 
-
 			if (pUser[partyconn].Mode != USER_PLAY || pUser[partyconn].cSock.Sock == 0)
 				continue;
 
@@ -1073,8 +1697,8 @@ void SendItem(int conn, int Type, int Slot, STRUCT_ITEM *item)
 	sm_si.invType = Type;
 	sm_si.Slot = Slot;
 
-//	*(int*)&sm.item = *(int*)&item;
-//	*(int*)((int)&sm.item + 4) = *(int*)((int)&item + 4);
+	//	*(int*)&sm.item = *(int*)&item;
+	//	*(int*)((int)&sm.item + 4) = *(int*)((int)&item + 4);
 
 	memcpy(&sm_si.item, item, sizeof(STRUCT_ITEM));
 
@@ -1132,6 +1756,7 @@ void SendEquip(int conn, int skip)
 	if (SendMount != 0)
 		SendItem(conn, ITEM_PLACE_EQUIP, 14, &pMob[conn].MOB.Equip[14]);
 }
+
 
 void SendScore(int conn)
 {
@@ -1217,6 +1842,7 @@ void SendEtc(int conn)
 	sm.SpecialBonus = pMob[conn].MOB.SpecialBonus;
 
 	sm.Learn = pMob[conn].MOB.LearnedSkill;
+	sm.SecLearn = pMob[conn].extra.SecLearnedSkill;
 
 	sm.ScoreBonus = pMob[conn].MOB.ScoreBonus;
 	sm.SkillBonus = pMob[conn].MOB.SkillBonus;
@@ -1493,8 +2119,8 @@ void SendAddParty(int Leaderconn, int conn, int PartyID)
 		sm_cap.Leaderconn = 30000;
 
 	sm_cap.Level = pMob[conn].MOB.CurrentScore.Level;
-	sm_cap.MaxHp = pMob[conn].MOB.CurrentScore.MaxHp > 32000 ? ((pMob[conn].MOB.CurrentScore.MaxHp+1) / 100) : pMob[conn].MOB.CurrentScore.MaxHp;
-	sm_cap.Hp = pMob[conn].MOB.CurrentScore.Hp > 32000 ? ((pMob[conn].MOB.CurrentScore.Hp+1) / 100) : pMob[conn].MOB.CurrentScore.Hp;
+	sm_cap.MaxHp = pMob[conn].MOB.CurrentScore.MaxHp > 32000 ? ((pMob[conn].MOB.CurrentScore.MaxHp + 1) / 100) : pMob[conn].MOB.CurrentScore.MaxHp;
+	sm_cap.Hp = pMob[conn].MOB.CurrentScore.Hp > 32000 ? ((pMob[conn].MOB.CurrentScore.Hp + 1) / 100) : pMob[conn].MOB.CurrentScore.Hp;
 
 	sm_cap.PartyID = conn;//Check:
 	sm_cap.Target = (short)52428;
@@ -1502,6 +2128,35 @@ void SendAddParty(int Leaderconn, int conn, int PartyID)
 	strcpy(sm_cap.MobName, pMob[conn].MOB.MobName);
 
 	if (!pUser[Leaderconn].cSock.SendOneMessage((char*)&sm_cap, sizeof(MSG_CNFAddParty)))
+		CloseUser(Leaderconn);
+}
+
+void SendAddPartyEvocation(int Leaderconn)
+{
+	if (Leaderconn <= 0 || Leaderconn >= MAX_USER)
+		return;
+
+	if (pUser[Leaderconn].Mode != USER_PLAY)
+		return;
+
+	if (pUser[Leaderconn].cSock.Sock == 0)
+		return;
+
+	MSG_PartyEvocation sm_cap;
+	memset(&sm_cap, 0, sizeof(MSG_PartyEvocation));
+
+	sm_cap.Size = sizeof(MSG_PartyEvocation);
+	sm_cap.Type = _MSG_PartyEvocation;
+	sm_cap.ID = ESCENE_FIELD;
+
+	sm_cap.Leader = Leaderconn;
+
+	memcpy(&sm_cap.EvocationList, &pMob[Leaderconn].Evocations, sizeof(pMob[Leaderconn].Evocations));
+
+	sm_cap.Unknown[0] = 0xCC;
+	sm_cap.Unknown[1] = 0xCC;
+
+	if (!pUser[Leaderconn].cSock.SendOneMessage((char*)&sm_cap, sizeof(MSG_PartyEvocation)))
 		CloseUser(Leaderconn);
 }
 
@@ -1579,7 +2234,7 @@ void SendWeather()
 			continue;
 
 
-//		if ((pMob[i].TargetX / 128) < 12 && (pMob[i].TargetY / 128) > 25)
+		//		if ((pMob[i].TargetX / 128) < 12 && (pMob[i].TargetY / 128) > 25)
 		{
 			if (!pUser[i].cSock.AddMessage((char*)&sm_uw, sizeof(MSG_UpdateWeather)))
 				CloseUser(i);
@@ -1654,9 +2309,22 @@ void SendSay(int mob, char *Message)
 	sm_mc.ID = mob;
 
 	memcpy(sm_mc.String, Message, MESSAGE_LENGTH);
-	
 
 	GridMulticast(pMob[mob].TargetX, pMob[mob].TargetY, (MSG_STANDARD*)&sm_mc, 0);
+}
+
+void MapaMulticastArea(int x1, int y1, int x2, int y2, MSG_STANDARD *m, int bSend)
+{
+	for (int i = 0; i < MAX_USER; i++)
+	{
+		if (pUser[i].Mode == USER_PLAY && (pMob[i].TargetX >= x1 && pMob[i].TargetX <= x2 && pMob[i].TargetY >= y1 && pMob[i].TargetY <= y2))
+		{
+			pUser[i].cSock.AddMessage((char*)m, m->Size);
+
+			if (bSend)
+				pUser[i].cSock.SendMessageA();
+		}
+	}
 }
 
 void MapaMulticast(int tx, int ty, MSG_STANDARD *m, int bSend)
@@ -1692,44 +2360,44 @@ void SendMessageArea(int x1, int y1, int x2, int y2, MSG_STANDARD *m, int bSend)
 
 void SendSignalParmArea(int x1, int y1, int x2, int y2, int id, unsigned short signal, int parm)
 {
-	for(int x = x1; x < x2; x++)
+	for (int x = x1; x < x2; x++)
 	{
-		for(int y = y1; y < y2; y++)
+		for (int y = y1; y < y2; y++)
 		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
 				continue;
 
 			int tmob = pMobGrid[y][x];
 
-			if(tmob >= MAX_USER || tmob == 0)
+			if (tmob >= MAX_USER || tmob == 0)
 				continue;
 
-			if(pUser[tmob].Mode != USER_PLAY)
+			if (pUser[tmob].Mode != USER_PLAY)
 				continue;
 
-			SendClientSignalParm(tmob, id, signal, parm); 
+			SendClientSignalParm(tmob, id, signal, parm);
 		}
 	}
 }
 
 void SendShortSignalParm2Area(int x1, int y1, int x2, int y2, int id, unsigned short signal, int parm1, int parm2)
 {
-	for(int x = x1; x < x2; x++)
+	for (int x = x1; x < x2; x++)
 	{
-		for(int y = y1; y < y2; y++)
+		for (int y = y1; y < y2; y++)
 		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
 				continue;
 
 			int tmob = pMobGrid[y][x];
 
-			if(tmob >= MAX_USER || tmob == 0)
+			if (tmob >= MAX_USER || tmob == 0)
 				continue;
 
-			if(pUser[tmob].Mode != USER_PLAY)
+			if (pUser[tmob].Mode != USER_PLAY)
 				continue;
 
-			SendClientSignalShortParm2(tmob, id, signal, parm1, parm2); 
+			SendClientSignalShortParm2(tmob, id, signal, parm1, parm2);
 		}
 	}
 }
@@ -1779,7 +2447,7 @@ void SendAffect(int conn)
 	sm.Size = sizeof(MSG_SendAffect);
 	sm.ID = conn;
 
-	for (int i = 0; i < MAX_AFFECT; i++)
+	for (int i = 0; i < MAX_AFFECT; i++) // i = 0;
 	{
 		if (pMob[conn].Affect[i].Type == 34 && pMob[conn].Affect[i].Time >= 32000000)
 		{

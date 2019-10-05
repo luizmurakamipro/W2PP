@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 #include <windows.h>
@@ -1049,7 +1049,7 @@ void CReadFiles::WriteRanking()
 	if (fp == NULL)
 		return;
 
-	char classmaster[6][64] = { "SEM CLASSMASTER", "M", "A", "C", "C", "SC" };
+	char classmaster[10][64] = { "SEM CLASSMASTER", "M", "A", "C", "C", "SC", "HC", "HC", "HC", "SHC" };
 	char classe[4][64] = { "TK", "FM", "BM", "HT" };
 
 	for (int i = RankPos::FIRST, pos = 1; i > RankPos::LAST; i--)

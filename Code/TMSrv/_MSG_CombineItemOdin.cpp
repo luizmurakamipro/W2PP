@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -261,6 +262,9 @@ void Exec_MSG_CombineItemOdin(int conn, char *pMsg)
 			ItemLog(temp, "*** Combine odin sucess ***", pUser[conn].IP);
 			SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[2], &pMob[conn].MOB.Carry[m->InvenPos[2]]);
 
+			//char tmg[1024];
+			/*sprintf(tmg,"Jogador %s refinou o item %s+%d", pMob[conn].MOB.MobName, g_pItemList[pMob[conn].MOB.Carry[m->InvenPos[2]].sIndex].Name, NewSanc);
+			SendNotice(tmg);*/
 			SendNotice(g_pMessageStringTable[_SS_Combin_12Succ]);
 
 			return;
@@ -411,7 +415,7 @@ Label_VoltaRef:
 		}
 	}
 
-	else if (combine == 5)//Pedra da fÃºria
+	else if (combine == 5)//Pedra da fúria
 	{
 		if (_rand <= g_pOdinRate[combine] || LOCALSERVER)
 		{

@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 #include <stdio.h>
@@ -37,6 +37,7 @@
 #include "ProcessDBMessage.h"
 #include "CCastleZakum.h"
 #include "CWarTower.h"
+#include "CCubo.h"
 
 void MobKilled(int target, int conn, int PosX, int PosY)
 {
@@ -91,7 +92,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 		SendEquip(target, 0);
 
 		pMob[target].MOB.CurrentScore.Hp = pMob[target].MOB.CurrentScore.MaxHp;
-		
+
 		if (target < MAX_USER)
 			SetReqHp(target);
 
@@ -107,6 +108,1082 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 		DoTeleport(target, 1066, 1717);
 		return;
 	}
+
+#pragma region Hardcore
+	if (pMob[target].extra.ClassMaster >= HARDCORE && BASE_GetVillage(pMob[target].TargetX, pMob[target].TargetY) == 5)
+	{
+		if (pMob[target].MOB.Equip[0].sIndex == 6 || pMob[target].MOB.Equip[0].sIndex == 16 || pMob[target].MOB.Equip[0].sIndex == 26 || pMob[target].MOB.Equip[0].sIndex == 36)
+		{
+			if (pMob[target].MOB.Equip[0].sIndex == 6)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 5;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls; // Seta a face
+					pMob[target].MOB.Class = 0; // Seta a classe tk 0, fm 1, bm 2, ht 3.
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+
+			if (pMob[target].MOB.Equip[0].sIndex == 16)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 5;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 1;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 26)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 5;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 2;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 36)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 5;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 3;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+		}
+		if (pMob[target].MOB.Equip[0].sIndex == 7 || pMob[target].MOB.Equip[0].sIndex == 17 || pMob[target].MOB.Equip[0].sIndex == 27 || pMob[target].MOB.Equip[0].sIndex == 37)
+		{
+			if (pMob[target].MOB.Equip[0].sIndex == 7)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 6;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 0;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+
+			if (pMob[target].MOB.Equip[0].sIndex == 17)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 6;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 1;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 27)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 6;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 2;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 37)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 6;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 3;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+		}
+		if (pMob[target].MOB.Equip[0].sIndex == 8 || pMob[target].MOB.Equip[0].sIndex == 18 || pMob[target].MOB.Equip[0].sIndex == 28 || pMob[target].MOB.Equip[0].sIndex == 38)
+		{
+			if (pMob[target].MOB.Equip[0].sIndex == 8)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 7;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 0;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+
+			if (pMob[target].MOB.Equip[0].sIndex == 18)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 7;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 1;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 28)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 7;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 2;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 38)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 7;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 3;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+		}
+		if (pMob[target].MOB.Equip[0].sIndex == 9 || pMob[target].MOB.Equip[0].sIndex == 19 || pMob[target].MOB.Equip[0].sIndex == 29 || pMob[target].MOB.Equip[0].sIndex == 39)
+		{
+			if (pMob[target].MOB.Equip[0].sIndex == 9)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 8;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 0;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+
+			if (pMob[target].MOB.Equip[0].sIndex == 19)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 8;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 1;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 29)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 8;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 2;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+			if (pMob[target].MOB.Equip[0].sIndex == 39)
+			{
+				int cls = pMob[target].MOB.Equip[0].sIndex - 8;
+
+				if (pMob[target].MOB.Equip[13].sIndex == 769)// Com nyerds não baixa refinação.
+					return;
+
+				else if (BASE_GetItemSanc(&pMob[target].MOB.Equip[1]))
+				{
+					RefinarItemMais(&pMob[target].MOB.Equip[1], -1);
+					SendItem(target, ITEM_PLACE_EQUIP, 1, &pMob[target].MOB.Equip[1]);
+					return;
+				}
+				else
+				{
+					pMob[target].MOB.Equip[0].sIndex = cls;
+					pMob[target].MOB.Class = 3;
+					pMob[target].extra.ClassMaster = MORTAL; // Seta a classe como de mortal
+					pMob[target].MOB.LearnedSkill = 0; // Zera as skills
+					pMob[target].extra.SecLearnedSkill = 0;
+					pMob[target].MOB.BaseScore.Level = 0; // zera os stats \/
+					pMob[target].MOB.BaseScore.Str = BaseSIDCHM[pMob[target].MOB.Class][0];
+					pMob[target].MOB.BaseScore.Int = BaseSIDCHM[pMob[target].MOB.Class][1];
+					pMob[target].MOB.BaseScore.Dex = BaseSIDCHM[pMob[target].MOB.Class][2];
+					pMob[target].MOB.BaseScore.Con = BaseSIDCHM[pMob[target].MOB.Class][3];
+					pMob[target].MOB.Exp = 0;
+					pMob[target].MOB.BaseScore.Special[0] = 0;
+					pMob[target].MOB.BaseScore.Special[1] = 0;
+					pMob[target].MOB.BaseScore.Special[2] = 0;
+					pMob[target].MOB.BaseScore.Special[3] = 0;
+					pMob[target].MOB.BaseScore.Ac = 4;
+					pMob[target].MOB.BaseScore.Damage = 0;
+					pMob[target].MOB.BaseScore.Hp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.MaxHp = BaseSIDCHM[pMob[target].MOB.Class][4];
+					pMob[target].MOB.BaseScore.Mp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.BaseScore.MaxMp = BaseSIDCHM[pMob[target].MOB.Class][5];
+					pMob[target].MOB.SpecialBonus = 0;
+					pMob[target].MOB.SkillBonus = 0;
+					pMob[target].MOB.ScoreBonus = 0;
+
+					pMob[target].extra.QuestInfo.Arch.Cristal = 0;
+					pMob[target].extra.QuestInfo.Hardcore.Cristal = 0;
+					pMob[target].extra.QuestInfo.Celestial.ArchLevel = 0;
+					pMob[target].extra.QuestInfo.Celestial.CelestialLevel = 0;
+
+					memset(&pMob[target].MOB.Equip[1], 0x0, sizeof(STRUCT_ITEM)); // Apaga a cythera de HC
+					memset(&pMob[target].MOB.Equip[15], 0x0, sizeof(STRUCT_ITEM)); // Apaga a capa de HC
+
+					memset(pMob[target].MOB.SkillBar, -1, 4);
+					memset(pUser[target].CharShortSkill, -1, 16);
+
+					BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+					BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+					pMob[conn].GetCurrentScore(target);
+
+					SendEtc(target);
+					SendScore(target);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[0]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[1]);
+					SendItem(target, ITEM_PLACE_EQUIP, 0, &pMob[target].MOB.Equip[15]);
+
+					GetCreateMob(target, &sCreateMob);
+					GridMulticast(pMob[target].TargetX, pMob[target].TargetY, (MSG_STANDARD*)&sCreateMob, 0);
+					CharLogOut(target);
+					return;
+				}
+			}
+		}
+	}
+#pragma endregion
 
 	int Face = pMob[conn].MOB.Equip[0].sIndex;
 
@@ -161,7 +1238,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 						Mount->stEffect[1].cEffect = XP;
 						SendClientMessage(summoner, g_pMessageStringTable[_NN_Mount_Level]);
 						SendItem(summoner, ITEM_PLACE_EQUIP, 14, &pMob[summoner].MOB.Equip[14]);
-						MountProcess(summoner, 0);
+						MountProcess(summoner, &pMob[conn].MOB.Equip[14]);
 					}
 				}
 			}
@@ -184,6 +1261,8 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 	int Leader = pMob[conn].Leader;
 
+	int EvocationID = 0;
+
 	if (Leader == 0)
 		Leader = conn;
 
@@ -201,6 +1280,8 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 			return;
 		}
 
+		EvocationID = conn;
+
 		conn = Summoner;
 	}
 #pragma region PvE
@@ -210,7 +1291,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 		{
 			if (conn < MAX_USER && pMob[target].MOB.Clan != 4)
 			{
-#pragma region DistribuiÃ§Ã£o da EXP
+#pragma region Distribuição da EXP
 				int MobExp = GetExpApply(pMob[conn].extra, (int)pMob[target].MOB.Exp, pMob[conn].MOB.CurrentScore.Level, pMob[target].MOB.CurrentScore.Level);
 				int FinalExp = 0;
 
@@ -224,8 +1305,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 				int party = 0;
 
-
-				if (UNK_3> 0 && UNK_3 <= MAX_PARTY)
+				if (UNK_3 > 0 && UNK_3 <= MAX_PARTY)
 				{
 					int NumMob = g_EmptyMob + UNK_3;
 
@@ -245,7 +1325,17 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 						party = 0;
 
 						if (Leader && i < MAX_PARTY)
-							party = pMob[Leader].PartyList[i];
+						{
+							if (EvocationID && EvocationID > MAX_USER)
+							{
+								if (pMob[EvocationID].Evocation)
+									party = pMob[Leader].Evocations[i];
+								else
+									party = pMob[Leader].PartyList[i];
+							}
+							else
+								party = pMob[Leader].PartyList[i];
+						}
 						else
 							party = Leader;
 #pragma region Pesa A
@@ -256,8 +1346,8 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 							int myLevel = pMob[party].MOB.CurrentScore.Level;
 
-							if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
-								myLevel += MAX_LEVEL + 1;
+							//if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
+							//	myLevel += MAX_LEVEL + 1;
 
 							int exp = (UNK_1 + myLevel) * isExp / (UNK_1 + myLevel);
 							if (exp > 0 && exp <= 10000000)
@@ -265,23 +1355,25 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
 								{
 									if (myLevel < 120)
-										exp /= 10;
+										exp /= 6;
 
-									else if (myLevel < 150)
-										exp /= 20;
+									else if (myLevel > 170)
+										exp /= 2;
 
-									else if (myLevel < 170)
-										exp /= 40;
+									else if (myLevel > 180)
+										exp /= 2;
 
-									else if (myLevel < 180)
-										exp /= 80;
+									else if (myLevel > 200)
+										exp /= 2;
 
-									else if (myLevel < 190)
-										exp /= 160;
+									else if (myLevel > 250)
+										exp /= 2;
 
-									else
-										exp /= 320;
+									else if (myLevel > 300)
+										exp /= 2;
+
 								}
+
 								exp = 6 * exp / 10;
 
 								//if (exp > eMob)
@@ -307,7 +1399,41 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								else
 									exp -= (exp * 15) / 100;
 
-#pragma region Log de ExperiÃªncia diÃ¡rio
+								int ESCURIDAO = mNPCGen.pList[Escuridao].CurrentNumMob;
+								int ERIN = mNPCGen.pList[Erin].CurrentNumMob;
+								int FENIX = mNPCGen.pList[Fenix].CurrentNumMob;
+								int KARA = mNPCGen.pList[Kara].CurrentNumMob;
+								int KEI = mNPCGen.pList[Kei].CurrentNumMob;
+								int KEMI = mNPCGen.pList[Kemi].CurrentNumMob;
+								int LEAO = mNPCGen.pList[Leao].CurrentNumMob;
+								int UIE = mNPCGen.pList[Uie].CurrentNumMob;
+
+								if (ESCURIDAO == 0)
+									exp -= (exp * 10) / 100;
+
+								if (ERIN == 0)
+									exp -= (exp * 10) / 100;
+
+								if (FENIX == 0)
+									exp -= (exp * 10) / 100;
+
+								if (KARA == 0)
+									exp -= (exp * 10) / 100;
+
+								if (KEI == 0)
+									exp -= (exp * 10) / 100;
+
+								if (KEMI == 0)
+									exp -= (exp * 10) / 100;
+
+								if (LEAO == 0)
+									exp -= (exp * 10) / 100;
+
+								if (UIE == 0)
+									exp -= (exp * 10) / 100;
+
+
+#pragma region Log de Experiência diário
 								if (when.tm_yday != pMob[party].extra.DayLog.YearDay)
 									pMob[party].extra.DayLog.Exp = 0;
 
@@ -351,8 +1477,8 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 							int myLevel = pMob[party].MOB.CurrentScore.Level;
 
-							if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
-								myLevel += MAX_LEVEL + 1;
+							//if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
+							//	myLevel += MAX_LEVEL + 1;
 
 							int exp = (UNK_1 + myLevel) * isExp / (UNK_1 + myLevel);
 							if (exp > 0 && exp <= 10000000)
@@ -360,23 +1486,25 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
 								{
 									if (myLevel < 120)
-										exp /= 10;
+										exp /= 6;
 
-									else if (myLevel < 150)
-										exp /= 20;
+									else if (myLevel > 170)
+										exp /= 2;
 
-									else if (myLevel < 170)
-										exp /= 40;
+									else if (myLevel > 180)
+										exp /= 2;
 
-									else if (myLevel < 180)
-										exp /= 80;
+									else if (myLevel > 200)
+										exp /= 2;
 
-									else if (myLevel < 190)
-										exp /= 160;
+									else if (myLevel > 250)
+										exp /= 2;
 
-									else
-										exp /= 320;
+									else if (myLevel > 300)
+										exp /= 2;
+
 								}
+
 								exp = 6 * exp / 10;
 
 								//if (exp > eMob)
@@ -402,7 +1530,36 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								else
 									exp -= (exp * 15) / 100;
 
-#pragma region Log de ExperiÃªncia diÃ¡rio
+								int ARNOLD_ = mNPCGen.pList[Arnold_].CurrentNumMob;
+								int LAINY = mNPCGen.pList[Lainy].CurrentNumMob;
+								int REIMERS = mNPCGen.pList[Reimers].CurrentNumMob;
+								int ROPERION = mNPCGen.pList[RoPerion].CurrentNumMob;
+								int IRENA = mNPCGen.pList[Irena].CurrentNumMob;
+								int JEFFI_ = mNPCGen.pList[Jeffi].CurrentNumMob;
+								int SMITH = mNPCGen.pList[Smith].CurrentNumMob;
+
+								if (ARNOLD_ == 0)
+									exp -= (exp * 10) / 100;
+
+								if (LAINY == 0)
+									exp -= (exp * 10) / 100;
+
+								if (REIMERS == 0)
+									exp -= (exp * 10) / 100;
+
+								if (ROPERION == 0)
+									exp -= (exp * 10) / 100;
+
+								if (IRENA == 0)
+									exp -= (exp * 10) / 100;
+
+								if (JEFFI_ == 0)
+									exp -= (exp * 10) / 100;
+
+								if (SMITH == 0)
+									exp -= (exp * 10) / 100;
+
+#pragma region Log de Experiência diário
 								if (when.tm_yday != pMob[party].extra.DayLog.YearDay)
 									pMob[party].extra.DayLog.Exp = 0;
 
@@ -445,8 +1602,8 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 							int myLevel = pMob[party].MOB.CurrentScore.Level;
 
-							if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
-								myLevel += MAX_LEVEL + 1;
+							//if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
+							//	myLevel += MAX_LEVEL + 1;
 
 							int exp = (UNK_1 + myLevel) * isExp / (UNK_1 + myLevel);
 							if (exp > 0 && exp <= 10000000)
@@ -454,22 +1611,23 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
 								{
 									if (myLevel < 120)
-										exp /= 10;
+										exp /= 6;
 
-									else if (myLevel < 150)
-										exp /= 20;
+									else if (myLevel > 170)
+										exp /= 2;
 
-									else if (myLevel < 170)
-										exp /= 40;
+									else if (myLevel > 180)
+										exp /= 2;
 
-									else if (myLevel < 180)
-										exp /= 80;
+									else if (myLevel > 200)
+										exp /= 2;
 
-									else if (myLevel < 190)
-										exp /= 160;
+									else if (myLevel > 250)
+										exp /= 2;
 
-									else
-										exp /= 320;
+									else if (myLevel > 300)
+										exp /= 2;
+
 								}
 								exp = 6 * exp / 10;
 
@@ -495,7 +1653,29 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 									exp += (exp * 15) / 100;
 								else
 									exp -= (exp * 15) / 100;
-#pragma region Log de ExperiÃªncia diÃ¡rio
+
+								int MARTIN = mNPCGen.pList[Martin].CurrentNumMob;
+								int BALMERS = mNPCGen.pList[Balmers].CurrentNumMob;
+								int RUBYEN = mNPCGen.pList[Rubyen].CurrentNumMob;
+								int NAOMI = mNPCGen.pList[Naomi].CurrentNumMob;
+								int ARNOLD = mNPCGen.pList[Arnold].CurrentNumMob;
+
+								if (MARTIN == 0)
+									exp -= (exp * 10) / 100;
+
+								if (BALMERS == 0)
+									exp -= (exp * 10) / 100;
+
+								if (RUBYEN == 0)
+									exp -= (exp * 10) / 100;
+
+								if (NAOMI == 0)
+									exp -= (exp * 10) / 100;
+
+								if (ARNOLD == 0)
+									exp -= (exp * 10) / 100;
+
+#pragma region Log de Experiência diário
 								if (when.tm_yday != pMob[party].extra.DayLog.YearDay)
 									pMob[party].extra.DayLog.Exp = 0;
 
@@ -537,37 +1717,38 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 							int myLevel = pMob[party].MOB.CurrentScore.Level;
 
-							if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
-								myLevel += MAX_LEVEL + 1;
+							//if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
+							//	myLevel += MAX_LEVEL + 1;
 
 							int exp = (UNK_1 + myLevel) * isExp / (UNK_1 + myLevel);
+
 							if (exp > 0 && exp <= 10000000)
 							{
 								if (pMob[party].extra.ClassMaster != MORTAL && pMob[party].extra.ClassMaster != ARCH)
 								{
 									if (myLevel < 120)
-										exp /= 10;
+										exp /= 6;
 
-									else if (myLevel < 150)
-										exp /= 20;
+									else if (myLevel > 170)
+										exp /= 2;
 
-									else if (myLevel < 170)
-										exp /= 40;
+									else if (myLevel > 180)
+										exp /= 2;
 
-									else if (myLevel < 180)
-										exp /= 80;
+									else if (myLevel > 200)
+										exp /= 2;
 
-									else if (myLevel < 190)
-										exp /= 160;
+									else if (myLevel > 250)
+										exp /= 2;
 
-									else 
-										exp /= 320;
-									
+									else if (myLevel > 300)
+										exp /= 2;
+
 								}
 								exp = 6 * exp / 10;
 
-								if (exp > eMob)
-									exp = eMob;
+								//if (exp > eMob)
+								//	exp = eMob;
 
 								if (pMob[conn].ExpBonus > 0 && pMob[conn].ExpBonus < 500)
 									exp += exp * pMob[conn].ExpBonus / 100;
@@ -589,7 +1770,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								else
 									exp -= (exp * 15) / 100;
 
-#pragma region Log de ExperiÃªncia diÃ¡rio
+#pragma region Log de Experiência diário
 								if (when.tm_yday != pMob[party].extra.DayLog.YearDay)
 									pMob[party].extra.DayLog.Exp = 0;
 
@@ -646,6 +1827,129 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 						if (!PosY)
 							AlvoY = pMob[target].TargetY;
 
+#pragma region Espelho Rainha
+						if (pMob[target].GenerateIndex == ESPELHO_RAINHAG && EspelhoLive == 1)
+						{
+							// BOSS PARTE 1
+							for (int w = BOSS1_INITIAL; w <= BOSS1_END; w++)
+								GenerateMob(w, 0, 0);
+
+							// BOSS PARTE 2
+							for (int x = BOSS1_INITIAL2; x <= BOSS1_END2; x++)
+								GenerateMob(x, 0, 0);
+
+							STRUCT_ITEM tItem;
+							memset(&tItem, 0, sizeof(STRUCT_ITEM));
+
+							tItem.sIndex = 676;
+
+							PutItem(conn, &tItem);
+
+							EspelhoLive = 2;
+						}
+#pragma endregion
+#pragma region Sombra Negra
+						if (pMob[target].GenerateIndex == SOMBRANEGRA)
+						{
+							DoTeleport(conn, 3844, 2879);
+
+							for (int i = 0; i < MAX_PARTY; i++)
+							{
+								int partyconn = pMob[conn].PartyList[i];
+
+								if (partyconn > 0 && partyconn < MAX_USER && partyconn != conn && pUser[partyconn].Mode == USER_PLAY)
+									DoTeleport(partyconn, 3844, 2879);
+							}
+
+							// Rainha Principal
+							GenerateMob(VERIDRAINHAG, 0, 0);
+						}
+#pragma endregion
+#pragma region VeridRainhaG
+						if (pMob[target].GenerateIndex == VERIDRAINHAG)
+						{
+							// BOSS PARTE 1
+							for (int w = BOSS1_INITIAL; w <= BOSS1_END; w++)
+								mNPCGen.pList[w].MinuteGenerate = 3;
+							// BOSS PARTE 2
+							for (int x = BOSS1_INITIAL2; x <= BOSS1_END2; x++)
+								mNPCGen.pList[x].MinuteGenerate = 3;
+
+							DoRecall(conn);
+							SendClientMessage(conn, "Parabéns você concluiu a Quest.");
+
+							for (int i = 0; i < MAX_PARTY; i++)
+							{
+								int partyconn = pMob[conn].PartyList[i];
+
+								if (partyconn > 0 && partyconn < MAX_USER && partyconn != conn && pUser[partyconn].Mode == USER_PLAY)
+								{
+									DoRecall(partyconn);
+									SendClientMessage(partyconn, "Parabéns vocês concluiram a Quest.");
+								}
+							}
+						}
+#pragma endregion
+#pragma region Tarântula
+						if (pMob[target].GenerateIndex == CTARANTULA)
+						{
+							SendClientMessage(conn, "Você matou a Tarântula correta, Parabéns!");
+
+							TarantulaKilled = TRUE;
+
+							for (int w = PI_INITIAL2; w <= PI_END2; w++)
+								GenerateMob(w, 0, 0);
+
+							for (int x = PI_INITIAL3; x <= PI_END3; x++)
+								GenerateMob(x, 0, 0);
+
+							for (int y = PI_INITIAL4; y <= PI_END4; y++)
+								GenerateMob(y, 0, 0);
+
+							for (int z = PI_INITIAL5; z <= PI_END5; z++)
+								GenerateMob(z, 0, 0);
+
+							RandBoss = rand() % 2 + 1;
+
+							Lich_1 = 1;
+							Lich_2 = 1;
+							Lich_3 = 1;
+							Lich_4 = 1;
+
+							sprintf(temp, "etc,Tarantula killed");
+							Log(temp, pMob[conn].MOB.MobName, 0);
+						}
+
+						if (RandBoss == 1)
+						{
+							if (pMob[target].GenerateIndex == LICHBOSS1)
+								Lich_1 = 0;
+
+							if (pMob[target].GenerateIndex == LICHBOSS2)
+								Lich_2 = 2;
+
+							if (pMob[target].GenerateIndex == LICHBOSS3)
+								Lich_3 = 0;
+
+							if (pMob[target].GenerateIndex == LICHBOSS4)
+								Lich_4 = 2;
+						}
+
+						if (RandBoss == 2)
+						{
+							if (pMob[target].GenerateIndex == LICHBOSS1)
+								Lich_2 = 0;
+
+							if (pMob[target].GenerateIndex == LICHBOSS2)
+								Lich_1 = 2;
+
+							if (pMob[target].GenerateIndex == LICHBOSS3)
+								Lich_4 = 0;
+
+							if (pMob[target].GenerateIndex == LICHBOSS4)
+								Lich_3 = 2;
+						}
+#pragma endregion
 #pragma region Kefra
 						if (pMob[target].GenerateIndex == KEFRA_BOSS)
 						{
@@ -680,11 +1984,11 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 								DrawConfig(TRUE);
 							}
-							
+
 							else
 							{
 								KefraLive = 1;
-								sprintf(temp, g_pMessageStringTable[_SN_End_Khepra], "UoW");
+								sprintf(temp, g_pMessageStringTable[_SN_End_Khepra], "FD");
 								SendNotice(temp);
 
 								DrawConfig(TRUE);
@@ -711,11 +2015,11 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 							Log(temp, pMob[conn].MOB.MobName, 0);
 						}
 #pragma endregion
-						if (pHeightGrid[AlvoY][AlvoX] >= -50 && pHeightGrid[AlvoY][AlvoX] <= 92)
+						if (pHeightGrid[AlvoY][AlvoX] >= -105 && pHeightGrid[AlvoY][AlvoX] < 115)
 						{
 							int GenerateID = pMob[target].GenerateIndex;
 
-#pragma region PortÃµes de Noatum
+#pragma region Portões de Noatum
 							if (pMob[target].MOB.Equip[0].sIndex == 220 && CastleState)
 							{
 								if (pMob[target].TargetX < 0 || pMob[target].TargetX >= MAX_GRIDX || pMob[target].TargetY < 0 || pMob[target].TargetY >= MAX_GRIDY)
@@ -978,14 +2282,15 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								}
 #pragma endregion
 								CCastleZakum::MobKilled(target, conn, PosX, PosY);
-								// CEncampment::MobKilled(target, conn, PosX, PosY);
+								//CCubo::MobKilled(target, conn, PosX, PosY);
+								//CEncampment::MobKilled(target, conn, PosX, PosY);
 
 								if (GenerateID == ORC_GUERREIRO)
 									DoRecall(conn);
 
 								else if (GenerateID >= TORRE_NOATUM1 && GenerateID <= TORRE_NOATUM3)
 									LiveTower[GenerateID - TORRE_NOATUM1] = 0;
-								
+
 
 								else if (GenerateID == REI_HARABARD)
 								{
@@ -1072,15 +2377,103 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 									}
 								}
 #pragma region Pesas
-
 								else if (GenerateIndex >= NIGHTMARE_M_INITIAL && GenerateIndex <= NIGHTMARE_M_END)
-									GenerateMob(GenerateIndex, 0, 0);//Pesa M
+								{
+									int ARNOLD_ = mNPCGen.pList[Arnold_].CurrentNumMob;
+									int LAINY = mNPCGen.pList[Lainy].CurrentNumMob;
+									int REIMERS = mNPCGen.pList[Reimers].CurrentNumMob;
+									int ROPERION = mNPCGen.pList[RoPerion].CurrentNumMob;
+									int IRENA = mNPCGen.pList[Irena].CurrentNumMob;
+									int JEFFI_ = mNPCGen.pList[Jeffi].CurrentNumMob;
+									int SMITH = mNPCGen.pList[Smith].CurrentNumMob;
 
+									if (ARNOLD_ == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+									if (LAINY == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+									if (REIMERS == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+									if (ROPERION == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+									if (IRENA == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+									if (JEFFI_ == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+									if (SMITH == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa M
+
+								}
 								else if (GenerateIndex >= NIGHTMARE_N_INITIAL && GenerateIndex <= NIGHTMARE_N_END)
-									GenerateMob(GenerateIndex, 0, 0);//Pesa N
+								{
+									int MARTIN = mNPCGen.pList[Martin].CurrentNumMob;
+									int BALMERS = mNPCGen.pList[Balmers].CurrentNumMob;
+									int RUBYEN = mNPCGen.pList[Rubyen].CurrentNumMob;
+									int NAOMI = mNPCGen.pList[Naomi].CurrentNumMob;
+									int ARNOLD = mNPCGen.pList[Arnold].CurrentNumMob;
 
+									if (MARTIN == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa N
+
+									if (BALMERS == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa N
+
+									if (RUBYEN == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa N
+
+									if (NAOMI == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa N
+
+									if (ARNOLD == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa N
+								}
 								else if (GenerateIndex >= NIGHTMARE_A_INITIAL && GenerateIndex <= NIGHTMARE_A_END)
-									GenerateMob(GenerateIndex, 0, 0);//Pesa A
+								{
+									int ESCURIDAO = mNPCGen.pList[Escuridao].CurrentNumMob;
+									int ERIN = mNPCGen.pList[Erin].CurrentNumMob;
+									int FENIX = mNPCGen.pList[Fenix].CurrentNumMob;
+									int KARA = mNPCGen.pList[Kara].CurrentNumMob;
+									int KEI = mNPCGen.pList[Kei].CurrentNumMob;
+									int KEMI = mNPCGen.pList[Kemi].CurrentNumMob;
+									int LEAO = mNPCGen.pList[Leao].CurrentNumMob;
+									int UIE = mNPCGen.pList[Uie].CurrentNumMob;
+
+									if (ESCURIDAO == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (ERIN == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (FENIX == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (KARA == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (KEI == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (KEMI == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (LEAO == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+
+									if (UIE == 1)
+										GenerateMob(GenerateIndex, 0, 0);//Pesa A
+								}
+#pragma endregion
+#pragma region Portão Infernal Parte 1
+								else if (GenerateIndex >= PI_INITIAL1 && GenerateIndex <= PI_END1)
+								{
+									// Portão Infernal Parte 1
+									GenerateMob(GenerateIndex, 0, 0);
+								}
 #pragma endregion
 #pragma region Carta de duelo N
 								//Carta N
@@ -1691,16 +3084,17 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 									sprintf(temp, "etc,questRune +6 complete leader:%s", pMob[partyleader].MOB.MobName);
 									Log(temp, "-system", 0);
 								}
-#pragma endregion
+
 #pragma endregion
 #pragma region RvR
-								if (GenerateID == RVRTORRE_1 || GenerateID == RVRTORRE_2)
+								//if (GenerateID == RVRTORRE_1 || GenerateID == RVRTORRE_2)
+								if (!strcmp(pMob[target].MOB.MobName, "Torre ") || !strcmp(pMob[target].MOB.MobName, "Torre  "))
 								{
 									ClearArea(1020, 1916, 1286, 2178);
 
 									for (int i = MAX_USER; i < MAX_MOB; i++)
 									{
-										if (pMob[i].GenerateIndex == RVRTORRE_1 || pMob[i].GenerateIndex == RVRTORRE_2)
+										if (!strcmp(pMob[i].MOB.MobName, "Torre ") || !strcmp(pMob[i].MOB.MobName, "Torre  "))
 											DeleteMob(i, 1);
 									}
 
@@ -1722,7 +3116,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 									RvRState = 0;
 								}
 #pragma endregion
-								
+
 							}
 #pragma endregion
 #pragma region Drop Gold
@@ -1738,11 +3132,11 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 							else if (pMob[target].MOB.BaseScore.Level < 50)
 								UNKGOLD = 9;
 
-							UNKGOLD = rand() % (UNKGOLD+1);
+							UNKGOLD = rand() % (UNKGOLD + 1);
 
 							if (MobCoin && UNKGOLD == 0)
 							{
-								MobCoin = 4 * (rand() % (((MobCoin + 1) / 4)+1) + (MobCoin + 1) / 4 + MobCoin);
+								MobCoin = 4 * (rand() % (((MobCoin + 1) / 4) + 1) + (MobCoin + 1) / 4 + MobCoin);
 
 								if (MobCoin > 2000)
 									MobCoin = 2000;
@@ -1773,10 +3167,10 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 									item.stEffect[2].cEffect = 59;
 									item.stEffect[2].cValue = rand();
 
-									sprintf(temp, g_pMessageStringTable[_SSD_S_get_S_D], pMob[conn].MOB.MobName, g_pItemList[evItem].Name, evCurrentIndex);
+									sprintf(temp, " [%s] Dropou [%s] já foram dropados [%d].", pMob[conn].MOB.MobName, g_pItemList[evItem].Name, evCurrentIndex);
 								}
 								else
-									sprintf(temp, g_pMessageStringTable[_SSD_S_get_S], pMob[conn].MOB.MobName, g_pItemList[evItem].Name);
+									sprintf(temp, "[%s] Dropou [%s]", pMob[conn].MOB.MobName, g_pItemList[evItem].Name);
 
 								if (evNotice)
 									SendNotice(temp);
@@ -1900,8 +3294,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 										SetItemBonus(item, pMob[target].MOB.CurrentScore.Level, 0, bonus);
 
-
-										if(CCastleZakum::KeyDrop(target, conn, PosX, PosY, item) == TRUE)
+										if (CCastleZakum::KeyDrop(target, conn, PosX, PosY, item) == TRUE)
 											PutItem(conn, item);
 
 										sprintf(temp, "MobName:%s dropou o item: %s:%d %d.%d.%d.%d.%d.%d do mob:%s", pMob[conn].MOB.MobName, g_pItemList[item->sIndex].Name, item->sIndex, item->stEffect[0].cEffect, item->stEffect[0].cValue, item->stEffect[1].cEffect, item->stEffect[1].cValue, item->stEffect[2].cEffect, item->stEffect[2].cValue, pMob[target].MOB.MobName);
@@ -1918,7 +3311,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 										updateItemDayLog.Parm = item->sIndex;
 
 										DBServerSocket.SendOneMessage((char*)&updateItemDayLog, sizeof(MSG_STANDARDPARM));
-										
+
 
 										if (LOCALSERVER)
 										{
@@ -1955,7 +3348,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 							}
 #pragma endregion
 #pragma region Drenagem de HP do mob com skill de HT
-							/*							if (pMob[conn].MOB.Rsv & 2)
+							/*if (pMob[conn].MOB.Rsv & 2)
 							{
 							int mob_maxhp = pMob[target].MOB.CurrentScore.MaxHp;
 							int myspecial = pMob[conn].MOB.CurrentScore.Special[3];
@@ -1975,6 +3368,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 							SetReqHp(conn);
 							SetReqMp(conn);
 							}
+
 							MSG_SetHpDam hpDam;
 
 							hpDam.Type = _MSG_SetHpDam;
@@ -2208,7 +3602,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 			if (deltaexp < 0)
 				deltaexp = 0;
 
-			
+
 			if ((tlevel >= 35 || pMob[target].extra.ClassMaster != MORTAL) && NewbieEventServer == 0)
 			{
 				if (conn >= MAX_USER)
@@ -2302,7 +3696,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 						sprintf(temp, g_pMessageStringTable[_DD_PKPointMinus], killer_pkpoint - 75, -LostPk);
 						SendClientMessage(conn, temp);
 					}
-#ifdef PKDrop
+
 					if (killed_pkpoint <= 60)
 					{
 						int killed_loseitem = (75 - killed_pkpoint) / 10;
@@ -2324,7 +3718,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 							if (ItemLose->sIndex == 446)
 								continue;
 
-							int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, rand() % 4);
+							int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, rand() % 4, 1);
 
 							if (create >= MAX_ITEM || create <= 0)
 								continue;
@@ -2381,7 +3775,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 								{
 									if (ItemLose->sIndex != 446)
 									{
-										int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, rand() % 4);
+										int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, rand() % 4, 1);
 										if (create > 0 && create < 5000)
 										{
 											if (BASE_NeedLog(ItemLose, 0))
@@ -2415,7 +3809,6 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 							}
 						}
 					}
-#endif
 				}
 			}
 #pragma endregion

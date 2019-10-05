@@ -103,22 +103,21 @@
 #define EF_LWORDINDEX            63  // 번호
 #define EF_INIT1                 64  // 초기
 #define EF_INIT2                 65  // 초기
-#define EF_INIT3                 66  // 초기
-#define EF_DAMAGEADD             67  // 댐뽀
-#define EF_MAGICADD              68  // 마뽀
-// 다음 2들은 별로도 쿼리를 던지지 않고 베이스를 쿼리를 던지면 유닉 옵에서 자동 체킹하는 부분.   
-// 클라이언트 표기시는 이것을 먼저 던저서 이것이 나오면 베이스는 던지지 않는다.
-#define EF_HPADD2                69  // 피2   피뻥과 같으나 기본 옵에 포함되어 표시된다.
-#define EF_MPADD2                70  // 피2   피뻥과 같으나 기본 옵에 포함되어 표시된다.
-#define EF_CRITICAL2             71  // 크리 크리티컬
-#define EF_ACADD2                72  // 방증
-#define EF_DAMAGE2               73  // 
-#define EF_SPECIALALL            74  // 마스터리 무마제외 증가 
+#define EF_INIT3                 66  
+#define EF_DAMAGEADD             67  
+#define EF_MAGICADD              68  
 
-#define	EF_CURKILL				 75  // not used
-#define EF_LTOTKILL				 76  // not used
-#define EF_HTOTKILL				 77  // not used
-#define EF_INCUBATE				 78  // 부화임계치
+#define EF_HPADD2                69  
+#define EF_MPADD2                70 
+#define EF_CRITICAL2             71 
+#define EF_ACADD2                72 
+#define EF_DAMAGE2               73  
+#define EF_SPECIALALL            74  
+
+#define	EF_CURKILL				 75  
+#define EF_LTOTKILL				 76  
+#define EF_HTOTKILL				 77  
+#define EF_INCUBATE				 78  
 
 
 #define EF_MOUNTLIFE			 79  // 말 총 생명 
@@ -128,7 +127,7 @@
 #define EF_MOUNTKILL			 83  // 말이 죽인 몬스터 갯수?
 
 #define EF_INCUDELAY             84
-#define EF_SUBGUILD				 85	// SUB길드, 0이면 최대길드 1,2,3까지 있다
+#define EF_SUBGUILD				 85	
 
 #define EF_ITEMLEVEL			 87
 #define EF_DONATE				 91

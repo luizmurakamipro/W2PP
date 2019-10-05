@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,18 +14,21 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at: 
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #ifndef __SENDFUNC__
 #define __SENDFUNC__
 
+BOOL bFile_exists(const char *filename);
 void SendClientMessage(int conn, char *Message);
+void SendMessageBox(int conn, char *Message);
 void SendNotice(char *Message);
 void SendNoticeChief(char *Message);
 void SendSummonChief();
 void SendNoticeArea(char *Message, int x1, int y1, int x2, int y2);
 void SendGuildNotice(int Guild, char *Message);
 void SendClientMessageOk(int conn, char *Message, int Useless1, int Useless2);
+void SendWindowMessage(int conn, char *Message);
 void SendClientSignal(int conn, int id, unsigned short signal);
 void SendClientSignalParm(int conn, int id, unsigned short signal, int parm);
 void SendClientSignalParm2(int conn, int id, unsigned short signal, int parm, int parm2);
@@ -49,12 +52,15 @@ void PartyGridMulticast(int tx, int ty, MSG_STANDARD *msg, int skip, int Leaderc
 void SendItem(int conn, int Type, int Slot, STRUCT_ITEM *item);
 void SendEquip(int conn, int skip);
 void SendScore(int conn);
+void SendGuildChat(int conn, char *Message);
+void SendClientChat(int conn, char *pMsg, int color);
 void SendEtc(int conn);
 void SendCargoCoin(int conn);
 void SendGuildList(int conn);
 void SendShopList(int conn, int MobIndex, int ShopType);
 void SendWarInfo(int conn, int Clan);
 void SendAddParty(int Leaderconn, int conn, int PartyID);
+void SendAddPartyEvocation(int Leaderconn);
 void SendReqParty(int conn, int Leaderconn, int PartyID);
 void SendRemoveParty(int conn, int connExit);
 void SendCarry(int conn);
@@ -62,6 +68,7 @@ void SendWeather();
 void SendSetHpMp(int conn);
 void SendHpMode(int conn);
 void SendSay(int mob, char *Message);
+void MapaMulticastArea(int x1, int y1, int x2, int y2, MSG_STANDARD *m, int bSend);
 void MapaMulticast(int tx, int ty, MSG_STANDARD *m, int bSend);
 void SendMessageArea(int x1, int y1, int x2, int y2, MSG_STANDARD *m, int bSend);
 void SendSignalParmArea(int x1, int y1, int x2, int y2, int id, unsigned short signal, int parm);
@@ -69,5 +76,8 @@ void SendClientSignalShortParm2(int conn, int id, unsigned short signal, int par
 void SendShortSignalParm2Area(int x1, int y1, int x2, int y2, int id, unsigned short signal, int parm1, int parm2);
 void SendPKInfo(int conn, int target);
 void SendAffect(int conn);
+void SendQuizMessage(int conn, char *Title, char *Answer0, char *Answer1, char *Answer2, char *Answer3, char correct);
+void SendBigMessage(int conn, char *Title, char *String);
+
 
 #endif

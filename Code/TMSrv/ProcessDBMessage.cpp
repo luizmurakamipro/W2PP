@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 #include <stdio.h>
@@ -61,88 +61,88 @@ void ProcessDBMessage(char *Msg)
 		case _MSG_TransperCharacter:
 		{
 
-									   TransperCharacter = 1;
-									   Log("TransperCharacter mode", "system", 0);
+			TransperCharacter = 1;
+			Log("TransperCharacter mode", "system", 0);
 
 		} break;
 
 		case _MSG_DBSetIndex:
 		{
-								MSG_STANDARDPARM3 *m = (MSG_STANDARDPARM3*)Msg;
+			MSG_STANDARDPARM3 *m = (MSG_STANDARDPARM3*)Msg;
 
-								if (m->Parm1 != -1)
-								{
-									ServerGroup = m->Parm1;
-									ServerIndex = m->Parm3;
-								}
+			if (m->Parm1 != -1)
+			{
+				ServerGroup = m->Parm1;
+				ServerIndex = m->Parm3;
+			}
 
-								Sapphire = m->Parm2;
+			Sapphire = m->Parm2;
 
 		} break; // TODO: Check if it isn't a break (must compile and check against the original TM
 
 		case _MSG_War:
 		{
-						 MSG_STANDARDPARM2 *m = (MSG_STANDARDPARM2*)Msg;
+			MSG_STANDARDPARM2 *m = (MSG_STANDARDPARM2*)Msg;
 
-						 DoWar(m->Parm1, m->Parm2);
+			DoWar(m->Parm1, m->Parm2);
 
 		} break;
 
 		case _MSG_GuildAlly:
 		{
-							   MSG_STANDARDPARM2 *m = (MSG_STANDARDPARM2*)Msg;
+			MSG_STANDARDPARM2 *m = (MSG_STANDARDPARM2*)Msg;
 
-							   DoAlly(m->Parm1, m->Parm2);
+			DoAlly(m->Parm1, m->Parm2);
 
 		} break;
 
 		case _MSG_GuildInfo:
 		{
-							   MSG_GuildInfo *m = (MSG_GuildInfo*)Msg;
+			MSG_GuildInfo *m = (MSG_GuildInfo*)Msg;
 
-							   GuildInfo[m->Guild] = m->GuildInfo;
+			GuildInfo[m->Guild] = m->GuildInfo;
 
 		} break;
 
 		case _MSG_GuildReport:
 		{
-								 MSG_GuildReport *m = (MSG_GuildReport*)Msg;
+			MSG_GuildReport *m = (MSG_GuildReport*)Msg;
 
-								 memcpy(ChargedGuildList, m->ChargedGuildList, sizeof(ChargedGuildList));
+			memcpy(ChargedGuildList, m->ChargedGuildList, sizeof(ChargedGuildList));
 		} break;
 
 		case _MSG_NPNotice:
 		{
-							  MSG_NPNotice *m = (MSG_NPNotice*)Msg;
+			MSG_NPNotice *m = (MSG_NPNotice*)Msg;
 
-							  if (m->Parm1 == 1)
-								  SendNotice(m->String);
+			if (m->Parm1 == 1)
+				SendNotice(m->String);
 
 		} break;
 
 		case _MSG_MessageDBImple:
 		{
-									MSG_MessageDBImple *m = (MSG_MessageDBImple*)Msg;
+			MSG_MessageDBImple *m = (MSG_MessageDBImple*)Msg;
 
-									m->String[MESSAGE_LENGTH - 1] = 0;
-									m->String[MESSAGE_LENGTH - 2] = 0;
+			m->String[MESSAGE_LENGTH - 1] = 0;
+			m->String[MESSAGE_LENGTH - 2] = 0;
 
-									Log(m->String, "-system", 0);
+			Log(m->String, "-system", 0);
 
-									ProcessImple(0, m->Level, m->String);
+			ProcessImple(0, m->Level, m->String);
 
 		} break; // TODO: Check if it isn't a break (must compile and check against the original TM
 
 		case _MSG_MagicTrumpet:
 		{
-								  SyncMulticast(0, (MSG_STANDARD*)Msg, 0);
+			SyncMulticast(0, (MSG_STANDARD*)Msg, 0);
 		} break;
 
 		case _MSG_DBNotice:
 		{
-							  MSG_DBNotice *m = (MSG_DBNotice*)Msg;
+			MSG_DBNotice *m = (MSG_DBNotice*)Msg;
 
-							  SendNotice(m->String);
+			SendNotice(m->String);
 		} break;
 
 		case _MSG_DBCheckPrimaryAccount:
@@ -154,7 +154,7 @@ void ProcessDBMessage(char *Msg)
 				if (pUser[i].Mode == USER_EMPTY || pUser[i].cSock.Sock == 0)
 					continue;
 
-				if ( memcmp(pUser[i].Mac, m->Mac, sizeof(m->Mac)))
+				if (memcmp(pUser[i].Mac, m->Mac, sizeof(m->Mac)))
 					continue;
 
 				if (strncmp(pUser[i].AccountName, m->AccountName, ACCOUNTNAME_LENGTH) == 0)
@@ -212,380 +212,379 @@ void ProcessDBMessage(char *Msg)
 #pragma region _MSG_ReqTransper
 		case _MSG_ReqTransper:
 		{
-								 if (TransperCharacter == 0)
-									 return;
+			if (TransperCharacter == 0)
+				return;
 
-								 MSG_ReqTransper *m = (MSG_ReqTransper*)Msg;
+			MSG_ReqTransper *m = (MSG_ReqTransper*)Msg;
 
-								 m->ID = ESCENE_FIELD + 1;
+			m->ID = ESCENE_FIELD + 1;
 
-								 pUser[conn].cSock.SendOneMessage((char*)&m, sizeof(MSG_ReqTransper));
+			pUser[conn].cSock.SendOneMessage((char*)&m, sizeof(MSG_ReqTransper));
 
-								 pUser[conn].Mode = USER_SELCHAR;
+			pUser[conn].Mode = USER_SELCHAR;
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBSendItem
 		case _MSG_DBSendItem:
 		{
-								MSG_DBSendItem *m = (MSG_DBSendItem*)Msg;
+			MSG_DBSendItem *m = (MSG_DBSendItem*)Msg;
 
-								if (pUser[conn].Mode < USER_SELCHAR)
-								{
-									char ItemCode[256];
+			if (pUser[conn].Mode < USER_SELCHAR)
+			{
+				char ItemCode[256];
 
-									sprintf(temp, "tra,%s", pUser[conn].AccountName);
-									BASE_GetItemCode(&m->Item, ItemCode);
-									strcat(temp, ItemCode);
-									Log(temp, "_fail_play_", pUser[conn].IP);
+				sprintf(temp, "tra,%s", pUser[conn].AccountName);
+				BASE_GetItemCode(&m->Item, ItemCode);
+				strcat(temp, ItemCode);
+				Log(temp, "_fail_play_", pUser[conn].IP);
 
-									break;
-								}
+				break;
+			}
 
-								if (strcmp(pUser[conn].AccountName, m->Account) != 0)
-								{
-									char ItemCode[256];
+			if (strcmp(pUser[conn].AccountName, m->Account) != 0)
+			{
+				char ItemCode[256];
 
-									sprintf(temp, "tra,%s", pUser[conn].AccountName);
-									BASE_GetItemCode(&m->Item, ItemCode);
-									strcat(temp, ItemCode);
-									Log(temp, "_fail_name_", pUser[conn].IP);
+				sprintf(temp, "tra,%s", pUser[conn].AccountName);
+				BASE_GetItemCode(&m->Item, ItemCode);
+				strcat(temp, ItemCode);
+				Log(temp, "_fail_name_", pUser[conn].IP);
 
-									break;
-								}
+				break;
+			}
 
-								int i = 0;
+			int i = 0;
 
-								for (; i < MAX_CARGO - 2; i++)
-								{
-									int retsour = BASE_CanCargo(&m->Item, pUser[conn].Cargo, i % 9, i / 9);
+			for (; i < MAX_CARGO - 2; i++)
+			{
+				int retsour = BASE_CanCargo(&m->Item, pUser[conn].Cargo, i % 9, i / 9);
 
-									if (retsour != TRUE)
-										continue;
+				if (retsour != TRUE)
+					continue;
 
-									pUser[conn].Cargo[i] = m->Item;
+				pUser[conn].Cargo[i] = m->Item;
 
-									SendItem(conn, ITEM_PLACE_CARGO, i, &m->Item);
+				SendItem(conn, ITEM_PLACE_CARGO, i, &m->Item);
 
-									char cMsg[128];
+				char cMsg[128];
 
-									sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
+				sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
 
-									SendClientMessage(conn, cMsg);
+				SendClientMessage(conn, cMsg);
 
-									m->Result = 0;
+				m->Result = 0;
 
-									DBServerSocket.SendOneMessage((char*)m, m->Size);
+				DBServerSocket.SendOneMessage((char*)m, m->Size);
 
-									char ItemCode[256];
+				char ItemCode[256];
 
-									sprintf(temp, "tra,%s %d", pUser[conn].AccountName, i);
-									BASE_GetItemCode(&m->Item, ItemCode);
-									strcat(temp, ItemCode);
-									Log(temp, "_web1_", pUser[conn].IP);
+				sprintf(temp, "tra,%s %d", pUser[conn].AccountName, i);
+				BASE_GetItemCode(&m->Item, ItemCode);
+				strcat(temp, ItemCode);
+				Log(temp, "_web1_", pUser[conn].IP);
 
-									if (pUser[conn].Mode == USER_SELCHAR)
-										SaveUser(conn, 0);
+				if (pUser[conn].Mode == USER_SELCHAR)
+					SaveUser(conn, 0);
 
-									return;
-								}
+				return;
+			}
 
-								for (i = 127; i >= 0; i--)
-								{
-									if (pUser[conn].Cargo[i].sIndex != 0)
-										continue;
+			for (i = 127; i >= 0; i--)
+			{
+				if (pUser[conn].Cargo[i].sIndex != 0)
+					continue;
 
-									pUser[conn].Cargo[i] = m->Item;
+				pUser[conn].Cargo[i] = m->Item;
 
-									SendItem(conn, ITEM_PLACE_CARGO, i, &m->Item);
+				SendItem(conn, ITEM_PLACE_CARGO, i, &m->Item);
 
-									char cMsg[128];
+				char cMsg[128];
 
-									sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
+				sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
 
-									SendClientMessage(conn, cMsg);
+				SendClientMessage(conn, cMsg);
 
-									m->Result = 0;
+				m->Result = 0;
 
-									DBServerSocket.SendOneMessage((char*)m, m->Size);
+				DBServerSocket.SendOneMessage((char*)m, m->Size);
 
-									char ItemCode[256];
+				char ItemCode[256];
 
-									sprintf(temp, "tra,%s %d", pUser[conn].AccountName, i);
-									BASE_GetItemCode(&m->Item, ItemCode);
-									strcat(temp, ItemCode);
-									Log(temp, "_web2_", pUser[conn].IP);
+				sprintf(temp, "tra,%s %d", pUser[conn].AccountName, i);
+				BASE_GetItemCode(&m->Item, ItemCode);
+				strcat(temp, ItemCode);
+				Log(temp, "_web2_", pUser[conn].IP);
 
-									if (pUser[conn].Mode == USER_SELCHAR)
-										SaveUser(conn, 0);
+				if (pUser[conn].Mode == USER_SELCHAR)
+					SaveUser(conn, 0);
 
-									return;
-								}
+				return;
+			}
 
-								m->Result = 3;
+			m->Result = 3;
 
-								DBServerSocket.SendOneMessage((char*)m, m->Size);
+			DBServerSocket.SendOneMessage((char*)m, m->Size);
 
-								char ItemCode[256];
+			char ItemCode[256];
 
-								SaveUser(conn, 1);
+			SaveUser(conn, 1);
 
-								sprintf(temp, "tra,%s", pUser[conn].AccountName);
-								BASE_GetItemCode(&m->Item, ItemCode);
-								strcat(temp, ItemCode);
-								Log(temp, "_fail_empty_", pUser[conn].IP);
+			sprintf(temp, "tra,%s", pUser[conn].AccountName);
+			BASE_GetItemCode(&m->Item, ItemCode);
+			strcat(temp, ItemCode);
+			Log(temp, "_fail_empty_", pUser[conn].IP);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_NPNotice
 		case _MSG_NPNotice:
 		{
-							  MSG_NPNotice *m = (MSG_NPNotice*)Msg;
+			MSG_NPNotice *m = (MSG_NPNotice*)Msg;
 
-							  if (m->Parm1 == 0)
-							  {
-								  if (pUser[conn].Mode == USER_PLAY)
-									  SendClientMessage(conn, m->String);
-							  }
+			if (m->Parm1 == 0)
+			{
+				if (pUser[conn].Mode == USER_PLAY)
+					SendClientMessage(conn, m->String);
+			}
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFAccountLogin
 		case _MSG_DBCNFAccountLogin:
 		{
-									   MSG_DBCNFAccountLogin *m = (MSG_DBCNFAccountLogin*)Msg;
+			MSG_DBCNFAccountLogin *m = (MSG_DBCNFAccountLogin*)Msg;
 
-									   if (strcmp(m->AccountName, pUser[conn].AccountName) != 0)
-									   {
-										   SendClientMessage(conn, g_pMessageStringTable[_NN_Try_Reconnect]);
+			if (strcmp(m->AccountName, pUser[conn].AccountName) != 0)
+			{
+				SendClientMessage(conn, g_pMessageStringTable[_NN_Try_Reconnect]);
 
-										   pUser[conn].cSock.SendMessageA();
+				pUser[conn].cSock.SendMessageA();
 
-										   CloseUser(conn);
+				CloseUser(conn);
 
-										   return;
-									   }
+				return;
+			}
 
-									   for (int x = 0; x < MAX_MAC; x++)
-									   {
-										   if (pMac[x].Mac[0] == 0 && pMac[x].Mac[1] == 0 && pMac[x].Mac[2] == 0 && pMac[x].Mac[3] == 0)
-											   continue;
+			for (int x = 0; x < MAX_MAC; x++)
+			{
+				if (pMac[x].Mac[0] == 0 && pMac[x].Mac[1] == 0 && pMac[x].Mac[2] == 0 && pMac[x].Mac[3] == 0)
+					continue;
 
-										   if (pMac[x].Mac[0] == pUser[conn].Mac[0] && pMac[x].Mac[1] == pUser[conn].Mac[1] && pMac[x].Mac[2] == pUser[conn].Mac[2] && pMac[x].Mac[3] == pUser[conn].Mac[3])
-										   {
-											   SendClientMessage(conn, g_pMessageStringTable[_NN_MAC_Block]);
+				if (pMac[x].Mac[0] == pUser[conn].Mac[0] && pMac[x].Mac[1] == pUser[conn].Mac[1] && pMac[x].Mac[2] == pUser[conn].Mac[2] && pMac[x].Mac[3] == pUser[conn].Mac[3])
+				{
+					SendClientMessage(conn, g_pMessageStringTable[_NN_MAC_Block]);
 
-											   pUser[conn].cSock.SendMessageA();
+					pUser[conn].cSock.SendMessageA();
 
-											   CloseUser(conn);
-											   break;
-										   }
-									   }
-
-
-									   pUser[conn].IsBillConnect = 0;
-									   pUser[conn].Whisper = 0;
-									   pUser[conn].Guildchat = 0;
-									   pUser[conn].PartyChat = 0;
-									   pUser[conn].KingChat = 0;
-									   pUser[conn].Admin = 0;
-									   pUser[conn].Chatting = 0;
-									   pUser[conn].Unk_2732 = 0;
-									   pUser[conn].Unk_2728 = 0;
-									   pUser[conn].OnlyTrade = 1;
-
-									   m->ID = ESCENE_FIELD + 2;
-									   m->Type = _MSG_CNFAccountLogin;
-
-									   pUser[conn].Mode = USER_SELCHAR;
-
-									   for (int i = 0; i < MAX_CARGO; i++)
-									   {
-										   STRUCT_ITEM *tempsour = &m->Cargo[i];
-
-										   if (tempsour->sIndex > 0 && tempsour->sIndex < MAX_ITEMLIST)
-										   {
-											   int nPos = g_pItemList[tempsour->sIndex].nPos;
-
-											   if (nPos == 64 || nPos == 192)
-											   {
-												   if (tempsour->stEffect[0].cEffect == EF_DAMAGEADD || tempsour->stEffect[0].cEffect == EF_DAMAGE2)
-													   tempsour->stEffect[0].cEffect = EF_DAMAGE;
-
-												   if (tempsour->stEffect[1].cEffect == EF_DAMAGEADD || tempsour->stEffect[1].cEffect == EF_DAMAGE2)
-													   tempsour->stEffect[1].cEffect = EF_DAMAGE;
-
-												   if (tempsour->stEffect[2].cEffect == EF_DAMAGEADD || tempsour->stEffect[2].cEffect == EF_DAMAGE2)
-													   tempsour->stEffect[2].cEffect = EF_DAMAGE;
-											   }
-										   }
-									   }
-
-									   if (evDelete != 0)
-									   {
-										   for (int i = 0; i < MAX_CARGO; i++)
-										   {
-											   if (m->Cargo[i].sIndex >= 470 && m->Cargo[i].sIndex <= 500)
-												   m->Cargo[i].sIndex = 0;
-										   }
-									   }
+					CloseUser(conn);
+					break;
+				}
+			}
 
 
-									   pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_DBCNFAccountLogin));
+			pUser[conn].IsBillConnect = 0;
+			pUser[conn].Whisper = 0;
+			pUser[conn].Guildchat = 0;
+			pUser[conn].PartyChat = 0;
+			pUser[conn].KingChat = 0;
+			pUser[conn].Admin = 0;
+			pUser[conn].Chatting = 0;
+			pUser[conn].Unk_2732 = 0;
+			pUser[conn].Unk_2728 = 0;
+			pUser[conn].OnlyTrade = 0; // estava 1 né
 
-									   memcpy(pUser[conn].Cargo, m->Cargo, sizeof(STRUCT_ITEM)* MAX_CARGO);
+			m->ID = ESCENE_FIELD + 2;
+			m->Type = _MSG_CNFAccountLogin;
 
-									   pUser[conn].Coin = m->Coin;
-									   pUser[conn].Unk_1816 = 0;
-									   pUser[conn].SelChar = m->sel;
+			pUser[conn].Mode = USER_SELCHAR;
+
+			for (int i = 0; i < MAX_CARGO; i++)
+			{
+				STRUCT_ITEM *tempsour = &m->Cargo[i];
+
+				if (tempsour->sIndex > 0 && tempsour->sIndex < MAX_ITEMLIST)
+				{
+					int nPos = g_pItemList[tempsour->sIndex].nPos;
+
+					if (nPos == 64 || nPos == 192)
+					{
+						if (tempsour->stEffect[0].cEffect == EF_DAMAGEADD || tempsour->stEffect[0].cEffect == EF_DAMAGE2)
+							tempsour->stEffect[0].cEffect = EF_DAMAGE;
+
+						if (tempsour->stEffect[1].cEffect == EF_DAMAGEADD || tempsour->stEffect[1].cEffect == EF_DAMAGE2)
+							tempsour->stEffect[1].cEffect = EF_DAMAGE;
+
+						if (tempsour->stEffect[2].cEffect == EF_DAMAGEADD || tempsour->stEffect[2].cEffect == EF_DAMAGE2)
+							tempsour->stEffect[2].cEffect = EF_DAMAGE;
+					}
+				}
+			}
+
+			if (evDelete != 0)
+			{
+				for (int i = 0; i < MAX_CARGO; i++)
+				{
+					if (m->Cargo[i].sIndex >= 470 && m->Cargo[i].sIndex <= 500)
+						m->Cargo[i].sIndex = 0;
+				}
+			}
 
 
-									   if (BILLING > 0 && IsFree(&m->sel) != 0)
-									   {
-										   if (CHARSELBILL == 0)
-											   SendBilling(conn, m->AccountName, 8, 1);
-										   else
-											   SendBilling(conn, m->AccountName, 1, 1);
+			pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_DBCNFAccountLogin));
 
-										   pUser[conn].Unk_2732 = SecCounter;
-									   }
+			memcpy(pUser[conn].Cargo, m->Cargo, sizeof(STRUCT_ITEM)* MAX_CARGO);
 
-									   pUser[conn].Unk5[0] = 0;
-									   pUser[conn].LastClientTick = 0;
+			pUser[conn].Coin = m->Coin;
+			pUser[conn].Unk_1816 = 0;
+			pUser[conn].SelChar = m->sel;
 
-									   sprintf(temp, "CNFAccountLogin Mac: %d.%d.%d.%d", pUser[conn].Mac[0], pUser[conn].Mac[1], pUser[conn].Mac[2], pUser[conn].Mac[3]);
-									   Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+			if (BILLING > 0 && IsFree(&m->sel) != 0)
+			{
+				if (CHARSELBILL == 0)
+					SendBilling(conn, m->AccountName, 8, 1);
+				else
+					SendBilling(conn, m->AccountName, 1, 1);
 
-									   if (TransperCharacter != 0)
-									   {
-										   MSG_STANDARDPARM2 sm;
+				pUser[conn].Unk_2732 = SecCounter;
+			}
 
-										   sm.Type = _MSG_TransperCharacter;
-										   sm.ID = ESCENE_FIELD + 1;
-										   sm.Parm1 = 0;
-										   sm.Parm2 = 0;
-										   sm.Size = sizeof(MSG_STANDARDPARM2);
+			pUser[conn].Unk5[0] = 0;
+			pUser[conn].LastClientTick = 0;
 
-										   pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_STANDARDPARM2));
-									   }
+			sprintf(temp, "CNFAccountLogin Mac: %d.%d.%d.%d", pUser[conn].Mac[0], pUser[conn].Mac[1], pUser[conn].Mac[2], pUser[conn].Mac[3]);
+			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+
+			if (TransperCharacter != 0)
+			{
+				MSG_STANDARDPARM2 sm;
+
+				sm.Type = _MSG_TransperCharacter;
+				sm.ID = ESCENE_FIELD + 1;
+				sm.Parm1 = 0;
+				sm.Parm2 = 0;
+				sm.Size = sizeof(MSG_STANDARDPARM2);
+
+				pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_STANDARDPARM2));
+			}
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBNewAccountFail
 		case _MSG_DBNewAccountFail:
 		{
-									  MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-									  m->ID = ESCENE_FIELD + 3;
+			m->ID = ESCENE_FIELD + 3;
 
-									  SendClientSignal(conn, 0, _MSG_NewAccountFail);
+			SendClientSignal(conn, 0, _MSG_NewAccountFail);
 
-									  CloseUser(conn);
+			CloseUser(conn);
 		} break;
 #pragma endregion
 #pragma region _MSG_DBAccountLoginFail_Account
 		case _MSG_DBAccountLoginFail_Account:
 		{
-												MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-												int ID = m->ID;
+			int ID = m->ID;
 
-												SendClientMessage(conn, g_pMessageStringTable[_NN_No_Account_With_That_Name]);
-												pUser[conn].cSock.SendMessageA();
+			SendClientMessage(conn, g_pMessageStringTable[_NN_No_Account_With_That_Name]);
+			pUser[conn].cSock.SendMessageA();
 
-												CloseUser(conn);
+			CloseUser(conn);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBAccountLoginFail_Block
 		case _MSG_DBAccountLoginFail_Block:
 		{
-											  MSG_STANDARDPARM *m = (MSG_STANDARDPARM*)Msg;
+			MSG_STANDARDPARM *m = (MSG_STANDARDPARM*)Msg;
 
-											  int ID = m->ID;
+			int ID = m->ID;
 
-											  if (m->Parm == 0)
-												  sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "X");
+			if (m->Parm == 0)
+				sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "X");
 
-											  else if (m->Parm == 1)
-												  sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "A");
+			else if (m->Parm == 1)
+				sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "A");
 
-											  else if (m->Parm == 2)
-												  sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "B");
+			else if (m->Parm == 2)
+				sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "B");
 
-											  else if (m->Parm == 3)
-												  sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "C");
+			else if (m->Parm == 3)
+				sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "C");
 
-											  SendClientMessage(conn, temp);
-											  pUser[conn].cSock.SendMessageA();
+			SendClientMessage(conn, temp);
+			pUser[conn].cSock.SendMessageA();
 
-											  CloseUser(conn);
+			CloseUser(conn);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBAccountLoginFail_Disable
 		case _MSG_DBAccountLoginFail_Disable:
 		{
-												MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-												int ID = m->ID;
+			int ID = m->ID;
 
-												SendClientMessage(conn, g_pMessageStringTable[_NN_Disabled_Account]);
-												pUser[conn].cSock.SendMessageA();
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Disabled_Account]);
+			pUser[conn].cSock.SendMessageA();
 
-												CloseUser(conn);
+			CloseUser(conn);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_AccountSecure
 		case _MSG_AccountSecure:
 		{
-								   SendClientSignal(std->ID, ESCENE_FIELD, _MSG_AccountSecure);
+			SendClientSignal(std->ID, ESCENE_FIELD, _MSG_AccountSecure);
 		} break;
 #pragma endregion
 #pragma region _MSG_AccountSecureFail
 		case _MSG_AccountSecureFail:
 		{
-									   SendClientSignal(std->ID, ESCENE_FIELD, _MSG_AccountSecureFail);
+			SendClientSignal(std->ID, ESCENE_FIELD, _MSG_AccountSecureFail);
 		} break;
 #pragma endregion
 #pragma region _MSG_DBOnlyOncePerDay
 		case _MSG_DBOnlyOncePerDay:
 		{
-									  MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-									  int ID = m->ID;
+			int ID = m->ID;
 
-									  SendClientMessage(conn, g_pMessageStringTable[_NN_Only_Once_Per_Day]);
-									  pUser[conn].cSock.SendMessageA();
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Only_Once_Per_Day]);
+			pUser[conn].cSock.SendMessageA();
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBAccountLoginFail_Pass
 		case _MSG_DBAccountLoginFail_Pass:
 		{
-											 MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-											 int ID = m->ID;
+			int ID = m->ID;
 
-											 SendClientMessage(conn, g_pMessageStringTable[_NN_Wrong_Password]);
-											 pUser[conn].cSock.SendMessageA();
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Wrong_Password]);
+			pUser[conn].cSock.SendMessageA();
 
-											 CloseUser(conn);
+			CloseUser(conn);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFNewCharacter
 		case _MSG_DBCNFNewCharacter:
 		{
-									   MSG_CNFNewCharacter *m = (MSG_CNFNewCharacter*)Msg;
+			MSG_CNFNewCharacter *m = (MSG_CNFNewCharacter*)Msg;
 
-									   m->Type = _MSG_CNFNewCharacter;
-									   m->ID = ESCENE_FIELD + 1;
+			m->Type = _MSG_CNFNewCharacter;
+			m->ID = ESCENE_FIELD + 1;
 
-									   pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_CNFNewCharacter));
+			pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_CNFNewCharacter));
 
-									   pUser[conn].Mode = USER_SELCHAR;
+			pUser[conn].Mode = USER_SELCHAR;
 
 
 
@@ -594,691 +593,731 @@ void ProcessDBMessage(char *Msg)
 #pragma region _MSG_DBCNFDeleteCharacter
 		case _MSG_DBCNFDeleteCharacter:
 		{
-										  MSG_CNFDeleteCharacter *m = (MSG_CNFDeleteCharacter*)Msg;
+			MSG_CNFDeleteCharacter *m = (MSG_CNFDeleteCharacter*)Msg;
 
-										  m->Type = _MSG_CNFDeleteCharacter;
-										  m->ID = ESCENE_FIELD + 1;
+			m->Type = _MSG_CNFDeleteCharacter;
+			m->ID = ESCENE_FIELD + 1;
 
-										  pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_CNFDeleteCharacter));
+			pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_CNFDeleteCharacter));
 
-										  pUser[conn].Mode = USER_SELCHAR;
+			pUser[conn].Mode = USER_SELCHAR;
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBDeleteCharacterFail
 		case _MSG_DBDeleteCharacterFail:
 		{
-										   MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-										   m->ID = ESCENE_FIELD + 1;
+			m->ID = ESCENE_FIELD + 1;
 
-										   SendClientSignal(conn, 0, _MSG_DeleteCharacterFail);
+			SendClientSignal(conn, 0, _MSG_DeleteCharacterFail);
 
-										   pUser[conn].Mode = USER_SELCHAR;
+			pUser[conn].Mode = USER_SELCHAR;
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBNewCharacterFail
 		case _MSG_DBNewCharacterFail:
 		{
-										MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-										m->ID = ESCENE_FIELD + 1;
+			m->ID = ESCENE_FIELD + 1;
 
-										SendClientSignal(conn, 0, _MSG_NewCharacterFail);
+			SendClientSignal(conn, 0, _MSG_NewCharacterFail);
 
-										pUser[conn].Mode = USER_SELCHAR;
+			pUser[conn].Mode = USER_SELCHAR;
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFCharacterLogin
 		case _MSG_DBCNFCharacterLogin:
 		{
-										 MSG_CNFCharacterLogin *m = (MSG_CNFCharacterLogin*)Msg;
-
-										 MSG_CNFClientCharacterLogin sm;
-
-										 memcpy(&sm, m, sizeof(MSG_CNFClientCharacterLogin));
-
-										 if (conn == 0)
-										 {
-											 CrackLog(0, " CNFCharLogin");
-
-											 CloseUser(conn);
-
-											 break; // return; ?
-										 }
-
-										 int i;
-
-										 for (i = 0; i < MAX_EQUIP; i++)
-										 {
-											 STRUCT_ITEM *tempsour = &sm.mob.Equip[i];
-
-											 if (tempsour->sIndex > 0 && tempsour->sIndex < MAX_ITEMLIST)
-											 {
-												 int nPos = g_pItemList[tempsour->sIndex].nPos;
-
-												 if (nPos == 64 || nPos == 192)
-												 {
-													 if (tempsour->stEffect[0].cEffect == EF_DAMAGE2 || tempsour->stEffect[0].cEffect == EF_DAMAGEADD)
-														 tempsour->stEffect[0].cEffect = EF_DAMAGE;
-
-													 if (tempsour->stEffect[1].cEffect == EF_DAMAGE2 || tempsour->stEffect[1].cEffect == EF_DAMAGEADD)
-														 tempsour->stEffect[1].cEffect = EF_DAMAGE;
+			MSG_CNFCharacterLogin *m = (MSG_CNFCharacterLogin*)Msg;
+
+			MSG_CNFClientCharacterLogin sm;
+
+			memcpy(&sm, m, sizeof(MSG_CNFClientCharacterLogin));
+
+			if (conn == 0)
+			{
+				CrackLog(0, " CNFCharLogin");
+
+				CloseUser(conn);
+
+				break; // return; ?
+			}
+
+			int i;
+
+			for (i = 0; i < MAX_EQUIP; i++)
+			{
+				STRUCT_ITEM *tempsour = &sm.mob.Equip[i];
+
+				if (tempsour->sIndex > 0 && tempsour->sIndex < MAX_ITEMLIST)
+				{
+					int nPos = g_pItemList[tempsour->sIndex].nPos;
+
+					if (nPos == 64 || nPos == 192)
+					{
+						if (tempsour->stEffect[0].cEffect == EF_DAMAGE2 || tempsour->stEffect[0].cEffect == EF_DAMAGEADD)
+							tempsour->stEffect[0].cEffect = EF_DAMAGE;
+
+						if (tempsour->stEffect[1].cEffect == EF_DAMAGE2 || tempsour->stEffect[1].cEffect == EF_DAMAGEADD)
+							tempsour->stEffect[1].cEffect = EF_DAMAGE;
+
+						if (tempsour->stEffect[2].cEffect == EF_DAMAGE2 || tempsour->stEffect[2].cEffect == EF_DAMAGEADD)
+							tempsour->stEffect[2].cEffect = EF_DAMAGE;
+					}
+				}
+			}
+
+			for (i = 0; i < MAX_CARRY - 1; i++)
+			{
+				STRUCT_ITEM *tempsour = &sm.mob.Carry[i];
+
+				if (tempsour->sIndex > 0 && tempsour->sIndex < MAX_ITEMLIST)
+				{
+					int nPos = g_pItemList[tempsour->sIndex].nPos;
+
+					if (nPos == 64 || nPos == 192)
+					{
+						if (tempsour->stEffect[0].cEffect == EF_DAMAGE2 || tempsour->stEffect[0].cEffect == EF_DAMAGEADD)
+							tempsour->stEffect[0].cEffect = EF_DAMAGE;
+
+						if (tempsour->stEffect[1].cEffect == EF_DAMAGE2 || tempsour->stEffect[1].cEffect == EF_DAMAGEADD)
+							tempsour->stEffect[1].cEffect = EF_DAMAGE;
+
+						if (tempsour->stEffect[2].cEffect == EF_DAMAGE2 || tempsour->stEffect[2].cEffect == EF_DAMAGEADD)
+							tempsour->stEffect[2].cEffect = EF_DAMAGE;
+					}
+				}
+			}
+
+			if (evDelete)
+			{
+				for (int j = 0; j < MAX_CARRY - 1; j++)
+				{
+					if (sm.mob.Carry[j].sIndex >= 470 && sm.mob.Carry[j].sIndex <= 500)
+						sm.mob.Carry[j].sIndex = 0;
+				}
+			}
 
-													 if (tempsour->stEffect[2].cEffect == EF_DAMAGE2 || tempsour->stEffect[2].cEffect == EF_DAMAGEADD)
-														 tempsour->stEffect[2].cEffect = EF_DAMAGE;
-												 }
-											 }
-										 }
+			//m->mobExtra.Citizen = pMob[conn].extra.Citizen;
 
-										 for (i = 0; i < MAX_CARRY - 1; i++)
-										 {
-											 STRUCT_ITEM *tempsour = &sm.mob.Carry[i];
+			if (m->mobExtra.ClassMaster == MORTAL)
+			{
+				m->mob.Equip[0].stEffect[1].cEffect = 98;
+				m->mob.Equip[0].stEffect[1].cValue = 0;
+				m->mob.Equip[0].stEffect[2].cEffect = 106;
+				m->mob.Equip[0].stEffect[2].cValue = (unsigned char)m->mob.Equip[0].sIndex;
+			}
+			else if (m->mobExtra.ClassMaster == ARCH)
+			{
+				m->mob.Equip[0].stEffect[1].cEffect = 98;
+				m->mob.Equip[0].stEffect[1].cValue = 0;
+				m->mob.Equip[0].stEffect[2].cEffect = 106;
+				m->mob.Equip[0].stEffect[2].cValue = (unsigned char)m->mob.Equip[0].sIndex;
+			}
+			else if (m->mobExtra.ClassMaster == CELESTIAL || m->mobExtra.ClassMaster == SCELESTIAL || m->mobExtra.ClassMaster == CELESTIALCS || m->mobExtra.ClassMaster == HARDCORE
+				|| m->mobExtra.ClassMaster == HARDCOREA || m->mobExtra.ClassMaster == HARDCORECS || m->mobExtra.ClassMaster == SHARDCORE)
+			{
+				m->mob.Equip[0].stEffect[1].cEffect = 98;
+				m->mob.Equip[0].stEffect[1].cValue = 3;
+				m->mob.Equip[0].stEffect[2].cEffect = 106;
+				m->mob.Equip[0].stEffect[2].cValue = (unsigned char)m->mob.Equip[0].sIndex;
+			}
 
-											 if (tempsour->sIndex > 0 && tempsour->sIndex < MAX_ITEMLIST)
-											 {
-												 int nPos = g_pItemList[tempsour->sIndex].nPos;
+			pUser[conn].Donate = m->Donate;
 
-												 if (nPos == 64 || nPos == 192)
-												 {
-													 if (tempsour->stEffect[0].cEffect == EF_DAMAGE2 || tempsour->stEffect[0].cEffect == EF_DAMAGEADD)
-														 tempsour->stEffect[0].cEffect = EF_DAMAGE;
+			if (m->mob.CurrentScore.Hp <= 0)
+				m->mob.CurrentScore.Hp = 2;
 
-													 if (tempsour->stEffect[1].cEffect == EF_DAMAGE2 || tempsour->stEffect[1].cEffect == EF_DAMAGEADD)
-														 tempsour->stEffect[1].cEffect = EF_DAMAGE;
+			pMob[conn].MOB = m->mob;
+			pUser[conn].Message = 0;
+			pUser[conn].UseItemTime = 0;
+			pUser[conn].PotionTime = 0;
+			pMob[conn].LastReqParty = 0;
+			pMob[conn].ProcessorCounter = 1;
+			pMob[conn].QuestFlag = 0;
+			pMob[conn].MissPlayer = 0;
+			pMob[conn].DivineBlessing = 0;
+			pMob[conn].RateRegen = 0;
+			pMob[conn].Joken[0] = ' ';
 
-													 if (tempsour->stEffect[2].cEffect == EF_DAMAGE2 || tempsour->stEffect[2].cEffect == EF_DAMAGEADD)
-														 tempsour->stEffect[2].cEffect = EF_DAMAGE;
-												 }
-											 }
-										 }
+			//memset(&pMob[conn].Evocations, 0, sizeof(pMob[conn].Evocations));
+			memcpy(&pMob[conn].extra, &m->mobExtra, sizeof(STRUCT_MOBEXTRA));
 
-										 if (evDelete)
-										 {
-											 for (int j = 0; j < MAX_CARRY - 1; j++)
-											 {
-												 if (sm.mob.Carry[j].sIndex >= 470 && sm.mob.Carry[j].sIndex <= 500)
-													 sm.mob.Carry[j].sIndex = 0;
-											 }
-										 }
-										 if (m->mobExtra.ClassMaster == MORTAL)
-										 {
-											 m->mob.Equip[0].stEffect[1].cEffect = 98;
-											 m->mob.Equip[0].stEffect[1].cValue = 0;
-											 m->mob.Equip[0].stEffect[2].cEffect = 106;
-											 m->mob.Equip[0].stEffect[2].cValue = (unsigned char)m->mob.Equip[0].sIndex;
-										 }
-										 else if (m->mobExtra.ClassMaster == ARCH)
-										 {
-											 m->mob.Equip[0].stEffect[1].cEffect = 98;
-											 m->mob.Equip[0].stEffect[1].cValue = 0;
-											 m->mob.Equip[0].stEffect[2].cEffect = 106;
-											 m->mob.Equip[0].stEffect[2].cValue = (unsigned char)m->mob.Equip[0].sIndex;
-										 }
-										 else if (m->mobExtra.ClassMaster == CELESTIAL || m->mobExtra.ClassMaster == SCELESTIAL || m->mobExtra.ClassMaster == CELESTIALCS)
-										 {
-											 m->mob.Equip[0].stEffect[1].cEffect = 98;
-											 m->mob.Equip[0].stEffect[1].cValue = 3;
-											 m->mob.Equip[0].stEffect[2].cEffect = 106;
-											 m->mob.Equip[0].stEffect[2].cValue = (unsigned char)m->mob.Equip[0].sIndex;
-										 }
-
-										 pUser[conn].Donate = m->Donate;
-
-										 if (m->mob.CurrentScore.Hp <= 0)
-											 m->mob.CurrentScore.Hp = 2;
-
-										 pMob[conn].MOB = m->mob;
-
-										 pUser[conn].Message = 0;
-										 pUser[conn].UseItemTime = 0;
-										 pUser[conn].PotionTime = 0;
-										 pMob[conn].LastReqParty = 0;
-										 pMob[conn].ProcessorCounter = 1;
-										 pMob[conn].QuestFlag = 0;
+			if (m->mob.Guild)
+				pMob[conn].extra.Citizen = GuildInfo[m->mob.Guild].Citizen;
 
-										 memcpy(&pMob[conn].extra, &m->mobExtra, sizeof(STRUCT_MOBEXTRA));
+			pMob[conn].MOB.Equip[0].stEffect[2].cEffect = 28;
+			pMob[conn].MOB.Equip[0].stEffect[2].cValue = pMob[conn].extra.Citizen;
 
-										 if (m->mob.Guild)
-											 pMob[conn].extra.Citizen = GuildInfo[m->mob.Guild].Citizen;
+			memcpy(pUser[conn].CharShortSkill, m->ShortSkill, 16);
 
-										 memcpy(pUser[conn].CharShortSkill, m->ShortSkill, 16);
+			memcpy(pMob[conn].Affect, m->affect, sizeof(m->affect));
 
-										 memcpy(pMob[conn].Affect, m->affect, sizeof(m->affect));
+			pMob[conn].MaxCarry = 30;
 
-										 pMob[conn].MaxCarry = 30;
+			if (pMob[conn].MOB.Carry[60].sIndex == 3467)
+				pMob[conn].MaxCarry += 15;
 
-										 if (pMob[conn].MOB.Carry[60].sIndex == 3467)
-											 pMob[conn].MaxCarry += 15;
+			if (pMob[conn].MOB.Carry[61].sIndex == 3467)
+				pMob[conn].MaxCarry += 15;
 
-										 if (pMob[conn].MOB.Carry[61].sIndex == 3467)
-											 pMob[conn].MaxCarry += 15;
+			for (int c = 0; c < MAX_AFFECT; c++)
+			{
+				if (pMob[conn].Affect[c].Type != 33)
+				{
+					if ((pMob[conn].MOB.Equip[0].sIndex == 316 || pMob[conn].MOB.Equip[0].sIndex == 317 || pMob[conn].MOB.Equip[0].sIndex == 297 ||
+						pMob[conn].MOB.Equip[0].sIndex == 202 || pMob[conn].MOB.Equip[0].sIndex == 297 || pMob[conn].MOB.Equip[0].sIndex == 209 ||
+						pMob[conn].MOB.Equip[0].sIndex == 212 || pMob[conn].MOB.Equip[0].sIndex == 230 || pMob[conn].MOB.Equip[0].sIndex == 228))
+						pMob[conn].MOB.Equip[0].sIndex = pMob[conn].extra.ClassMaster == MORTAL ? pMob[conn].extra.MortalFace : pMob[conn].extra.MortalFace + 5 + pMob[conn].MOB.Class;
+				}
+			}
 
+			strncpy(pMob[conn].Tab, "", sizeof(pMob[conn].Tab));
+			strncpy(pMob[conn].Snd, "", sizeof(pMob[conn].Snd));
 
-										 strncpy(pMob[conn].Tab, "", sizeof(pMob[conn].Tab));
-										 strncpy(pMob[conn].Snd, "", sizeof(pMob[conn].Snd));
+			memset(sm.Unk2, 0, sizeof(sm.Unk2));
 
-										 memset(sm.Unk2, 0, sizeof(sm.Unk2));
+			pMob[conn].MOB.BaseScore.Merchant = 0;
 
-										 pMob[conn].MOB.BaseScore.Merchant = 0;
+			if (pMob[conn].extra.ClassMaster == ARCH && pMob[conn].extra.QuestInfo.Arch.MortalSlot >= 0 && pMob[conn].extra.QuestInfo.Arch.MortalSlot < 3)
+				pMob[conn].extra.QuestInfo.Arch.MortalLevel = pUser[conn].SelChar.Score[pMob[conn].extra.QuestInfo.Arch.MortalSlot].Level - 299;
 
-										 if (pMob[conn].extra.ClassMaster == ARCH && pMob[conn].extra.QuestInfo.Arch.MortalSlot >= 0 && pMob[conn].extra.QuestInfo.Arch.MortalSlot < 3)
-											 pMob[conn].extra.QuestInfo.Arch.MortalLevel = pUser[conn].SelChar.Score[pMob[conn].extra.QuestInfo.Arch.MortalSlot].Level - 299;
-										
-										 else
-											 pMob[conn].extra.QuestInfo.Arch.MortalLevel = 99;
+			else
+				pMob[conn].extra.QuestInfo.Arch.MortalLevel = 99;
 
-										 BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
 
-										 pMob[conn].GetCurrentScore(conn);
+			BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
 
-										 GetGuild(conn);
+			pMob[conn].GetCurrentScore(conn);
 
-										 BASE_GetBonusSkillPoint(&pMob[conn].MOB, &pMob[conn].extra);
-										 BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
+			GetGuild(conn);
 
-										 pMob[conn].Mode = MOB_USER;
+			//	pMob[conn].extra.Citizen = m->mobExtra.Citizen;
 
-										 sm.mob = pMob[conn].MOB;
-										 sm.mob.SPX = sm.mob.SPX;
-										 sm.mob.SPY = sm.mob.SPY;
-										 sm.Type = _MSG_CNFCharacterLogin;
-										
-										 if(NewbieEventServer == 1)
-											 sm.ID = ESCENE_FIELD + 1;
-										 else
-											sm.ID = ESCENE_FIELD;
+			BASE_GetBonusSkillPoint(&pMob[conn].MOB, &pMob[conn].extra);
+			BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
 
-										 sm.PosX = sm.mob.SPX;
-										 sm.PosY = sm.mob.SPY;
-										 sm.ClientID = conn;
-										 sm.Weather = CurrentWeather;
+			pMob[conn].Mode = MOB_USER;
 
-										 memset(sm.Unk2, 0, sizeof(sm.Unk2));
-										 memset(sm.Unk, 0, sizeof(sm.Unk));
-										 memset(sm.unk, 0, sizeof(sm.unk));
+			sm.mob = pMob[conn].MOB;
+			sm.mob.SPX = sm.mob.SPX;
+			sm.mob.SPY = sm.mob.SPY;
+			sm.Type = _MSG_CNFCharacterLogin;
 
-										 strncpy(&sm.Unk2[448], pUser[conn].AccountName, 12);
+			if (NewbieEventServer == 1)
+				sm.ID = ESCENE_FIELD + 1;
+			else
+				sm.ID = ESCENE_FIELD;
 
-										 pMob[conn].LastTime = CurrentTime;
-										 pMob[conn].LastX = pMob[conn].TargetX = sm.mob.SPX;
-										 pMob[conn].LastY = pMob[conn].TargetY = sm.mob.SPY;
+			sm.PosX = sm.mob.SPX;
+			sm.PosY = sm.mob.SPY;
+			sm.ClientID = conn;
+			sm.Weather = CurrentWeather;
 
-										 if (pMob[conn].MOB.Carry[KILL_MARK].sIndex == 0)
-										 {
-											 memset(&pMob[conn].MOB.Carry[KILL_MARK], 0, sizeof(STRUCT_ITEM));
+			memset(sm.Unk2, 0, sizeof(sm.Unk2));
+			memset(sm.Unk, 0, sizeof(sm.Unk));
+			memset(sm.unk, 0, sizeof(sm.unk));
 
-											 pMob[conn].MOB.Carry[KILL_MARK].sIndex = 547;
-											 pMob[conn].MOB.Carry[KILL_MARK].stEffect[0].cEffect = EF_CURKILL;
-											 pMob[conn].MOB.Carry[KILL_MARK].stEffect[1].cEffect = EF_LTOTKILL;
-											 pMob[conn].MOB.Carry[KILL_MARK].stEffect[2].cEffect = EF_HTOTKILL;
-										 }
+			strncpy(&sm.Unk2[448], pUser[conn].AccountName, 12);
 
-										 pUser[conn].Unk_2708 = 0;
-										 pUser[conn].LastChat[0] = 0;
-										 pUser[conn].Slot = m->Slot;
-										 pUser[conn].NumError = 0;
-										 pUser[conn].LastMove = 0;
-										 pUser[conn].LastAction = _MSG_Action;
-										 pUser[conn].LastActionTick = SKIPCHECKTICK;
-										 pUser[conn].LastAttack = 0;
-										 pUser[conn].LastAttackTick = SKIPCHECKTICK;
-										 pUser[conn].LastIllusionTick = SKIPCHECKTICK;
-										 pUser[conn].RankingTarget = 0;
-										 pUser[conn].RankingType = 0;
-										 pUser[conn].CastleStatus = 0;
+			pMob[conn].LastTime = CurrentTime;
+			pMob[conn].LastX = pMob[conn].TargetX = sm.mob.SPX;
+			pMob[conn].LastY = pMob[conn].TargetY = sm.mob.SPY;
 
+			if (pMob[conn].MOB.Carry[KILL_MARK].sIndex == 0)
+			{
+				memset(&pMob[conn].MOB.Carry[KILL_MARK], 0, sizeof(STRUCT_ITEM));
 
-										 memset(pUser[conn].Unk9, -1, sizeof(pUser[conn].Unk9));
-										 memset(&pUser[conn].Trade, 0, sizeof(pUser[conn].Trade));
+				pMob[conn].MOB.Carry[KILL_MARK].sIndex = 547;
+				pMob[conn].MOB.Carry[KILL_MARK].stEffect[0].cEffect = EF_CURKILL;
+				pMob[conn].MOB.Carry[KILL_MARK].stEffect[1].cEffect = EF_LTOTKILL;
+				pMob[conn].MOB.Carry[KILL_MARK].stEffect[2].cEffect = EF_HTOTKILL;
+			}
 
-										 int k;
+			pUser[conn].Unk_2708 = 0;
+			pUser[conn].LastChat[0] = 0;
+			pUser[conn].Slot = m->Slot;
+			pUser[conn].NumError = 0;
+			pUser[conn].LastMove = 0;
+			pUser[conn].LastAction = _MSG_Action;
+			pUser[conn].LastActionTick = SKIPCHECKTICK;
+			pUser[conn].LastAttack = 0;
+			pUser[conn].LastAttackTick = SKIPCHECKTICK;
+			pUser[conn].LastIllusionTick = SKIPCHECKTICK;
+			pUser[conn].RankingTarget = 0;
+			pUser[conn].RankingType = 0;
+			pUser[conn].CastleStatus = 0;
 
-										 for (k = 0; k < MAX_TRADE; k++)
-											 pUser[conn].Trade.InvenPos[k] = -1;
+			memset(pUser[conn].Unk9, -1, sizeof(pUser[conn].Unk9));
+			memset(&pUser[conn].Trade, 0, sizeof(pUser[conn].Trade));
 
-										 for (k = 0; k < MAX_AUTOTRADE; k++)
-											 pUser[conn].AutoTrade.CarryPos[k] = -1;
+			int k;
 
-										 pUser[conn].TradeMode = 0;
-										 pUser[conn].PKMode = 0;
+			for (k = 0; k < MAX_TRADE; k++)
+				pUser[conn].Trade.InvenPos[k] = -1;
 
-										 int tx = sm.PosX;
-										 int ty = sm.PosY;
+			for (k = 0; k < MAX_AUTOTRADE; k++)
+				pUser[conn].AutoTrade.CarryPos[k] = -1;
 
-										 int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
+			pUser[conn].TradeMode = 0;
+			pUser[conn].PKMode = 0;
 
-										 tx = g_pGuildZone[CityID].CitySpawnX + rand() % 15;
-										 ty = g_pGuildZone[CityID].CitySpawnY + rand() % 15;
+			int tx = sm.PosX;
+			int ty = sm.PosY;
 
-										 int MobGuild = pMob[conn].MOB.Guild;
-										 int MobCLS = pMob[conn].MOB.Class;
+			int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
 
-										 if (MobCLS < 0 || MobCLS > MAX_CLASS - 1)
-										 {
-											 Log("err,login Undefined class", pUser[conn].AccountName, pUser[conn].IP);
+			tx = g_pGuildZone[CityID].CitySpawnX + rand() % 15;
+			ty = g_pGuildZone[CityID].CitySpawnY + rand() % 15;
 
-											 CloseUser(conn);
+			int MobGuild = pMob[conn].MOB.Guild;
+			int MobCLS = pMob[conn].MOB.Class;
 
-											 break; // TODO: compile and check if it's break or return
-										 }
+			if (MobCLS < 0 || MobCLS > MAX_CLASS - 1)
+			{
+				Log("err,login Undefined class", pUser[conn].AccountName, pUser[conn].IP);
 
-										 int n;
+				CloseUser(conn);
 
-										 for (n = 0; n < MAX_GUILDZONE; n++)
-										 {
-											 if (MobGuild != 0 && MobGuild == g_pGuildZone[n].ChargeGuild)
-											 {
-												 tx = g_pGuildZone[n].GuildSpawnX;
-												 ty = g_pGuildZone[n].GuildSpawnY;
+				break; // TODO: compile and check if it's break or return
+			}
 
-												 break;
-											 }
-										 }
+			int n;
 
-										 if (pMob[conn].MOB.BaseScore.Level < FREEEXP && pMob[conn].extra.ClassMaster == MORTAL)
-										 {
-											 tx = 2112 + rand() % 5 - 2;
-											 ty = 2042 + rand() % 5 - 2;
-										 }
+			for (n = 0; n < MAX_GUILDZONE; n++)
+			{
+				if (MobGuild != 0 && MobGuild == g_pGuildZone[n].ChargeGuild)
+				{
+					tx = g_pGuildZone[n].GuildSpawnX;
+					ty = g_pGuildZone[n].GuildSpawnY;
 
-										 int ret = GetEmptyMobGrid(conn, &tx, &ty);
+					break;
+				}
+			}
 
-										 if (ret == 0)
-										 {
-											 Log("Can't start can't get mobgrid", pUser[conn].AccountName, pUser[conn].IP);
+			if (pMob[conn].MOB.BaseScore.Level < FREEEXP && pMob[conn].extra.ClassMaster == MORTAL)
+			{
+				tx = 2112 + rand() % 5 - 2;
+				ty = 2042 + rand() % 5 - 2;
+			}
 
-											 CloseUser(conn);
+			int ret = GetEmptyMobGrid(conn, &tx, &ty);
 
-											 break; // TODO: compile and check if it's break or return
-										 }
+			if (ret == 0)
+			{
+				Log("Can't start can't get mobgrid", pUser[conn].AccountName, pUser[conn].IP);
 
-										 sm.PosX = tx;
-										 sm.PosY = ty;
+				CloseUser(conn);
 
-										 pMob[conn].TargetX = tx;
-										 pMob[conn].LastX = tx;
-										 pMob[conn].TargetY = ty;
-										 pMob[conn].LastY = ty;
+				break; // TODO: compile and check if it's break or return
+			}
 
-										 pUser[conn].Mode = USER_PLAY;
-										 pUser[conn].Unk_2628 = 0;
-										 pUser[conn].Unk_2632 = 0;
-										 pUser[conn].Trade.OpponentID = 0;
+			sm.PosX = tx;
+			sm.PosY = ty;
 
-										 pMob[conn].GetCurrentScore(conn);
+			pMob[conn].TargetX = tx;
+			pMob[conn].LastX = tx;
+			pMob[conn].TargetY = ty;
+			pMob[conn].LastY = ty;
 
-										 pMob[conn].GuildDisable = 0;
+			pUser[conn].Mode = USER_PLAY;
+			pUser[conn].Unk_2628 = 0;
+			pUser[conn].Unk_2632 = 0;
+			pUser[conn].Trade.OpponentID = 0;
 
-										 if (pMob[conn].MOB.Guild)
-										 {
-											 int Group = ServerGroup;
-											 int Server = pMob[conn].MOB.Guild / MAX_GUILD;
-											 int usGuild = pMob[conn].MOB.Guild & MAX_GUILD - 1;
+			pMob[conn].GetCurrentScore(conn);
 
-											 if (pMob[conn].MOB.Clan != GuildInfo[usGuild].Clan)
-											 {
-												 int mantle = pMob[conn].MOB.Equip[15].sIndex;
+			pMob[conn].GuildDisable = 0;
 
-												 if (GuildInfo[usGuild].Clan == 7)
-												 {
-													 if (m->mobExtra.ClassMaster == CELESTIAL || m->mobExtra.ClassMaster == SCELESTIAL || m->mobExtra.ClassMaster == CELESTIALCS)
-														 pMob[conn].MOB.Equip[15].sIndex = 3197;
+			if (pMob[conn].MOB.Guild)
+			{
+				int Group = ServerGroup;
+				int Server = pMob[conn].MOB.Guild / MAX_GUILD;
+				int usGuild = pMob[conn].MOB.Guild & MAX_GUILD - 1;
 
-													 else if (mantle >= 543 && mantle <= 544)
-														 pMob[conn].MOB.Equip[15].sIndex = 543;
+				if (pMob[conn].MOB.Clan != GuildInfo[usGuild].Clan)
+				{
+					int mantle = pMob[conn].MOB.Equip[15].sIndex;
 
-													 else if (mantle >= 545 && mantle <= 546)
-														 pMob[conn].MOB.Equip[15].sIndex = 545;
+					if (GuildInfo[usGuild].Clan == 7)
+					{
+						if (m->mobExtra.ClassMaster == CELESTIAL || m->mobExtra.ClassMaster == SCELESTIAL || m->mobExtra.ClassMaster == CELESTIALCS || m->mobExtra.ClassMaster == HARDCORE || m->mobExtra.ClassMaster == HARDCOREA || m->mobExtra.ClassMaster == HARDCORECS || m->mobExtra.ClassMaster == SHARDCORE)
+							pMob[conn].MOB.Equip[15].sIndex = 3197;
 
-													 else if (mantle == 548)
-														 pMob[conn].MOB.Equip[15].sIndex = 543;
+						else if (mantle >= 543 && mantle <= 544)
+							pMob[conn].MOB.Equip[15].sIndex = 543;
 
-													 else if (mantle == 549)
-														 pMob[conn].MOB.Equip[15].sIndex = 545;
+						else if (mantle >= 545 && mantle <= 546)
+							pMob[conn].MOB.Equip[15].sIndex = 545;
 
-													 else if (mantle >= 3191 && mantle <= 3193)
-														 pMob[conn].MOB.Equip[15].sIndex = 3191;
+						else if (mantle == 548)
+							pMob[conn].MOB.Equip[15].sIndex = 543;
 
-													 else if (mantle >= 3194 && mantle <= 3196)
-														 pMob[conn].MOB.Equip[15].sIndex = 3194;
+						else if (mantle == 549)
+							pMob[conn].MOB.Equip[15].sIndex = 545;
 
-												 }
-												 else if (GuildInfo[usGuild].Clan == 8)
-												 {
-													 if (m->mobExtra.ClassMaster == CELESTIAL || m->mobExtra.ClassMaster == SCELESTIAL || m->mobExtra.ClassMaster == CELESTIALCS)
-														 pMob[conn].MOB.Equip[15].sIndex = 3198;
+						else if (mantle >= 3191 && mantle <= 3193)
+							pMob[conn].MOB.Equip[15].sIndex = 3191;
 
-													 else if (mantle >= 543 && mantle <= 544)
-														 pMob[conn].MOB.Equip[15].sIndex = 544;
+						else if (mantle >= 3194 && mantle <= 3196)
+							pMob[conn].MOB.Equip[15].sIndex = 3194;
 
-													 else if (mantle >= 545 && mantle <= 546)
-														 pMob[conn].MOB.Equip[15].sIndex = 546;
+					}
 
-													 else if (mantle == 548)
-														 pMob[conn].MOB.Equip[15].sIndex = 544;
+					else if (GuildInfo[usGuild].Clan == 8)
+					{
+						if (m->mobExtra.ClassMaster == CELESTIAL || m->mobExtra.ClassMaster == SCELESTIAL || m->mobExtra.ClassMaster == CELESTIALCS || m->mobExtra.ClassMaster == HARDCORE || m->mobExtra.ClassMaster == HARDCOREA || m->mobExtra.ClassMaster == HARDCORECS || m->mobExtra.ClassMaster == SHARDCORE)
+							pMob[conn].MOB.Equip[15].sIndex = 3198;
 
-													 else if (mantle == 549)
-														 pMob[conn].MOB.Equip[15].sIndex = 546;
+						else if (mantle >= 543 && mantle <= 544)
+							pMob[conn].MOB.Equip[15].sIndex = 544;
 
-													 else if (mantle >= 3191 && mantle <= 3193)
-														 pMob[conn].MOB.Equip[15].sIndex = 3192;
+						else if (mantle >= 545 && mantle <= 546)
+							pMob[conn].MOB.Equip[15].sIndex = 546;
 
-													 else if (mantle >= 3194 && mantle <= 3196)
-														 pMob[conn].MOB.Equip[15].sIndex = 3195;
-												 }
+						else if (mantle == 548)
+							pMob[conn].MOB.Equip[15].sIndex = 544;
 
-												 memcpy(&sm.mob.Equip[15], &pMob[conn].MOB.Equip[15], sizeof(STRUCT_ITEM));
-											 }
-										 }
+						else if (mantle == 549)
+							pMob[conn].MOB.Equip[15].sIndex = 546;
 
-										 char tt[512];
+						else if (mantle >= 3191 && mantle <= 3193)
+							pMob[conn].MOB.Equip[15].sIndex = 3192;
 
-										 pUser[conn].cProgress = 0;
-										 pUser[conn].ReqHp = pMob[conn].MOB.CurrentScore.Hp;
-										 pUser[conn].ReqMp = pMob[conn].MOB.CurrentScore.Mp;
-										 pUser[conn].Unk_2688 = 0;
+						else if (mantle >= 3194 && mantle <= 3196)
+							pMob[conn].MOB.Equip[15].sIndex = 3195;
+					}
 
-										 pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_CNFClientCharacterLogin));
+					memcpy(&sm.mob.Equip[15], &pMob[conn].MOB.Equip[15], sizeof(STRUCT_ITEM));
+				}
+			}
 
-										 ///////////////////////////////////////////////
-										 // Packet that will be sent to other players //
-										 ///////////////////////////////////////////////
+			char tt[512];
 
-										 MSG_CreateMob sm2;
+			pUser[conn].cProgress = 0;
+			pUser[conn].ReqHp = pMob[conn].MOB.CurrentScore.Hp;
+			pUser[conn].ReqMp = pMob[conn].MOB.CurrentScore.Mp;
+			pUser[conn].Unk_2688 = 0;
 
-										 GetCreateMob(conn, &sm2);
+			pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_CNFClientCharacterLogin));
 
-										 sm2.CreateType = 2;
+			///////////////////////////////////////////////
+			// Packet that will be sent to other players //
+			///////////////////////////////////////////////
 
-										 
-										 pMobGrid[sm.PosY][sm.PosX] = conn;
+			MSG_CreateMob sm2;
 
-										 GridMulticast(sm.PosX, sm.PosY, (MSG_STANDARD*)&sm2, 0);
+			GetCreateMob(conn, &sm2);
 
-										 SendPKInfo(conn, conn);
-										 SendGridMob(conn);
+			sm2.CreateType = 2;
 
-										 if (pMob[n].MOB.CurrentScore.Level >= 999)
-											 pUser[n].Admin = 1;
+			pMobGrid[sm.PosY][sm.PosX] = conn;
 
-										 MountProcess(conn, 0);
-										 SendWarInfo(conn, g_pGuildZone[4].Clan);
+			GridMulticast(sm.PosX, sm.PosY, (MSG_STANDARD*)&sm2, 0);
 
-										 if (CastleState != 0)
-											 SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendCastleState, CastleState);
+			SendPKInfo(conn, conn);
+			SendGridMob(conn);
 
-										 ClearCrown(conn);
+			if (pMob[n].MOB.CurrentScore.Level >= 999)
+				pUser[n].Admin = 1;
 
-										 int curlvl = pMob[conn].MOB.BaseScore.Level;
+			MountProcess(conn, 0);
+			SendWarInfo(conn, g_pGuildZone[4].Clan);
 
-										 int max_level = 0;
+			if (CastleState != 0)
+				SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendCastleState, CastleState);
 
-										 if (pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH)
-											 max_level = MAX_LEVEL;
+			ClearCrown(conn);
 
-										 else if (pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == SCELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS)
-											 max_level = MAX_CLEVEL;
+			int curlvl = pMob[conn].MOB.BaseScore.Level;
 
+			int max_level = 0;
 
-										 if (curlvl < max_level - 1)
-										 {
-											 long long exp = pMob[conn].MOB.Exp;
-											 long long curexp = max_level == MAX_LEVEL ? g_pNextLevel[curlvl] : g_pNextLevel_2[curlvl];
-											 long long nextexp = max_level == MAX_LEVEL ? g_pNextLevel[curlvl + 1] : g_pNextLevel_2[curlvl + 1];
-											 long long deltaexp = (nextexp - curexp) / 4;
-											 long long Segment1 = curexp + deltaexp;
-											 long long Segment2 = curexp + (deltaexp * 2);
-											 long long Segment3 = curexp + (deltaexp * 3);
-											 long long Segment4 = nextexp;
+			if (pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH)
+				max_level = MAX_LEVEL;
 
-											 if (exp > Segment3)
-												 pMob[conn].Segment = 3;
-											 else if (exp > Segment2)
-												 pMob[conn].Segment = 2;
-											 else if (exp > Segment1)
-												 pMob[conn].Segment = 1;
-											 else
-												 pMob[conn].Segment = 0;
+			else if (pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == SCELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS ||
+				pMob[conn].extra.ClassMaster == HARDCORE || pMob[conn].extra.ClassMaster == HARDCOREA || pMob[conn].extra.ClassMaster == HARDCORECS || pMob[conn].extra.ClassMaster == SHARDCORE)
+				max_level = MAX_CLEVEL;
 
-											 pUser[conn].Unk_2736 = 0;
 
-											 if (pMob[conn].MOB.BaseScore.Level >= FREEEXP)
-											 {
-												 if (CHARSELBILL == 0)
-													 SendBilling(conn, pUser[conn].AccountName, 1, 1);
-											 }
+			if (curlvl < max_level - 1)
+			{
+				long long exp = pMob[conn].MOB.Exp;
+				long long curexp = max_level == MAX_LEVEL ? g_pNextLevel[curlvl] : g_pNextLevel_2[curlvl];
+				long long nextexp = max_level == MAX_LEVEL ? g_pNextLevel[curlvl + 1] : g_pNextLevel_2[curlvl + 1];
+				long long deltaexp = (nextexp - curexp) / 4;
+				long long Segment1 = curexp + deltaexp;
+				long long Segment2 = curexp + (deltaexp * 2);
+				long long Segment3 = curexp + (deltaexp * 3);
+				long long Segment4 = nextexp;
 
-										 }
+				if (exp > Segment3)
+					pMob[conn].Segment = 3;
+				else if (exp > Segment2)
+					pMob[conn].Segment = 2;
+				else if (exp > Segment1)
+					pMob[conn].Segment = 1;
+				else
+					pMob[conn].Segment = 0;
 
-										 if (KefraLive != 0)
-										 {
-											 BASE_GetGuildName(ServerGroup, KefraLive, KefraKiller);
-											 sprintf(tt, g_pMessageStringTable[_SN_End_Khepra], KefraKiller);
+				pUser[conn].Unk_2736 = 0;
 
-											 SendClientMessage(conn, tt);
-										 }
+				if (pMob[conn].MOB.BaseScore.Level >= FREEEXP)
+				{
+					if (CHARSELBILL == 0)
+						SendBilling(conn, pUser[conn].AccountName, 1, 1);
+				}
 
-										 if (RvRBonus == pMob[conn].MOB.Clan && RvRBonus)
-										 {
-											 if (pMob[conn].MOB.Clan == 8)
-												 sprintf(temp, g_pMessageStringTable[_SN_KINGDOMWAR_DROP_], g_pMessageStringTable[_NN_KINGDOM_RED]);
+			}
 
-											 else if (pMob[conn].MOB.Clan == 7)
-												 sprintf(temp, g_pMessageStringTable[_SN_KINGDOMWAR_DROP_], g_pMessageStringTable[_NN_KINGDOM_BLUE]);
+			if (pMob[conn].extra.Citizen != 0)
+			{
+				sprintf(tt, g_pMessageStringTable[_DN_TOWNSPEOPLE], pMob[conn].CitizenDrop);
+				SendClientMessage(conn, tt);
+			}
 
-											 SendClientMessage(conn, temp);
-										 }
+			if (KefraLive != 0)
+			{
+				BASE_GetGuildName(ServerGroup, KefraLive, KefraKiller);
+				sprintf(tt, g_pMessageStringTable[_SN_End_Khepra], KefraKiller);
 
-										 SendEtc(conn);
-										 SendScore(conn);
+				SendClientMessage(conn, tt);
+			}
 
-										 sprintf(tt, "sta,Login char:%s exp:%llu level:%d conn:%d money:%d, store:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.Exp, pMob[conn].MOB.BaseScore.Level, conn, pMob[conn].MOB.Coin, pUser[conn].Donate);
+			if (RvRBonus == pMob[conn].MOB.Clan && RvRBonus)
+			{
+				if (pMob[conn].MOB.Clan == 8)
+					sprintf(temp, g_pMessageStringTable[_SN_KINGDOMWAR_DROP_], g_pMessageStringTable[_NN_KINGDOM_RED]);
 
-										 Log(tt, pUser[conn].AccountName, pUser[conn].IP);
+				else if (pMob[conn].MOB.Clan == 7)
+					sprintf(temp, g_pMessageStringTable[_SN_KINGDOMWAR_DROP_], g_pMessageStringTable[_NN_KINGDOM_BLUE]);
+
+				SendClientMessage(conn, temp);
+			}
+
+			if (pMob[conn].MOB.Guild != 0)
+			{
+				if (AvisarGuild[pMob[conn].MOB.Guild].Aviso[0] != '\0' && AvisarGuild[pMob[conn].MOB.Guild].Aviso[0] != ' ')
+				{
+					char temp[256];
+					sprintf(temp, "[Mensagem da Guild]> %s", AvisarGuild[pMob[conn].MOB.Guild].Aviso);
+					SendClientMessage(conn, temp);
+				}
+			}
+
+			SendEtc(conn);
+			SendScore(conn);
+
+			sprintf(tt, "sta,Login char:%s exp:%llu level:%d conn:%d money:%d, store:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.Exp, pMob[conn].MOB.BaseScore.Level, conn, pMob[conn].MOB.Coin, pUser[conn].Donate);
+
+			Log(tt, pUser[conn].AccountName, pUser[conn].IP);
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCharacterLoginFail
 		case _MSG_DBCharacterLoginFail:
 		{
-										  MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-										  m->ID = ESCENE_FIELD;
+			m->ID = ESCENE_FIELD;
 
-										  SendClientSignal(conn, 0, _MSG_CharacterLoginFail);
+			SendClientSignal(conn, 0, _MSG_CharacterLoginFail);
 
-										  pUser[conn].Mode = USER_SELCHAR;
+			pUser[conn].Mode = USER_SELCHAR;
 
-										  CrackLog(conn, " CharLoginFail");
+			CrackLog(conn, " CharLoginFail");
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBMessageBoxOk
 		case _MSG_DBMessageBoxOk:
 		{
-									MSG_MessageBoxOk *m = (MSG_MessageBoxOk*)Msg;
+			MSG_MessageBoxOk *m = (MSG_MessageBoxOk*)Msg;
 
-									m->Type = _MSG_MessageBoxOk;
-									m->ID = 0;
+			m->Type = _MSG_MessageBoxOk;
+			m->ID = 0;
 
-									pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_MessageBoxOk));
+			pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_MessageBoxOk));
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBAlreadyPlaying
 		case _MSG_DBAlreadyPlaying:
 		{
-									  MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-									  SendClientSignal(m->ID, ESCENE_FIELD + 2, _MSG_AlreadyPlaying);
+			SendClientSignal(m->ID, ESCENE_FIELD + 2, _MSG_AlreadyPlaying);
 
-									  pUser[m->ID].cSock.SendMessageA();
+			pUser[m->ID].cSock.SendMessageA();
 
-									  CloseUser(conn);
+			CloseUser(conn);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBStillPlaying
 		case _MSG_DBStillPlaying:
 		{
-									MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-									SendClientSignal(m->ID, ESCENE_FIELD + 2, _MSG_StillPlaying);
+			SendClientSignal(m->ID, ESCENE_FIELD + 2, _MSG_StillPlaying);
 
-									pUser[m->ID].cSock.SendMessageA();
+			pUser[m->ID].cSock.SendMessageA();
 
-									CloseUser(conn);
+			CloseUser(conn);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_DBSavingQuit
 		case _MSG_DBSavingQuit:
 		{
-								  MSG_DBSavingQuit *m = (MSG_DBSavingQuit*)Msg;
+			MSG_DBSavingQuit *m = (MSG_DBSavingQuit*)Msg;
 
-								  if (m->ID <= 0 || m->ID >= MAX_USER)
-								  {
-									  Log("err,DBsavingquit - id range", "-system", 0);
+			if (m->ID <= 0 || m->ID >= MAX_USER)
+			{
+				Log("err,DBsavingquit - id range", "-system", 0);
 
-									  break;
-								  }
+				break;
+			}
 
-								  if (pUser[m->ID].Mode != USER_PLAY && pUser[m->ID].Mode != USER_SAVING4QUIT)
-								  {
-									  MSG_STANDARD sm;
+			if (pUser[m->ID].Mode != USER_PLAY && pUser[m->ID].Mode != USER_SAVING4QUIT)
+			{
+				MSG_STANDARD sm;
 
-									  sm.Type = _MSG_DBNoNeedSave;
-									  sm.ID = conn;
+				sm.Type = _MSG_DBNoNeedSave;
+				sm.ID = conn;
 
-									  DBServerSocket.SendOneMessage((char*)&sm, sizeof(MSG_STANDARD));
-								  }
+				DBServerSocket.SendOneMessage((char*)&sm, sizeof(MSG_STANDARD));
+			}
 
-								  if (pUser[m->ID].Mode == USER_PLAY || pUser[m->ID].Mode == USER_SELCHAR)
-								  {
-									  if (m->Mode == 0)
-										  SendClientMessage(m->ID, g_pMessageStringTable[_NN_Your_Account_From_Others]);
-									  else if (m->Mode == 1)
-										  SendClientMessage(m->ID, g_pMessageStringTable[_NN_Disabled_Account]);
+			if (pUser[m->ID].Mode == USER_PLAY || pUser[m->ID].Mode == USER_SELCHAR)
+			{
+				if (m->Mode == 0)
+					SendClientMessage(m->ID, g_pMessageStringTable[_NN_Your_Account_From_Others]);
+				else if (m->Mode == 1)
+					SendClientMessage(m->ID, g_pMessageStringTable[_NN_Disabled_Account]);
 
-									  pUser[conn].cSock.SendMessage();
-								  }
+				pUser[conn].cSock.SendMessage();
+			}
 
-								  CloseUser(m->ID);
+			CloseUser(m->ID);
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFAccountLogOut
 		case _MSG_DBCNFAccountLogOut:
 		{
-										MSG_STANDARD *m = (MSG_STANDARD*)Msg;
+			MSG_STANDARD *m = (MSG_STANDARD*)Msg;
 
-										sprintf(temp, "etc,charlogout conn:%d name:%s", conn, pMob[conn].MOB.MobName);
-										Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+			sprintf(temp, "etc,charlogout conn:%d name:%s", conn, pMob[conn].MOB.MobName);
+			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
 
-										pMob[conn].Mode = MOB_EMPTY;
-										pUser[conn].Mode = USER_ACCEPT;
+			pMob[conn].Mode = MOB_EMPTY;
+			pUser[conn].Mode = USER_ACCEPT;
 
-										CloseUser(conn);
+			CloseUser(conn);
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFArchCharacterSucess
 		case _MSG_DBCNFArchCharacterSucess:
 		{
-											  MSG_STANDARDPARM *m = (MSG_STANDARDPARM*)Msg;
+			MSG_STANDARDPARM *m = (MSG_STANDARDPARM*)Msg;
 
-											  SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+			SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
 
-											  memset(&pMob[conn].MOB.Equip[10], 0, sizeof(STRUCT_ITEM));
-											  SendItem(conn, ITEM_PLACE_EQUIP, 10, &pMob[conn].MOB.Equip[10]);
+			//  memset(&pMob[conn].MOB.Equip[10], 0, sizeof(STRUCT_ITEM));
+			//  SendItem(conn, ITEM_PLACE_EQUIP, 10, &pMob[conn].MOB.Equip[10]);
 
-											  memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
-											  SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
+			//  memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
+			//  SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
 
-											  SaveUser(conn, 0);
+			SaveUser(conn, 0);
 
-											  CharLogOut(conn);
+			CharLogOut(conn);
 
-											  SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendArchEffect, m->Parm);
+			SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendArchEffect, m->Parm);
 
-											  sprintf(temp, "etc,arch create name:%s slot:%d", pMob[conn].MOB.MobName, m->Parm);
-											  Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+			sprintf(temp, "etc,arch create name:%s slot:%d", pMob[conn].MOB.MobName, m->Parm);
+			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFArchCharacterFail
 		case _MSG_DBCNFArchCharacterFail:
 		{
-											pMob[conn].Mode = MOB_USER;
-											SendClientMessage(conn, g_pMessageStringTable[_NN_NoEmptySlot]);
-											break;
+			pMob[conn].Mode = MOB_USER;
+			SendClientMessage(conn, g_pMessageStringTable[_NN_NoEmptySlot]);
+			break;
 		} break;
 #pragma endregion
 #pragma region _MSG_DBSendDonate
 		case _MSG_DBSendDonate:
 		{
-								  MSG_DBSendDonate *m = (MSG_DBSendDonate*)Msg;
+			MSG_DBSendDonate *m = (MSG_DBSendDonate*)Msg;
 
-								  if (pUser[conn].Mode < USER_SELCHAR)
-								  {
-									  // char ItemCode[256];
+			if (pUser[conn].Mode < USER_SELCHAR)
+			{
+				// char ItemCode[256];
 
-									  sprintf(temp, "tra,%s", pUser[conn].AccountName);
-									  Log(temp, "_fail_play_", pUser[conn].IP);
+				sprintf(temp, "tra,%s", pUser[conn].AccountName);
+				Log(temp, "_fail_play_", pUser[conn].IP);
 
-									  break;
-								  }
+				break;
+			}
 
-								  if (strcmp(pUser[conn].AccountName, m->Account) != 0)
-								  {
-									  // char ItemCode[256];
+			if (strcmp(pUser[conn].AccountName, m->Account) != 0)
+			{
+				// char ItemCode[256];
 
-									  sprintf(temp, "tra,%s", pUser[conn].AccountName);
-									  Log(temp, "_fail_name_", pUser[conn].IP);
+				sprintf(temp, "tra,%s", pUser[conn].AccountName);
+				Log(temp, "_fail_name_", pUser[conn].IP);
 
-									  break;
-								  }
-								  pUser[conn].Donate += m->Donate;
+				break;
+			}
+			pUser[conn].Donate += m->Donate;
 
-								  SendClientMessage(conn, g_pMessageStringTable[_NN_Cash_ChargeOk]);
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Cash_ChargeOk]);
 
-								  m->Result = 0;
+			m->Result = 0;
 
-								  DBServerSocket.SendOneMessage((char*)m, m->Size);
+			DBServerSocket.SendOneMessage((char*)m, m->Size);
 
-								  sprintf(temp, "recv,%s %d donate", pUser[conn].AccountName, m->Donate);
-								  Log(temp, "_web1_", pUser[conn].IP);
+			sprintf(temp, "recv,%s %d donate", pUser[conn].AccountName, m->Donate);
+			Log(temp, "_web1_", pUser[conn].IP);
 
 		} break;
 #pragma endregion
 #pragma region _MSG_CNFDBCapsuleInfo
 		case _MSG_CNFDBCapsuleInfo:
 		{
-									  pUser[conn].cSock.SendOneMessage((char*)Msg, sizeof(MSG_CNFDBCapsuleInfo));
+			pUser[conn].cSock.SendOneMessage((char*)Msg, sizeof(MSG_CNFDBCapsuleInfo));
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFCapsuleCharacterFail
 		case _MSG_DBCNFCapsuleCharacterFail:
 		{
-											   SendCarry(conn);
-											   SendClientMessage(conn, g_pMessageStringTable[_NN_NoEmptySlot]);
-											   break;
+			SendCarry(conn);
+			SendClientMessage(conn, g_pMessageStringTable[_NN_NoEmptySlot]);
+			break;
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFCapsuleCharacterFail2
 		case _MSG_DBCNFCapsuleCharacterFail2:
 		{
-												SendCarry(conn);
-												SendClientMessage(conn, g_pMessageStringTable[_NN_CANT_USE_ID]);
-												break;
+			SendCarry(conn);
+			SendClientMessage(conn, g_pMessageStringTable[_NN_CANT_USE_ID]);
+			break;
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFCapsuleSucess
 		case _MSG_DBCNFCapsuleSucess:
 		{
-										memset(&pMob[conn].MOB, 0, sizeof(STRUCT_MOB));
-										memset(&pMob[conn].extra, 0, sizeof(STRUCT_MOBEXTRA));
-										SaveUser(conn, 1);
-										break;
+			memset(&pMob[conn].MOB, 0, sizeof(STRUCT_MOB));
+			memset(&pMob[conn].extra, 0, sizeof(STRUCT_MOBEXTRA));
+			SaveUser(conn, 1);
+			break;
 		} break;
 #pragma endregion
 #pragma region _MSG_GrindRankingData
@@ -1288,7 +1327,7 @@ void ProcessDBMessage(char *Msg)
 			Some change have happened in the ranking, notify the client.
 			*/
 			MSG_SendExpRanking *m = (MSG_SendExpRanking*)Msg;
-			
+
 			/* In the char sel Mode (0xC) the tmsrv still don't have the player data, so ignore the playerRank.Name check */
 			if (pUser[conn].Mode == USER_PLAY && m->PlayerRank.Name[0] != '\0' && !strcmp(pMob[conn].MOB.MobName, m->PlayerRank.Name))
 				pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_SendExpRanking));

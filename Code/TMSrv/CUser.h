@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #ifndef __CUSER__
 #define __CUSER__
@@ -42,6 +42,9 @@ public:
 	char AccountName[ACCOUNTNAME_LENGTH]; // 0 - 16
 	int Slot; // 16 // Number of the slot of the selected character
 	unsigned int IP; // 20
+
+	int IsAutoTrading; //28
+
 	int Mode; // 24
 	int TradeMode; // 28 // TradeMode ?
 	CPSock cSock; // 32 - 32
@@ -101,8 +104,8 @@ public:
 	int Unk_2736; // 2736
 	int Range; // 2740
 	int CastleStatus; // 2744
-	char Unk9[400]; // 2748 // LastSkillTick // size correto Ã© 400.
-	int Donate;
+	char Unk9[400]; // 2748 // LastSkillTick // size correto é 400.
+	int Donate; 
 	int MuteChat;
 	int KingChat;
 
@@ -113,6 +116,7 @@ public:
 	unsigned int PotionTime;
 
 	int OnlyTrade;
+	STRUCT_ACCOUNTFILE File;
 public:
 	CUser();
 	~CUser();

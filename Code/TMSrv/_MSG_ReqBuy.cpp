@@ -1,20 +1,4 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*/
+
 #include "ProcessClientMessage.h"
 
 void Exec_MSG_ReqBuy(int conn, char *pMsg)
@@ -58,7 +42,7 @@ void Exec_MSG_ReqBuy(int conn, char *pMsg)
 		return;
 	}
 
-	if (pMob[conn].TargetX >= pMob[targetID].TargetX - VIEWGRIDX && pMob[conn].TargetX <= pMob[targetID].TargetX + VIEWGRIDX&& pMob[conn].TargetY >= pMob[targetID].TargetY - VIEWGRIDY && pMob[conn].TargetY <= pMob[targetID].TargetY + VIEWGRIDY)
+	if (pMob[conn].TargetX >= pMob[targetID].TargetX - VIEWGRIDX && pMob[conn].TargetX <= pMob[targetID].TargetX + VIEWGRIDX && pMob[conn].TargetY >= pMob[targetID].TargetY - VIEWGRIDY && pMob[conn].TargetY <= pMob[targetID].TargetY + VIEWGRIDY)
 	{
 		if (itemPos < 0 || itemPos >= MAX_AUTOTRADE)
 			return;
@@ -86,7 +70,7 @@ void Exec_MSG_ReqBuy(int conn, char *pMsg)
 			return;
 		}
 
-						
+
 		if (pMob[conn].MOB.Coin < itemPrice)
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_Not_Enough_Money]);
@@ -103,7 +87,7 @@ void Exec_MSG_ReqBuy(int conn, char *pMsg)
 
 		int i = 0;
 
-		for (i = 0; i < MAX_CARRY-4; i++)
+		for (i = 0; i < MAX_CARRY - 4; i++)
 		{
 			if (pMob[conn].MOB.Carry[i].sIndex != 0)
 				continue;
@@ -130,13 +114,13 @@ void Exec_MSG_ReqBuy(int conn, char *pMsg)
 
 		char tmplog[2048];
 		BASE_GetItemCode(&m->item, tmplog);
-								
+
 		sprintf(temp, "autotrade_buy,target_name:%s price:%d item:%s", pUser[targetID].AccountName, itemPrice, tmplog);
 		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
 
 		int imposto = 0;
 		int price_end = itemPrice;
-							
+
 		if (itemPrice >= 100000)
 		{
 			imposto = (itemPrice / 100) *  itemTax;
@@ -145,14 +129,14 @@ void Exec_MSG_ReqBuy(int conn, char *pMsg)
 
 		pUser[targetID].AutoTrade.CarryPos[itemPos] = -1;
 
-		memset(&pUser[targetID].AutoTrade.Item, 0, sizeof(STRUCT_ITEM));
-						
+		memset(&pUser[targetID].AutoTrade.Item[itemPos], 0, sizeof(STRUCT_ITEM));
+
 		pUser[targetID].AutoTrade.Coin[itemPos] = 0;
-							
+
 		memset(&pUser[targetID].Cargo[StorageSlot], 0, sizeof(STRUCT_ITEM));
-							
+
 		SendItem(targetID, ITEM_PLACE_CARGO, StorageSlot, &pUser[targetID].Cargo[StorageSlot]);
-							
+
 		pMob[conn].MOB.Coin -= itemPrice;
 
 		if (pUser[targetID].Coin < 2000000000)
@@ -161,6 +145,17 @@ void Exec_MSG_ReqBuy(int conn, char *pMsg)
 		SendEtc(conn);
 		SendCargoCoin(targetID);
 		SaveUser(targetID, 1);
+
+		if (pUser[targetID].AutoTrade.Item[0].sIndex == 0 && pUser[targetID].AutoTrade.Item[1].sIndex == 0 &&
+			pUser[targetID].AutoTrade.Item[2].sIndex == 0 && pUser[targetID].AutoTrade.Item[3].sIndex == 0 &&
+			pUser[targetID].AutoTrade.Item[4].sIndex == 0 && pUser[targetID].AutoTrade.Item[5].sIndex == 0 &&
+			pUser[targetID].AutoTrade.Item[6].sIndex == 0 && pUser[targetID].AutoTrade.Item[7].sIndex == 0 &&
+			pUser[targetID].AutoTrade.Item[8].sIndex == 0 && pUser[targetID].AutoTrade.Item[9].sIndex == 0 &&
+			pUser[targetID].AutoTrade.Item[10].sIndex == 0) 
+		{ 
+			RemoveTrade(targetID);
+			RemoveTrade(conn);
+		}
 
 		if (target_village >= 0 && target_village < 5)
 		{

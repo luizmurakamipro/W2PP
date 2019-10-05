@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 #include <stdio.h>
@@ -41,6 +41,7 @@
 
 void CWarTower::GuildProcess(tm *timeinfo)
 {
+#pragma region Guerra de Torres
 	if (NewbieEventServer == 1 && timeinfo->tm_wday != 0 && timeinfo->tm_wday != 6 && timeinfo->tm_hour == GTorreHour)
 	{
 		if (GTorreState == 0 && timeinfo->tm_min <= 5)
@@ -57,14 +58,18 @@ void CWarTower::GuildProcess(tm *timeinfo)
 
 			GenerateMob(GTORRE, 0, 0);
 
+			//CreateMob("Torre", 2507, 1873, "npc", 0);
+
 			SendNotice(g_pMessageStringTable[_DN_BASEWORSTART]);
 			GTorreState = 2;
 		}
 
-		//A Guerra acabou a guilda que estÃ¡ defendendo a torre recebe 50 de fama.
+		/*//A Guerra acabou, a guilda que está defendendo a torre recebe 100 de fama.
 		if (GTorreState == 2 && timeinfo->tm_min == 59)
 		{
-			ClearArea(2445, 1850, 2546, 1920);
+			SendNotice("Guerra de Torres finalizada.");
+
+			ClearArea(2445, 1850, 2546, 1920); // Precaução.
 
 			for (int i = MAX_USER; i < MAX_MOB; i++)
 			{
@@ -103,8 +108,50 @@ void CWarTower::GuildProcess(tm *timeinfo)
 
 			GTorreState = 0;
 			GTorreGuild = 0;
+		}*/
+	}
+#pragma endregion
+#pragma region Guerra de Reinos
+	if (NewbieEventServer == 1 && timeinfo->tm_wday == 6 && timeinfo->tm_hour == RvRHour)
+	{
+		if (RvRState == 0 && timeinfo->tm_min <= 5)
+		{
+			sprintf(temp, g_pMessageStringTable[_DD_KINGDOMWAR_BEGIN], 5);
+			SendNotice(temp);
+			RvRState = 1;
+		}
+		if (RvRState == 1 && timeinfo->tm_min >= 6)
+		{
+			//GenerateMob(RVRTORRE_1, 0, 0);
+			//GenerateMob(RVRTORRE_2, 0, 0);
+			CreateMob("Torre_", 1075, 2126, "npc", 0);
+			CreateMob("Torre__", 1224, 1969, "npc", 0);
+			SendNotice(g_pMessageStringTable[_DD_KINGDOMWAR_START]);
+			RvRState = 2;
+			RvRRedPoint = 0;
+			RvRBluePoint = 0;
+		}
+
+		if (RvRState == 2 && timeinfo->tm_min >= 29)
+			RvRState = 3;
+
+		if (RvRState == 3 && timeinfo->tm_min == 34)
+		{
+			ClearArea(1020, 1916, 1286, 2178);
+
+			for(int i = MAX_USER; i < MAX_MOB; i++)
+			{
+				if (!strcmp(pMob[i].MOB.MobName, "Torre ") || !strcmp(pMob[i].MOB.MobName, "Torre  "))
+					DeleteMob(i, 1);
+			}
+
+			SendNotice(g_pMessageStringTable[_DD_KINGDOMWAR_END]);
+			RvRState = 0;
+			RvRRedPoint = 0;
+			RvRBluePoint = 0;
 		}
 	}
+#pragma endregion
 }
 
 void CWarTower::MobKilled(int target, int conn, int PosX, int PosY)
@@ -112,6 +159,7 @@ void CWarTower::MobKilled(int target, int conn, int PosX, int PosY)
 	int GenerateID = pMob[target].GenerateIndex;
 
 	if (GenerateID == GTORRE && GTorreState)
+//	if (!strcmp(pMob[target].MOB.MobName, "Torre") && GTorreState)
 	{
 		if (pMob[conn].MOB.Guild)
 		{
@@ -123,7 +171,8 @@ void CWarTower::MobKilled(int target, int conn, int PosX, int PosY)
 
 			BASE_GetGuildName(Group, usGuild, guildname);
 
-			sprintf(temp, g_pMessageStringTable[_SS_BASEWORKILLTOWER], pMob[conn].MOB.MobName, guildname);
+			//sprintf(temp, g_pMessageStringTable[_SS_BASEWORKILLTOWER], pMob[conn].MOB.MobName, guildname); original faze uq
+			sprintf(temp, "A Guild [%s] avançou no território da batalha!", guildname);
 			SendNotice(temp);
 
 			GTorreGuild = pMob[conn].MOB.Guild;
@@ -132,11 +181,13 @@ void CWarTower::MobKilled(int target, int conn, int PosX, int PosY)
 		ClearArea(2445, 1850, 2546, 1920);
 
 		GenerateMob(GTORRE, 0, 0);
+		//CreateMob("Torre", 2507, 1873, "npc", 0);
 	}
 }
 
 void CWarTower::GGenerateMob(int index, int PosX, int PosY, int tmob)
 {
+	//if (!strcmp(pMob[index].MOB.MobName, "Torre") && GTorreGuild)
 	if (index == GTORRE && GTorreGuild)
 	{
 		pMob[tmob].MOB.Guild = GTorreGuild;

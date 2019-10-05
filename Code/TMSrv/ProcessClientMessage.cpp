@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 #include <stdio.h>
@@ -38,6 +38,11 @@
 void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 {
 	MSG_STANDARD *std = (MSG_STANDARD *)pMsg;
+
+	//if (std->ID < MAX_USER)
+	//	printf("RECV-> Code: %X - Size: %d - Index: %d \n", std->Type, std->Size, std->ID);
+
+	//printf("Pacote: %X - Tamanho: %d - Index: %d\n\n", std->Type, std->Size, std->ID);
 
 	if ((std->ID < 0) || (std->ID >= MAX_USER)) 
 	{	
@@ -251,6 +256,11 @@ void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 		Exec_MSG_CombineItemTiny(conn, pMsg);
 		break;
 
+	case _MSG_CombineDedekinto:
+	case _MSG_CombineDedekinto2:
+		Exec_MSG_CombineDedekinto(conn, pMsg);
+		break;
+
 	case _MSG_CombineItemShany:
 		Exec_MSG_CombineItemShany(conn, pMsg);
 		break;
@@ -266,6 +276,10 @@ void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 	case _MSG_CombineItemOdin:
 	case _MSG_CombineItemOdin2:
 		Exec_MSG_CombineItemOdin(conn, pMsg);
+		break;
+
+	case _MSG_MestreGrifo:
+		Exec_MSG_MestreGrifo(conn, pMsg);
 		break;
 
 	case _MSG_DeleteItem:
@@ -306,6 +320,10 @@ void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 
 	case _MSG_PutoutSeal:
 		Exec_MSG_PutoutSeal(conn, pMsg);
+		break;
+
+	case _MSG_AnswerQuiz:
+		Exec_MSG_Quiz(conn, pMsg);
 		break;
 
 	}

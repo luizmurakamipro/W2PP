@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -53,11 +54,11 @@ void Exec_MSG_SendReqParty(int conn, char *pMsg)
 		return;
 	}
 
-	if(pUser[conn].OnlyTrade)
+	/*if(pUser[conn].OnlyTrade)
 	{
 		SendClientMessage(conn, g_pMessageStringTable[_NN_ONLYTRADE]);
 		return;
-	}
+	}*/
 
 	int index = 0;
 	
@@ -68,7 +69,7 @@ void Exec_MSG_SendReqParty(int conn, char *pMsg)
 			int lvl = pMob[targetID].extra.ClassMaster == ARCH || pMob[targetID].extra.ClassMaster == MORTAL ? pMob[targetID].MOB.BaseScore.Level : pMob[targetID].MOB.BaseScore.Level + MAX_CLEVEL;
 			int leaderlv = pMob[conn].extra.ClassMaster == ARCH || pMob[conn].extra.ClassMaster == MORTAL ? pMob[conn].MOB.BaseScore.Level : pMob[conn].MOB.BaseScore.Level + MAX_CLEVEL;
 			
-			if (lvl >= leaderlv - PARTY_DIF && lvl < leaderlv + PARTY_DIF || lvl >= 1000 || leaderlv >= 1000 || pMob[targetID].extra.ClassMaster == pMob[conn].extra.ClassMaster) 
+			if (lvl >= leaderlv - PARTY_DIF && lvl < leaderlv + PARTY_DIF || lvl >= 1000 || leaderlv >= 1000) //|| pMob[targetID].extra.ClassMaster == pMob[conn].extra.ClassMaster) 
 			{
 				if (!BrState || conn >= MAX_USER || BRItem <= 0 || pMob[conn].TargetX < 2604
 					|| pMob[conn].TargetY < 1708 || pMob[conn].TargetX > 2648 || pMob[conn].TargetY > 1744)

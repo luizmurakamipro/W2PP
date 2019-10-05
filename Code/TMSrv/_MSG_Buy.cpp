@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -70,9 +70,36 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 	if (itemIndex <= 0 || itemIndex >= MAX_ITEMLIST)
 		return;
 
+	if (strcmp(pMob[TargetID].MOB.MobName, "Fame FoemaSB") == 0 || 
+		strcmp(pMob[TargetID].MOB.MobName, "Fame BeastSB") == 0 || 
+		strcmp(pMob[TargetID].MOB.MobName, "Fame HunterSB") == 0 ||
+		strcmp(pMob[TargetID].MOB.MobName, "Fame TransSB") == 0)
+	{
+		if (itemIndex >= 5500 && itemIndex <= 5547)
+		{
+			if (pMob[conn].extra.Fame < 2000)
+			{
+				SendClientMessage(conn, "You need 2000 Fame to complete the purchase!");
+				return;
+			}
+			else
+			{
+				pMob[conn].extra.Fame -= 2000;
+
+				char tmplog[2048];
+				BASE_GetItemCode(ItemMob, tmplog);
+
+				sprintf(temp, "buy_npc,npc:%s price:%d item:%s", pMob[TargetID].MOB.MobName, 2000, tmplog);
+				ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
+
+				SendItem(conn, ITEM_PLACE_CARRY, m->MyInvenPos, &pMob[conn].MOB.Carry[m->MyInvenPos]);
+			}
+		}
+	}
+
 	int Donate = BASE_GetItemAbility(ItemMob, EF_DONATE);
 
-	if(Donate)
+	if (Donate)
 	{
 		if (Donate > pUser[conn].Donate)
 		{
@@ -125,7 +152,7 @@ LABEL_BUY1:
 	int Desconto = 0;
 	int TargetVillage = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
 	int Guild = pMob[conn].MOB.Guild;
-					 
+
 	if (Price <= 1999999999 && TargetVillage >= 0 && TargetVillage < 5 && Guild > 0 && g_pGuildZone[TargetVillage].ChargeGuild == Guild)
 	{
 		Desconto = 30;
@@ -232,6 +259,11 @@ LABEL_BUY1:
 		}
 	}
 
+	if (itemIndex >= 2300 && itemIndex < 2330)
+	{
+		ItemMob->stEffect[1].cEffect = EF_INCUBATE;
+		ItemMob->stEffect[1].cValue = (rand() % 7 + 1);
+	}
 
 	if (Price >= 0)
 	{
@@ -239,14 +271,14 @@ LABEL_BUY1:
 
 		for (x = 0; x < MAX_MOB_MERC; x++)
 		{
-			//Verifica se o vendedor Ã© um mob mercador especial.
+			//Verifica se o vendedor é um mob mercador especial.
 			if (pMob[TargetID].GenerateIndex == pMobMerc[x].GenerateIndex)
 				break;
 		}
 
 		if (x != MAX_MOB_MERC)
-		{//O Vendedor Ã© um mob mercador especial, portanto ele verifica se ainda possui unidades daquele item 
-		 //se tiver ele diminui do stock caso contrÃ¡rio ele avisa que nÃ£o tem.
+		{//O Vendedor é um mob mercador especial, portanto ele verifica se ainda possui unidades daquele item 
+		 //se tiver ele diminui do stock caso contrário ele avisa que não tem.
 			if (pMobMerc[x].Stock[TargetInvenPos] == 0)
 			{
 				SendClientMessage(conn, g_pMessageStringTable[_NN_NOSTOCK]);
@@ -271,27 +303,39 @@ LABEL_BUY1:
 
 			}
 		}
-		pMob[conn].MOB.Coin -= Price;
-						 
+
+		if (MyInvenPos >= 0 && MyInvenPos < pMob[conn].MaxCarry && MyInvenPos < MAX_CARRY)
+			pMob[conn].MOB.Coin -= Price;
+
 		m->Coin = pMob[conn].MOB.Coin;
-						 
+
 		m->ID = ESCENE_FIELD;
-						 
+
 		pUser[conn].cSock.AddMessage((char*)m, m->Size);
 
 		SendEtc(conn);
-DonateBuy:
+	DonateBuy:
 
-		memcpy(&pMob[conn].MOB.Carry[MyInvenPos], ItemMob, sizeof(STRUCT_ITEM));
-		
-		char tmplog[2048];
-		BASE_GetItemCode(ItemMob, tmplog);
+		if (MyInvenPos >= 0 && MyInvenPos < pMob[conn].MaxCarry && MyInvenPos < MAX_CARRY)
+		{
+			memcpy(&pMob[conn].MOB.Carry[MyInvenPos], ItemMob, sizeof(STRUCT_ITEM));
 
-		sprintf(temp, "buy_npc,npc:%s price:%d item:%s", pMob[TargetID].MOB.MobName, Price, tmplog);
-		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);				 
-		
-		SendItem(conn, ITEM_PLACE_CARRY, m->MyInvenPos, &pMob[conn].MOB.Carry[m->MyInvenPos]);
-						 
+			//PutItem(conn, ItemMob);
+
+			char tmplog[2048];
+			BASE_GetItemCode(ItemMob, tmplog);
+
+			sprintf(temp, "buy_npc,npc:%s price:%d item:%s", pMob[TargetID].MOB.MobName, Price, tmplog);
+			ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
+
+			SendItem(conn, ITEM_PLACE_CARRY, m->MyInvenPos, &pMob[conn].MOB.Carry[m->MyInvenPos]);
+		}
+		else
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_You_Have_No_Space_To_Trade]);
+			return;
+		}
+
 		if (FREEEXP == -2)
 		{
 			sprintf(temp, "%s base:%d tax:%d(%d%%) discount:%d(%d%%)", g_pItemList[itemIndex].Name, Price2, bPrice, CityTax, Price, Desconto);

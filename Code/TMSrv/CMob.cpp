@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 
@@ -23,19 +23,21 @@
 #include "CMob.h"
 #include "Server.h"
 #include "GetFunc.h"
+#include "SendFunc.h"
 
 
 CMob::CMob()
 {
-	Mode			 = MOB_EMPTY;
-	LastX			 = 0xFFFFFFFF;
-	LastY			 = 0xFFFFFFFF;
-	Leader			 = 0;
-	WaitSec			 = 0;
-	PotionCount		 = 0;
-	Summoner		 = 0;
-	GuildDisable	 = 0;
-	LastReqParty	 = 0;
+	Mode = MOB_EMPTY;
+	LastX = 0xFFFFFFFF;
+	LastY = 0xFFFFFFFF;
+	Leader = 0;
+	WaitSec = 0;
+	PotionCount = 0;
+	Summoner = 0;
+	Evocation = 0;
+	GuildDisable = 0;
+	LastReqParty = 0;
 	ProcessorCounter = 0;
 
 	memset(&Tab, 0, sizeof(Tab));
@@ -52,83 +54,350 @@ void CMob::ProcessorSecTimer()
 {
 	//ProcessorCounter++;
 }
-
-int  CMob::StandingByProcessor(void)
+/*int	CMob::StandingByProcessor7556(void)
 {
-	int rt = FALSE;
+	int rt = 0;
 
-	if (RouteType == 5 || Affect[0].Type == 24)
+	/*if (MOB.BaseScore.MaxHp)
 	{
-		int Face = MOB.Equip[0].sIndex;
+	if (MOB.BaseScore.Hp <= 0 && Mode != MOB_COMBAT)
+	{
 
-		if (Leader == 0 && (Affect[0].Type == 24 || Face >= 315 && Face <= 345))
+	}
+	MOB.BaseScore.Hp--;
+	}
+
+	int Face = MOB.Equip[0].sIndex;
+
+	if (Affect[0].Type != 24 && Face == 358)
+	{
+		rt |= 1;
+		return rt;
+	}
+
+	if (RouteType == 5)
+	{
+		if (Leader > 0 && Leader <= MAX_USER)
 		{
-				rt |= 0x100;
-				return rt;
-		}
+			if (Affect[0].Type == 24 || Face >= 315 && Face <= 346)
+			{
+				int _summoner = Summoner;
 
-		if (Leader <= 0 || Leader >= MAX_USER)
+				if (_summoner > 0 && _summoner < MAX_USER)
+				{
+					int _leader = 0;
+
+					if (Leader == _summoner)
+						_leader = 1;
+
+					for (int i = 0; i < MAX_PARTY; i++)
+					{
+						if (pMob[Leader].PartyList[i] == _summoner)
+							_leader = 1;
+					}
+
+					if (_leader)
+					{
+						if (Affect[0].Type != 24 || Affect[0].Value)
+						{
+							if (pUser[_summoner].Mode == USER_PLAY)
+							{
+								int Distance = BASE_GetDistance(TargetX, TargetY, pMob[_summoner].TargetX, pMob[_summoner].TargetY);
+
+								if (Distance < 20)
+								{
+									if (Distance <= 2 || Distance >= 20)
+									{
+										return rt;
+									}
+									else
+									{
+										SegmentX = pMob[_summoner].TargetX;
+										SegmentY = pMob[_summoner].TargetY;
+										GetTargetPos(_summoner);
+										rt = rt | 0x01;
+										return rt;
+									}
+								}
+								else
+								{
+									NextX = pMob[_summoner].TargetX;
+									NextY = pMob[_summoner].TargetY;
+									rt = rt | 0x02;
+									return rt;
+								}
+							}
+							else
+							{
+								rt |= 1;
+								return rt;
+							}
+						}
+						else
+						{
+							rt |= 1;
+							return rt;
+						}
+					}
+					else
+					{
+						rt |= 1;
+						return rt;
+					}
+				}
+				else
+				{
+					rt |= 1;
+					return rt;
+				}
+			}
+			else
+			{
+				rt |= 1;
+				return rt;
+			}
+		}
+		else
 		{
 			rt |= 1;
 			return rt;
 		}
-
-		if (Affect[0].Type == 24 || Face >= 315 && Face <= 345)
+	}
+	else
+	{
+		if (!Leader)
 		{
-			int summoner = Summoner;
+			int enemy = GetEnemyFromView();
 
-			if (summoner <= 0 || summoner >= MAX_USER)
+			if (enemy)
+			{
+				if (TargetX < SegmentX + 12 && TargetX > SegmentX - 12 && TargetY < SegmentY + 12 && TargetY > SegmentY - 12)
+				{
+					return enemy | 0x10000000;
+				}
+			}
+		}
+		if (RouteType == 6 && TargetX == SegmentX && TargetY == SegmentY)
+		{
+			return 0;
+		}
+		if (SegmentX == TargetX && SegmentY == TargetY)
+		{
+			if (WaitSec <= 0 || RouteType == 6)
+			{
+				int Seg = SegmentWait[SegmentProgress];
+
+				if (Seg > 0)
+				{
+					WaitSec = Seg;
+					return rt;
+				}
+			}
+			else
+			{
+				WaitSec -= 6;
+
+				if (WaitSec > 0)
+				{
+					if (RouteType && TargetX != SegmentListX[0] || TargetY != SegmentListY[0])
+					{
+						if (MOB.BaseScore.AttackRun & 0xF)
+						{
+							rt |= 0x10;
+							return rt;
+						}
+						else
+						{
+							return 0;
+						}
+					}
+					else
+					{
+						return 0;
+					}
+
+				}
+				WaitSec = 0;
+			}
+
+			int SetSeg = SetSegment();
+
+			if (SetSeg == 1)
+			{
+				return rt;
+			}
+
+			if (SetSeg == 2)
+			{
+				return rt | 1;
+			}
+		}
+
+		GetNextPos(0);
+
+		if (NextX != TargetX || NextY != TargetY)
+		{
+			return rt | 1;
+		}
+		else
+		{
+			SetSegment();
+			return rt | 1;
+		}
+	}
+	return rt;
+}*/
+int  CMob::StandingByProcessor(void)
+{
+	int rt = FALSE, Face = MOB.Equip[0].sIndex;
+
+	/*if (Affect[0].Type != 24 && Face == 358)
+	{
+		rt |= 1;
+		return rt;
+	}*/
+
+	if (RouteType == 5 || Affect[0].Type == 24)
+	{
+		// Condor, Dragao Negro, Gorila, VeridFinal, Urso, Tigre, Succubus, Javali e Lobo
+		if (Evocation)
+		{
+			if (Leader == 0 && (Affect[0].Type == 24 || Face >= 315 && Face <= 345))
+			{
+				rt |= 0x100;
+				return rt;
+			}
+
+			if (Leader <= 0 || Leader >= MAX_USER)
 			{
 				rt |= 1;
 				return rt;
 			}
 
-			int _leader = 0;
-			if (Leader == summoner)
-				_leader = 1;
-
-			for (int i = 0; i < MAX_PARTY; ++i)
+			//if (RouteType == 5 || Affect[0].Type == 24 || Face >= 315 && Face <= 345)
+			if (Affect[0].Type == 24 || Face >= 315 && Face <= 345)
 			{
-				if (pMob[Leader].PartyList[i] == summoner)
+				int summoner = Summoner;
+
+				if (summoner <= 0 || summoner >= MAX_USER)
+				{
+					rt |= 1;
+					return rt;
+				}
+
+				int _leader = 0;
+				if (Leader == summoner)
 					_leader = 1;
+
+				for (int i = 0; i < MAX_PARTY; ++i)
+				{
+					if (pMob[Leader].Evocations[i] == summoner)
+						_leader = 1;
+				}
+
+				if (_leader == 0)
+				{
+					rt |= 1;
+					return rt;
+				}
+
+				if (pUser[summoner].Mode != USER_PLAY)
+				{
+					rt |= 1;
+					return rt;
+				}
+
+				int Distance = BASE_GetDistance(TargetX, TargetY, pMob[summoner].TargetX, pMob[summoner].TargetY);
+				if (Distance >= 13)
+				{
+					NextX = pMob[summoner].TargetX;
+					NextY = pMob[summoner].TargetY;
+					rt = rt | 0x02;
+					return rt;
+				}
+
+				if (Distance <= 4 || Distance >= 13)
+					return rt;
+
+				SegmentX = pMob[summoner].TargetX;
+				SegmentY = pMob[summoner].TargetY;
+
+				GetTargetPos(summoner);
+				rt = rt | 0x01;
+				return rt;
+			}
+		}
+		else
+		{
+			if (Leader == 0 && (Affect[0].Type == 24 || Face >= 315 && Face <= 345))
+			{
+				rt |= 0x100;
+				return rt;
 			}
 
-			if (_leader == 0)
+			if (Leader <= 0 || Leader >= MAX_USER)
 			{
 				rt |= 1;
 				return rt;
 			}
 
-			if (pUser[summoner].Mode != USER_PLAY)
+			//if (RouteType == 5 || Affect[0].Type == 24 || Face >= 315 && Face <= 345)
+			if (Affect[0].Type == 24 || Face >= 315 && Face <= 345)
 			{
-				rt |= 1;
+				int summoner = Summoner;
+
+				if (summoner <= 0 || summoner >= MAX_USER)
+				{
+					rt |= 1;
+					return rt;
+				}
+
+				int _leader = 0;
+				if (Leader == summoner)
+					_leader = 1;
+
+				for (int i = 0; i < MAX_PARTY; ++i)
+				{
+					if (pMob[Leader].PartyList[i] == summoner)
+						_leader = 1;
+				}
+
+				if (_leader == 0)
+				{
+					rt |= 1;
+					return rt;
+				}
+
+				if (pUser[summoner].Mode != USER_PLAY)
+				{
+					rt |= 1;
+					return rt;
+				}
+
+				int Distance = BASE_GetDistance(TargetX, TargetY, pMob[summoner].TargetX, pMob[summoner].TargetY);
+				if (Distance >= 13)
+				{
+					NextX = pMob[summoner].TargetX;
+					NextY = pMob[summoner].TargetY;
+					rt = rt | 0x02;
+					return rt;
+				}
+
+				if (Distance <= 4 || Distance >= 13)
+					return rt;
+
+				SegmentX = pMob[summoner].TargetX;
+				SegmentY = pMob[summoner].TargetY;
+
+				GetTargetPos(summoner);
+				rt = rt | 0x01;
 				return rt;
 			}
-
-			int Distance = BASE_GetDistance(TargetX, TargetY, pMob[summoner].TargetX, pMob[summoner].TargetY);
-			if (Distance >= 13)
-			{
-				NextX = pMob[summoner].TargetX;
-				NextY = pMob[summoner].TargetY;
-				rt = rt | 0x02;
-				return rt;
-			}
-
-			if (Distance <= 4 || Distance >= 13)
-				return rt;
-
-			SegmentX = pMob[summoner].TargetX;
-			SegmentY = pMob[summoner].TargetY;
-
-			GetTargetPos(summoner);
-			rt = rt | 0x01;
-			return rt;
 		}
 
 		rt = rt |= 1;
 		return rt;
 	}
-	
 	else
 	{
 		if (Leader == 0)
@@ -137,17 +406,17 @@ int  CMob::StandingByProcessor(void)
 
 			if (enemy && TargetX <= SegmentX + HALFGRIDX && TargetX >= SegmentX - HALFGRIDX && TargetY >= SegmentY - HALFGRIDY && TargetY <= SegmentY + HALFGRIDY)
 				return enemy | 0x10000000;
-			
+
 		}
-		
+
 		if (RouteType == 6 && TargetX == SegmentX && TargetY == SegmentY)
 			return 0;
 
 		if (SegmentX == TargetX && SegmentY == TargetY)
 		{
-			if(SegmentProgress == 4 && RouteType == 3)
+			if (SegmentProgress == 4 && RouteType == 3)
 			{
-				if(WaitSec <= 0)
+				if (WaitSec <= 0)
 					return 0x10000;
 				else
 					WaitSec -= 6;
@@ -181,7 +450,7 @@ int  CMob::StandingByProcessor(void)
 				WaitSec = 0;
 			}
 			int SetSeg = SetSegment();
-			
+
 			if (SetSeg == 1)
 				return 0;
 
@@ -192,21 +461,150 @@ int  CMob::StandingByProcessor(void)
 				return rt | 1;
 		}
 
-		GetNextPos(0);
+		if (MOB.Clan == 3)
+			CGetNextRandomPos();
+		else
+			GetNextPos(0);
 
 		if (NextX != TargetX || NextY != TargetY)
 			return rt | 1;
-
 		else
 		{
 			SetSegment();
 			return rt;
 		}
 	}
+
 	return rt;
 }
 
-int  CMob::BattleProcessor()
+/*int CMob::BattleProcessor()
+{
+	int Face = MOB.Equip[0].sIndex;
+
+	if (Affect[0].Type == 24 || Face != 358)
+	{
+		SelectTargetFromEnemyList();
+
+		if (CurrentTarget)
+		{
+			if (RouteType == 5)
+			{
+				if (Leader <= 0 || Leader >= 1000)
+					return 32;
+
+				int _summoner = Summoner;
+
+				if (_summoner <= 0 || _summoner >= 1000)
+					return 32;
+
+				int hp = MOB.CurrentScore.Hp;
+
+				if (hp <= 0)
+					return 32;
+
+				if (Affect[0].Type != 24 && (Face < 315 || Face > 346))
+					return 32;
+
+				int isSummon = 0;
+
+				if (Leader == _summoner)
+					isSummon = 1;
+
+				for (int i = 0; i < MAX_PARTY; i++)
+				{
+					if (pMob[Leader].PartyList[i] == _summoner)
+						isSummon = 1;
+				}
+
+				if (!isSummon)
+					return 32;
+
+				int distance = BASE_GetDistance(TargetX, TargetY, pMob[_summoner].TargetX, pMob[_summoner].TargetY);
+
+				if (distance >= 20)
+				{
+					NextX = pMob[_summoner].TargetX;
+					NextY = pMob[_summoner].TargetY;
+					return 2;
+				}
+			}
+
+			int BaseInt = MOB.BaseScore.Int;
+
+			if (BaseInt < rand() % 100)
+				return 65536;
+
+			int BaseDex = MOB.BaseScore.Dex;
+			int tx = pMob[CurrentTarget].TargetX;
+			int ty = pMob[CurrentTarget].TargetY;
+			int Range = GenerateIndex == KEFRA_BOSS ? 25 : BASE_GetMobAbility(&MOB, EF_RANGE);
+			int dis = BASE_GetDistance(TargetX, TargetY, tx, ty);
+
+			//if (sub_401BE5(&MOB))
+			//if (GetTargetPos7556(0))
+			//	Range = 26;
+			//if (sub_401BE5(&pMob[1724 * *(WORD *)(&MOB + 1504)]) && (Face == 307 || Face == 245))
+			//if (GetTargetPos7556(CurrentTarget) && (Face == 307 || Face == 245))
+				//Range = 26;
+
+			if (RouteType != 5 && (TargetX > SegmentX + HALFGRIDX || TargetX < SegmentX - HALFGRIDX || TargetY > SegmentY + HALFGRIDY || TargetY < SegmentY - HALFGRIDY))
+			{
+				CurrentTarget = 0;
+
+				for (int i = 0; i < MAX_ENEMY; i++)
+					EnemyList[i] = 0;
+
+				Mode = 4;
+
+				GetNextPos();
+
+				if (NextX != TargetX || NextY != TargetY)
+					return 16;
+				else
+					return 0;
+			}
+
+			if (dis <= Range)
+			{
+				int _rand = rand() % 100;
+
+				if (Range >= 4 && dis <= 4 && _rand > BaseDex)// && MOB.BaseScore.AttackRun & 0xF)
+					return 256;
+
+				int btx = tx;
+				int	bty = ty;
+
+						//if (!GetTargetPos7556(0))
+						//{
+						//	int UNK_1 = 0;
+
+						//	if (TargetX >= 2341 && TargetX <= 2393 && TargetY >= 3907 && TargetY <= 3954) //&& *(DWORD*)(&MOB + 1632))
+						//		UNK_1 = 1;
+
+						//	if (!UNK_1)
+						//		BASE_GetHitPosition(TargetX, TargetY, &tx, &ty, *pHeightGrid);
+						//}
+
+				if (TargetX == btx && TargetY == bty)
+					return 4096;
+				else
+					return 256;
+			}
+			else
+				return 1;
+		}
+		else
+		{
+			Mode = 4;
+			return 0;
+		}
+	}
+	else
+		return 32;
+}*/
+
+int CMob::BattleProcessor()
 {
 	SelectTargetFromEnemyList();
 
@@ -217,54 +615,90 @@ int  CMob::BattleProcessor()
 		return 0;
 	}
 
+	int Face = MOB.Equip[0].sIndex;
+
 	if (RouteType == 5)
 	{
-		if (Leader <= 0 || Leader >= MAX_USER)
-			return 32;
-
-		int SummonerId = Summoner;
-
-		if (SummonerId <= 0 || SummonerId >= MAX_USER)
-			return 256;
-
-		int IsSummon = 0;
-
-		if (Leader == SummonerId)
-			IsSummon = 1;
-
-		for (int i = 0; i < MAX_PARTY; i++)
+		if (Evocation)
 		{
-			if (pMob[Leader].PartyList[i] == SummonerId)
+			if (Leader <= 0 || Leader >= MAX_USER)
+				return 32;
+
+			int SummonerId = Summoner;
+
+			if (SummonerId <= 0 || SummonerId >= MAX_USER)
+				return 256;
+
+			int IsSummon = 0;
+
+			if (Leader == SummonerId)
 				IsSummon = 1;
+
+			for (int i = 0; i < MAX_PARTY; i++)
+			{
+				if (pMob[Leader].Evocations[i] == SummonerId)
+					IsSummon = 1;
+			}
+
+			if (IsSummon == 0)
+				return 256;
+
+			int dis = BASE_GetDistance(TargetX, TargetY, pMob[SummonerId].TargetX, pMob[SummonerId].TargetY);
+
+			if (dis >= 20)
+			{
+				NextX = pMob[SummonerId].TargetX;
+				NextY = pMob[SummonerId].TargetY;
+				return 2;
+			}
 		}
-
-		if (IsSummon == 0)
-			return 256;
-
-		int dis = BASE_GetDistance(TargetX, TargetY, pMob[SummonerId].TargetX, pMob[SummonerId].TargetY);
-
-		if (dis >= 20)
+		else
 		{
-			NextX = pMob[SummonerId].TargetX;
-			NextY = pMob[SummonerId].TargetY;
-			return 2;
-		}
+			if (Leader <= 0 || Leader >= MAX_USER)
+				return 32;
 
+			int SummonerId = Summoner;
+
+			if (SummonerId <= 0 || SummonerId >= MAX_USER)
+				return 256;
+
+			int IsSummon = 0;
+
+			if (Leader == SummonerId)
+				IsSummon = 1;
+
+			for (int i = 0; i < MAX_PARTY; i++)
+			{
+				if (pMob[Leader].PartyList[i] == SummonerId)
+					IsSummon = 1;
+			}
+
+			if (IsSummon == 0)
+				return 256;
+
+			int dis = BASE_GetDistance(TargetX, TargetY, pMob[SummonerId].TargetX, pMob[SummonerId].TargetY);
+
+			if (dis >= 20)
+			{
+				NextX = pMob[SummonerId].TargetX;
+				NextY = pMob[SummonerId].TargetY;
+				return 2;
+			}
+		}
 	}
-	
+
 	int BaseInt = MOB.BaseScore.Int;
-	
+
 	if (BaseInt < rand() % 100)
-	{
 		return 0x010000;
-	}
-	
+
 	int BaseDex = MOB.BaseScore.Dex;
 	int tx = pMob[CurrentTarget].TargetX;
 	int ty = pMob[CurrentTarget].TargetY;
 	int Range = GenerateIndex == KEFRA_BOSS ? 25 : BASE_GetMobAbility(&MOB, EF_RANGE);
 	int dis = BASE_GetDistance(TargetX, TargetY, tx, ty);
 
+	//if (RouteType != 5 && (TargetX > SegmentX + 30 || TargetX < SegmentX - 30 || TargetY > SegmentY + 30 || TargetY < SegmentY - 30))
 	if (RouteType != 5 && (TargetX > SegmentX + HALFGRIDX || TargetX < SegmentX - HALFGRIDX || TargetY > SegmentY + HALFGRIDY || TargetY < SegmentY - HALFGRIDY))
 	{
 		CurrentTarget = 0;
@@ -283,6 +717,9 @@ int  CMob::BattleProcessor()
 	}
 	if (dis <= Range)
 	{
+		//if (GetEmptyMobGrid(0, &NextX, &NextY) == TRUE)
+		//	BASE_GetHitPosition(TargetX, TargetY, &tx, &ty, (char*)pHeightGrid);
+
 		int Rand = rand() % 100;
 
 		if (Range >= 4 && dis <= 4 && Rand > BaseDex)
@@ -291,14 +728,14 @@ int  CMob::BattleProcessor()
 		int bx = tx;
 		int by = ty;
 
-		//BASE_GetHitPosition(TargetX, TargetY, &tx, &ty, pHeightGrid);
-
 		if (tx == bx && ty == by)
 			return 4096;
 		else
 			return 256;
-		
 	}
+
+	if (Face == 358)
+		return 0;
 
 	return 1;
 }
@@ -309,29 +746,29 @@ void CMob::AddEnemyList(short TargetId)
 		return;
 
 	if (TargetId <= MAX_USER)
-	if (pMob[TargetId].MOB.Rsv & RSV_HIDE)
-		return;
+		if (pMob[TargetId].MOB.Rsv & RSV_HIDE)
+			return;
 
 	if (TargetId <= MAX_USER)
-	if (pMob[TargetId].MOB.Merchant & 1)
-		return;
+		if (pMob[TargetId].MOB.Merchant & 1)
+			return;
 
 	int i = 0;
 
 	for (i = 0; i < MAX_ENEMY; i++)
-	if (EnemyList[i] == TargetId)
-		return;
+		if (EnemyList[i] == TargetId)
+			return;
 
 	for (i = 0; i < MAX_ENEMY; i++)
-	if (EnemyList[i] == 0)
-		break;
+		if (EnemyList[i] == 0)
+			break;
 
 	if (i == MAX_ENEMY)
 		return;
 
 	EnemyList[i] = TargetId;
 
-	if(GenerateIndex == KEFRA_BOSS)
+	if (GenerateIndex == KEFRA_BOSS)
 	{
 		for (i = 0; i < MAX_USER; i++)
 		{
@@ -341,18 +778,18 @@ void CMob::AddEnemyList(short TargetId)
 			if (pMob[i].Mode == USER_EMPTY)
 				continue;
 
-			if (pMob[i].TargetX < (TargetX-30) || pMob[i].TargetX > (TargetX+30) || pMob[i].TargetY < (TargetY-30) || pMob[i].TargetY > (TargetY+30))
+			if (pMob[i].TargetX < (TargetX - 30) || pMob[i].TargetX >(TargetX + 30) || pMob[i].TargetY < (TargetY - 30) || pMob[i].TargetY >(TargetY + 30))
 				continue;
 
 			int c = 0;
 
 			for (c = 0; c < MAX_ENEMY; c++)
-			if (EnemyList[c] == TargetId)
-				return;
+				if (EnemyList[c] == TargetId)
+					return;
 
 			for (c = 0; c < MAX_ENEMY; c++)
-			if (EnemyList[c] == 0)
-				break;
+				if (EnemyList[c] == 0)
+					break;
 
 			if (c == MAX_ENEMY)
 				continue;
@@ -387,7 +824,7 @@ void CMob::SelectTargetFromEnemyList(void)
 	for (int i = 0; i < MAX_ENEMY; i++)
 		Enemy[i] = MAX_USER;
 
-	int dis = 6;
+	int dis = 7;
 
 	if (MOB.Clan == 4 || MOB.Clan == 7 || MOB.Clan == 8)
 		dis = 12;
@@ -395,7 +832,6 @@ void CMob::SelectTargetFromEnemyList(void)
 	if ((TargetX / 128) < 12 && (TargetY / 128) > 25)
 		dis = 8;
 
-	
 	if (GenerateIndex == KEFRA_BOSS)
 		dis = HALFGRIDX;
 
@@ -444,7 +880,7 @@ void CMob::SelectTargetFromEnemyList(void)
 		}
 		else
 			EnemyList[i] = 0;
-		
+
 	}
 
 	int NoTarget = MAX_USER;
@@ -467,6 +903,141 @@ void CMob::SelectTargetFromEnemyList(void)
 		CurrentTarget = nextenemy;
 }
 
+int CMob::SetSegment()
+{
+	int iterator;
+
+	if (RouteType == 6)
+	{
+		SegmentProgress = 0;
+		SegmentDirection = 0;
+		SegmentX = SegmentListX[SegmentProgress];
+		SegmentY = SegmentListY[SegmentProgress];
+		WaitSec = 0;
+		return 0;
+	}
+	else
+	{
+		if (RouteType >= 0 && RouteType <= 4)
+		{
+			while (1)
+			{
+				while (1)
+				{
+					while (1)
+					{
+						if (SegmentDirection)
+							SegmentProgress--;
+						else
+							SegmentProgress++;
+
+						if (SegmentProgress > -1)
+							break;
+
+						if (!RouteType)
+						{
+							SegmentDirection = 0;
+							SegmentProgress = 0;
+							iterator = 2;
+							goto LABEL_40;
+						}
+
+						if (RouteType == 1)
+						{
+							SegmentDirection = 0;
+							SegmentProgress = 0;
+						}
+						else
+						{
+							if (RouteType == 2)
+							{
+								SegmentDirection = 0;
+								SegmentProgress = 0;
+							}
+							else
+							{
+								if (RouteType == 3)
+								{
+									iterator = 2;
+									goto LABEL_40;
+								}
+								if (RouteType == 4)
+								{
+									goto LABEL_40;
+								}
+							}
+						}
+					}
+
+					if (SegmentProgress >= 5)
+						break;
+
+					if (SegmentListX[SegmentProgress])
+					{
+						iterator = 0;
+						goto LABEL_40;
+					}
+				}
+
+				if (!RouteType)
+					break;
+
+				if (RouteType == 1)
+				{
+					iterator = 2;
+					goto LABEL_40;
+				}
+
+				if (RouteType != 2 && RouteType != 3)
+				{
+					if (RouteType == 4)
+						SegmentProgress = -1;
+				}
+				else
+				{
+					SegmentProgress = 4;
+					SegmentDirection = 1;
+				}
+			}
+
+			SegmentProgress = 4;
+			Mode = 4;
+			MOB.BaseScore.Merchant = MOB.Merchant;
+			int len = strlen(Route);
+			int rt = 0;
+
+			if (len > 0)
+			{
+				rt = Route[len];
+
+				rt = rt - 48;
+
+				if (rt >= 1)
+				{
+					if (rt <= 9)
+					{
+						rt = rt * 16;
+
+						MOB.Merchant |= rt;
+					}
+				}
+			}
+			GetCurrentScore(MAX_USER);
+			iterator = 1;
+
+		LABEL_40:
+			SegmentX = SegmentListX[SegmentProgress];
+			SegmentY = SegmentListY[SegmentProgress];
+
+			WaitSec = 0;
+			return iterator;
+		}
+		else
+			return 0;
+	}
+}
+
+/*
 int CMob::SetSegment()
 {
 	if (RouteType == 6)
@@ -493,7 +1064,7 @@ int CMob::SetSegment()
 			SegmentProgress = SegmentProgress + 1;
 		else
 			SegmentProgress = SegmentProgress - 1;
-		
+
 		if (SegmentProgress == -1)
 		{
 			if (RouteType == 0)
@@ -550,7 +1121,7 @@ int CMob::SetSegment()
 						rt = (rt & 0xFF) << 4;
 
 						MOB.Merchant = MOB.Merchant | (rt & 0xFF);
-						
+
 					}
 				}
 
@@ -559,7 +1130,7 @@ int CMob::SetSegment()
 				iterator = 1;
 				break;
 			}
-			
+
 			if (RouteType == 1)
 			{
 				iterator = 2;
@@ -594,7 +1165,7 @@ int CMob::SetSegment()
 	WaitSec = 0;
 	return iterator;
 }
-
+*/
 void CMob::GetCurrentScore(int idx)
 {
 	if (idx < MAX_USER)
@@ -602,53 +1173,72 @@ void CMob::GetCurrentScore(int idx)
 
 	if (idx < MAX_USER && MOB.BaseScore.Level < 2000)
 	{
-		MOB.Resist[0] = BASE_GetMobAbility(&MOB, EF_RESIST1) >= 100 ? 100 : BASE_GetMobAbility(&MOB, EF_RESIST1);
-		MOB.Resist[1] = BASE_GetMobAbility(&MOB, EF_RESIST2) >= 100 ? 100 : BASE_GetMobAbility(&MOB, EF_RESIST2);
-		MOB.Resist[2] = BASE_GetMobAbility(&MOB, EF_RESIST3) >= 100 ? 100 : BASE_GetMobAbility(&MOB, EF_RESIST3);
-		MOB.Resist[3] = BASE_GetMobAbility(&MOB, EF_RESIST4) >= 100 ? 100 : BASE_GetMobAbility(&MOB, EF_RESIST4);
+		MOB.Resist[0] = BASE_GetMobAbility(&MOB, EF_RESIST1) >= 200 ? 200 : BASE_GetMobAbility(&MOB, EF_RESIST1);
+		MOB.Resist[1] = BASE_GetMobAbility(&MOB, EF_RESIST2) >= 200 ? 200 : BASE_GetMobAbility(&MOB, EF_RESIST2);
+		MOB.Resist[2] = BASE_GetMobAbility(&MOB, EF_RESIST3) >= 200 ? 200 : BASE_GetMobAbility(&MOB, EF_RESIST3);
+		MOB.Resist[3] = BASE_GetMobAbility(&MOB, EF_RESIST4) >= 200 ? 200 : BASE_GetMobAbility(&MOB, EF_RESIST4);
 
-		if(MOB.Resist[0] >= 100)
-			MOB.Resist[0] = 100;
+		if (MOB.Resist[0] >= 200)
+			MOB.Resist[0] = 200;
 
-		if(MOB.Resist[1] >= 100)
-			MOB.Resist[1] = 100;
+		if (MOB.Resist[1] >= 200)
+			MOB.Resist[1] = 200;
 
-		if(MOB.Resist[2] >= 100)
-			MOB.Resist[2] = 100;
+		if (MOB.Resist[2] >= 200)
+			MOB.Resist[2] = 200;
 
-		if(MOB.Resist[3] >= 100)
-			MOB.Resist[3] = 100;
+		if (MOB.Resist[3] >= 200)
+			MOB.Resist[3] = 200;
 
 		MOB.Equip[0].stEffect[0].cEffect = 0;
 		MOB.Equip[0].stEffect[0].cValue = 0;
 
 		MOB.Rsv = 0;
 
-
-
 	}
 	else if (idx >= MAX_USER)
 	{
-		int geneidx = GenerateIndex;
+		int GenerateID = GenerateIndex;
 
-		if (geneidx > 0 && geneidx < MAX_NPCGENERATOR)
+		if (GenerateID <= 0 || GenerateID >= 7000)
 		{
-			MOB.Resist[0] = mNPCGen.pList[geneidx].Leader.Resist[0];
-			MOB.Resist[1] = mNPCGen.pList[geneidx].Leader.Resist[1];
-			MOB.Resist[2] = mNPCGen.pList[geneidx].Leader.Resist[2];
-			MOB.Resist[3] = mNPCGen.pList[geneidx].Leader.Resist[3];
+			if (MOB.Equip[0].sIndex == 220 || MOB.Equip[0].sIndex == 357 || MOB.Equip[0].sIndex == 219)
+			{
+				MOB.Resist[0] = 90;
+				MOB.Resist[1] = 90;
+				MOB.Resist[2] = 90;
+				MOB.Resist[3] = 90;
+			}
+		}
+		else
+		{
+			int R0 = mNPCGen.pList[GenerateID].Leader.Resist[0];
 
-			if(MOB.Resist[0] > 100)
-				MOB.Resist[0] = 50;
+			if (R0 > 100)
+				R0 = 100;
 
-			if(MOB.Resist[1] > 100)
-				MOB.Resist[1] = 50;
+			MOB.Resist[0] = R0;
 
-			if(MOB.Resist[2] > 100)
-				MOB.Resist[2] = 50;
+			int R1 = mNPCGen.pList[GenerateID].Leader.Resist[1];
 
-			if(MOB.Resist[3] > 100)
-				MOB.Resist[3] = 50;
+			if (R1 > 100)
+				R1 = 100;
+
+			MOB.Resist[1] = R1;
+
+			int R2 = mNPCGen.pList[GenerateID].Leader.Resist[2];
+
+			if (R2 > 100)
+				R2 = 100;
+
+			MOB.Resist[2] = R2;
+
+			int R3 = mNPCGen.pList[GenerateID].Leader.Resist[3];
+
+			if (R3 > 100)
+				R3 = 100;
+
+			MOB.Resist[3] = R3;
 		}
 
 		MOB.Rsv = 0;
@@ -669,47 +1259,47 @@ void CMob::GetCurrentScore(int idx)
 	ForceMobDamage = 0;
 	Accuracy = 0;
 	HpAbs = 0;
-	
+	CitizenDrop = 0;
 
 	BASE_GetCurrentScore(MOB, Affect, &extra, &ExpBonus, &ForceMobDamage, idx >= MAX_USER ? 1 : 0, &Accuracy, &HpAbs, &ForceDamage);
 
 	//Fada Verde 3D
-	if(MOB.Equip[13].sIndex == 3900)
+	if (MOB.Equip[13].sIndex == 3900)
 		ExpBonus += 16;
 
 	//Fada Azul 3D
-	if(MOB.Equip[13].sIndex == 3901)
+	if (MOB.Equip[13].sIndex == 3901)
 		DropBonus += 32;
 
 	//Fada Vermelha
-	if(MOB.Equip[13].sIndex == 3902 || MOB.Equip[13].sIndex == 3905 || MOB.Equip[13].sIndex == 3908)
+	if (MOB.Equip[13].sIndex == 3902 || MOB.Equip[13].sIndex == 3905 || MOB.Equip[13].sIndex == 3908)
 	{
 		ExpBonus += 32;
 		DropBonus += 16;
 	}
 
 	//Fada Verde
-	if(MOB.Equip[13].sIndex == 3903 || MOB.Equip[13].sIndex == 3906 || MOB.Equip[13].sIndex == 3911 || MOB.Equip[13].sIndex == 3912 || MOB.Equip[13].sIndex == 3913)
+	if (MOB.Equip[13].sIndex == 3903 || MOB.Equip[13].sIndex == 3906 || MOB.Equip[13].sIndex == 3911 || MOB.Equip[13].sIndex == 3912 || MOB.Equip[13].sIndex == 3913)
 		ExpBonus += 16;
 
 	//Fada Verde Azul 
-	if(MOB.Equip[13].sIndex == 3904 || MOB.Equip[13].sIndex == 3907)
+	if (MOB.Equip[13].sIndex == 3904 || MOB.Equip[13].sIndex == 3907)
 		ExpBonus += 32;
 
 	//Concentração
-	if ((MOB.LearnedSkill & (1 << 28)) != 0)
+	if ((MOB.LearnedSkill & 0x10000000) != 0)
 		Accuracy += 50;
 
-	if(MOB.Resist[0] < 0 && idx < MAX_USER)
+	if (MOB.Resist[0] < 0 && idx < MAX_USER)
 		MOB.Resist[0] = 0;
 
-	if(MOB.Resist[1] < 0 && idx < MAX_USER)
+	if (MOB.Resist[1] < 0 && idx < MAX_USER)
 		MOB.Resist[1] = 0;
 
-	if(MOB.Resist[2] < 0 && idx < MAX_USER)
+	if (MOB.Resist[2] < 0 && idx < MAX_USER)
 		MOB.Resist[2] = 0;
 
-	if(MOB.Resist[3] < 0 && idx < MAX_USER)
+	if (MOB.Resist[3] < 0 && idx < MAX_USER)
 		MOB.Resist[3] = 0;
 
 	if (MOB.CurrentScore.Hp > MOB.CurrentScore.MaxHp)
@@ -725,26 +1315,27 @@ void CMob::GetCurrentScore(int idx)
 	int fw2 = (w2 / 2);
 
 	//Pericia do caçador
-	if(MOB.LearnedSkill & (1 << 10) && MOB.Class == 3)
+	if ((MOB.LearnedSkill & 0x400) && MOB.Class == 3)
 	{
 		fw1 = w1;
 		fw2 = w2;
 	}
 
 	//Mestre das Armas
-	if(MOB.LearnedSkill & (1 << 9) && MOB.Class == 0)
+	if ((MOB.LearnedSkill & 0x200) && MOB.Class == 0)
 	{
 		fw1 = w1;
 		fw2 = w2;
 	}
 
-	if(MOB.Class == 2)
+	if (MOB.Class == 2)
 	{
-		if(MOB.LearnedSkill & (1 << 17))
+		// Armadura Elemental
+		if ((MOB.LearnedSkill & 0x20000) && g_pItemList[MOB.Equip[7].sIndex].nPos == 128 || (MOB.LearnedSkill & 0x800000) != 0)
 			ReflectDamage += ((MOB.CurrentScore.Special[3] + 1) / 6);
 
 		//Escudo do tormento
-		if(MOB.LearnedSkill & (1 << 19) && g_pItemList[MOB.Equip[7].sIndex].nPos == 128)
+		if ((MOB.LearnedSkill & 0x80000) && g_pItemList[MOB.Equip[7].sIndex].nPos == 128)
 			MOB.CurrentScore.Ac += (BASE_GetItemAbility(&MOB.Equip[7], EF_AC) + 1) / 7;
 	}
 
@@ -753,7 +1344,73 @@ void CMob::GetCurrentScore(int idx)
 	else
 		WeaponDamage = w2 + fw1;
 
+	/*
+	int Critical = BASE_GetMobAbility(&MOB, EF_CRITICAL);
 
+	if (Critical >= 1000)
+		Critical = 1000;
+
+	int CtDex = 0;
+
+	if (MOB.Class)
+	{
+		if (MOB.Class == 2)
+		{
+			if (MOB.LearnedSkill & 0x20000) // Armadura Elemental
+				ReflectDamage += MOB.CurrentScore.Special[2];
+
+			if (MOB.LearnedSkill & 0x80000) // Escudo do Tormento
+			{
+				if (g_pItemList[MOB.Equip[7].sIndex].nPos == 128)
+					MOB.CurrentScore.Ac = 105 * MOB.CurrentScore.Ac / 100;
+			}
+		}
+		else
+		{
+			if (MOB.Class == 3)
+			{
+				if (MOB.LearnedSkill & 0x40000) // Visão da Caçadora
+				{
+					CtDex = MOB.CurrentScore.Dex;
+					CtDex /= 20;
+				}
+
+				if (MOB.LearnedSkill & 0x400000) // Proteção das Sombras
+				{
+					int ItemAbility = BASE_GetItemAbility(&MOB.Equip[6], EF_WTYPE);
+
+					if (ItemAbility == 41)
+						MOB.CurrentScore.Ac += MOB.CurrentScore.Special[3];
+				}
+			}
+		}
+	}
+	else
+	{
+		if (MOB.LearnedSkill & 0x80)
+		{
+			int Resist = MOB.Resist[2] + 20;
+
+			if (Resist > 100)
+				Resist = 100;
+
+			MOB.Resist[2] = Resist;
+		}
+		if (MOB.LearnedSkill & 0x8000)
+		{
+			CtDex = 100;
+			MOB.CurrentScore.Ac = 120 * MOB.CurrentScore.Ac / 100;
+		}
+	}
+
+	int MobCritical = MOB.Critical;
+	MobCritical = (CtDex + Critical + MobCritical) / 4;
+
+	if (MobCritical > 255)
+		MobCritical = 255;
+
+	MOB.Critical = MobCritical;
+	*/
 
 	int idx1 = MOB.Equip[6].sIndex;
 	int nPos = g_pItemList[idx1].nPos;
@@ -807,37 +1464,55 @@ void CMob::GetCurrentScore(int idx)
 
 		int isanc = 0;
 
-		if(itemSanc == REF_10)
+		if (itemSanc == REF_10)
 			isanc = 1;
 
-		else if(itemSanc == REF_11)
+		else if (itemSanc == REF_11)
 			isanc = 2;
 
-		else if(itemSanc == REF_12)
+		else if (itemSanc == REF_12)
 			isanc = 3;
 
-		else if(itemSanc == REF_13)
+		else if (itemSanc == REF_13)
 			isanc = 4;
 
-		else if(itemSanc == REF_14)
+		else if (itemSanc == REF_14)
 			isanc = 5;
 
-		else if(itemSanc == REF_15)
+		else if (itemSanc == REF_15)
 			isanc = 6;
 
-		if(itemGem == 0)
+		if (itemGem == 0)
 			DropBonus += 8;
 
-		if(itemGem == 1)
+		if (itemGem == 1)
 			ForceDamage += (g_pItemList[ItemId].Grade == 6 ? 80 : 40) * isanc;
 
-		if(itemGem == 2)
+		if (itemGem == 2)
 			ExpBonus += 2;
 
-		if(itemGem == 3)
+		if (itemGem == 3)
 			ReflectDamage += (g_pItemList[ItemId].Grade == 8 ? 80 : 40) * isanc;
 	}
-	
+
+	if (extra.Citizen == ServerIndex + 1)
+		CitizenDrop += 10;
+
+	if (KefraLive != 0)
+		CitizenDrop += 20;
+
+	if (MOB.Exp >= 100000000 && extra.Citizen != 0)
+	{
+		int DropCalculoByExp = MOB.Exp / 100000000;
+
+		if (DropCalculoByExp > 80)
+			DropCalculoByExp = 80;
+
+		CitizenDrop += DropCalculoByExp;
+	}
+
+	DropBonus += CitizenDrop;
+
 	PvPDamage = 0;
 	ReflectPvP = 0;
 
@@ -888,7 +1563,6 @@ void CMob::GetTargetPosDistance(int tz)
 
 	GetEmptyMobGrid(0, &NextX, &NextY);
 
-
 	int dis = 0;
 
 	for (dis = distance; dis >= 0; dis--)
@@ -936,8 +1610,8 @@ void CMob::GetRandomPos()
 
 	LastX = TargetX;
 	LastY = TargetY;
-	NextX = LastX + rand() % 5 - 3;
-	NextY = LastY + rand() % 5 - 3;
+	NextX = LastX + rand() % 7 - 3;
+	NextY = LastY + rand() % 7 - 3;
 
 	GetEmptyMobGrid(0, &NextX, &NextY);
 
@@ -963,8 +1637,8 @@ void CMob::GetRandomPos()
 
 	if (i == -1 || Route[0] == 0)
 	{
-		NextX = TargetX + rand() % 5 - 3;
-		NextY = TargetY + rand() % 5 - 3;
+		NextX = TargetX;
+		NextY = TargetY;
 
 		Route[0] = 0;
 	}
@@ -972,7 +1646,7 @@ void CMob::GetRandomPos()
 
 void CMob::GetTargetPos(int tz)
 {
-	if(MOB.Equip[0].sIndex == 219 || MOB.Equip[0].sIndex == 220)
+	if (MOB.Equip[0].sIndex == 219 || MOB.Equip[0].sIndex == 220)
 	{
 		NextX = TargetX;
 		NextY = TargetY;
@@ -981,14 +1655,13 @@ void CMob::GetTargetPos(int tz)
 
 	if ((MOB.BaseScore.AttackRun & 15) == 0)
 	{
-
-		NextX = pMob[tz].TargetX-1;
-		NextY = pMob[tz].TargetY-1;
+		NextX = pMob[tz].TargetX;
+		NextY = pMob[tz].TargetY;
 
 		return;
 	}
 
-	int speed = BASE_GetSpeed(&MOB.CurrentScore) + 2;
+	int speed = BASE_GetSpeed(&MOB.CurrentScore);
 	int distance = speed * SECBATTLE / 4;
 
 	if (distance >= MAX_ROUTE)
@@ -996,11 +1669,13 @@ void CMob::GetTargetPos(int tz)
 
 	LastX = TargetX;
 	LastY = TargetY;
-	NextX = pMob[tz].TargetX - 1;
-	NextY = pMob[tz].TargetY - 1;
+	NextX = pMob[tz].TargetX;
+	NextY = pMob[tz].TargetY;
 
-	GetEmptyMobGrid(0, &NextX, &NextY);
+	int getdistance = BASE_GetDistance(TargetX, TargetY, pMob[tz].TargetX, pMob[tz].TargetY);
 
+	if (getdistance > 1 && getdistance <= 3)
+		GetEmptyMobGrid(0, &NextX, &NextY);
 
 	int i = 0;
 
@@ -1013,7 +1688,7 @@ void CMob::GetTargetPos(int tz)
 
 		if (i != distance)
 		{
-			int t = GetEmptyMobGrid(0, &NextX, &NextY);
+			GetEmptyMobGrid(0, &NextX, &NextY);
 
 			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
 
@@ -1046,11 +1721,12 @@ int  CMob::CheckGetLevel()
 
 	if (extra.ClassMaster == MORTAL || extra.ClassMaster == ARCH)
 		max_level = MAX_LEVEL;
-	
-	else if (extra.ClassMaster == CELESTIAL || extra.ClassMaster == SCELESTIAL || extra.ClassMaster == CELESTIALCS)
+
+	else if (extra.ClassMaster == CELESTIAL || extra.ClassMaster == SCELESTIAL || extra.ClassMaster == CELESTIALCS ||
+		extra.ClassMaster == HARDCORE || extra.ClassMaster == HARDCOREA || extra.ClassMaster == HARDCORECS || extra.ClassMaster == SHARDCORE)
 		max_level = MAX_CLEVEL;
 
-	if (cur >=  max_level)
+	if (cur >= max_level)
 		return 0;
 
 	long long exp = MOB.Exp;
@@ -1069,17 +1745,34 @@ int  CMob::CheckGetLevel()
 	else if (exp > Segment1)
 		CurSeg = 1;
 
-	if(extra.ClassMaster == CELESTIAL && (cur == 39 && extra.QuestInfo.Celestial.Lv40 == 0 || cur == 89 && extra.QuestInfo.Celestial.Lv90 == 0))
+	if (extra.ClassMaster == CELESTIAL && (cur == 39 && extra.QuestInfo.Celestial.Lv40 == 0 || cur == 89 && extra.QuestInfo.Celestial.Lv90 == 0 || cur == 239 && extra.QuestInfo.Celestial.Lv240 == 0 ||
+		cur == 279 && extra.QuestInfo.Celestial.Lv280 == 0 || cur == 319 && extra.QuestInfo.Celestial.Lv320 == 0 || cur == 359 && extra.QuestInfo.Celestial.Lv360 == 0))
 		return 0;
 
-	if(extra.ClassMaster == ARCH && (cur == 354 && extra.QuestInfo.Arch.Level355 == 0 || cur == 369 && extra.QuestInfo.Arch.Level370 == 0))
+	if (extra.ClassMaster == CELESTIALCS && (cur == 239 && extra.QuestInfo.Celestial.Lv240 == 0 || cur == 279 && extra.QuestInfo.Celestial.Lv280 == 0 ||
+		cur == 319 && extra.QuestInfo.Celestial.Lv320 == 0 || cur == 359 && extra.QuestInfo.Celestial.Lv360 == 0))
+		return 0;
+
+	if (extra.ClassMaster == SCELESTIAL && (cur == 239 && extra.QuestInfo.Celestial.Lv240 == 0 || cur == 279 && extra.QuestInfo.Celestial.Lv280 == 0 ||
+		cur == 319 && extra.QuestInfo.Celestial.Lv320 == 0 || cur == 359 && extra.QuestInfo.Celestial.Lv360 == 0))
+		return 0;
+
+	if (extra.ClassMaster == ARCH && (cur == 354 && extra.QuestInfo.Arch.Level355 == 0 || cur == 369 && extra.QuestInfo.Arch.Level370 == 0))
 		return 0;
 
 	if (exp >= nextexp)
 	{
 		MOB.BaseScore.Level++;
-		MOB.BaseScore.MaxHp = MOB.BaseScore.MaxHp + g_pIncrementHp[cls];
-		MOB.BaseScore.MaxMp = MOB.BaseScore.MaxMp + g_pIncrementMp[cls];
+
+		if (extra.ClassMaster == MORTAL) {
+			MOB.BaseScore.MaxHp = MOB.BaseScore.MaxHp + g_pIncrementHp[cls];
+			MOB.BaseScore.MaxMp = MOB.BaseScore.MaxMp + g_pIncrementMp[cls];
+		}
+		else {
+			MOB.BaseScore.MaxHp = MOB.BaseScore.MaxHp + g_pIncrementHp_2[cls];
+			MOB.BaseScore.MaxMp = MOB.BaseScore.MaxMp + g_pIncrementMp_2[cls];
+		}
+
 		MOB.CurrentScore.Hp = MOB.CurrentScore.MaxHp;
 		MOB.CurrentScore.Mp = MOB.CurrentScore.MaxMp;
 
@@ -1094,7 +1787,6 @@ int  CMob::CheckGetLevel()
 
 			BASE_GetBonusScorePoint(&MOB, &extra);
 
-
 			MOB.BaseScore.Ac++;
 		}
 		else if (extra.ClassMaster == ARCH)
@@ -1107,12 +1799,16 @@ int  CMob::CheckGetLevel()
 			MOB.SpecialBonus += 2;
 
 			BASE_GetBonusScorePoint(&MOB, &extra);
-			MOB.BaseScore.Ac++;
+
+			MOB.BaseScore.Ac += 2;
 		}
-		else if (extra.ClassMaster == CELESTIAL || extra.ClassMaster == SCELESTIAL || extra.ClassMaster == CELESTIALCS)
+		else if (extra.ClassMaster == CELESTIAL || extra.ClassMaster == SCELESTIAL || extra.ClassMaster == CELESTIALCS || extra.ClassMaster == HARDCORE || extra.ClassMaster == HARDCOREA || extra.ClassMaster == HARDCORECS || extra.ClassMaster == SHARDCORE)
 		{
+			if (MOB.BaseScore.Level >= 200)
+				MOB.SkillBonus += 2;
+
 			BASE_GetBonusScorePoint(&MOB, &extra);
-			MOB.BaseScore.Ac++;
+			MOB.BaseScore.Ac += 2;
 		}
 
 		GetCurrentScore(0);
@@ -1151,9 +1847,173 @@ int  CMob::CheckGetLevel()
 	return ret;
 }
 
+void CMob::CGetNextRandomPos()
+{
+	if (GenerateIndex == 3440 || GenerateIndex == 3441 || GenerateIndex == 3442 || GenerateIndex == 3443 ||
+		GenerateIndex == 3811 || GenerateIndex == 6060 || GenerateIndex == 6061 || GenerateIndex == 6062 ||
+		GenerateIndex == 6063)
+	{
+		NextX = TargetX;
+		NextY = TargetY;
+		return;
+	}
+
+	if (MOB.BaseScore.AttackRun & 0xF)
+	{
+		int speed = BASE_GetSpeed(&MOB.CurrentScore);
+		int distance = 0;
+
+		if (RouteType == 5)
+			distance = 4 * speed / 4;
+		else
+			distance = 6 * speed / 4;
+
+		int str = MOB.BaseScore.Str;
+
+		if (str)
+		{
+			str = RouteType == 5 ? 4 * str / 4 : 6 * str / 4;
+
+			if (distance > str)
+				distance = str;
+		}
+
+		if (distance >= 24)
+			distance = 23;
+
+		LastX = TargetX;
+		LastY = TargetY;
+		NextX = SegmentX + rand() % 5 - 2;
+		NextY = SegmentY + rand() % 5 - 2;
+
+		int i = 0;
+
+		for (i = distance;; i--)
+		{
+			if (i > 0)
+			{
+				BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+
+				if (pMobGrid[NextY][NextX])
+				{
+					if (i == distance)
+						continue;
+
+					GetEmptyMobGrid(0, &NextX, &NextY);
+
+					BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+
+					if (pMobGrid[NextY][NextX])
+						continue;
+				}
+			}
+			break;
+		}
+
+		if (i < 0 || Route[0] == 0)
+		{
+			NextX = TargetX;
+			NextY = TargetY;
+
+			Route[0] = 0;
+		}
+	}
+	else
+	{
+		NextX = TargetX;
+		NextY = TargetY;
+	}
+}
+
+void CMob::GetNextRandomPos()
+{
+	if (MOB.BaseScore.AttackRun & 0xF)
+	{
+		int speed = BASE_GetSpeed(&MOB.CurrentScore);
+		int distance = 0;
+
+		if (RouteType == 5)
+			distance = 4 * speed / 4;
+		else
+			distance = 6 * speed / 4;
+
+		int str = MOB.BaseScore.Str;
+
+		if (str)
+		{
+			str = RouteType == 5 ? 4 * str / 4 : 6 * str / 4;
+
+			if (distance > str)
+				distance = str;
+		}
+
+		if (distance >= 24)
+			distance = 23;
+
+		LastX = TargetX;
+		LastY = TargetY;
+
+		if (!strcmp((char*)MOB.MobName, "Perzen") == 0 &&
+			!strcmp((char*)MOB.MobName, "Perzen Normal") == 0 &&
+			!strcmp((char*)MOB.MobName, "Perzen Arcano") == 0 &&
+			!strcmp((char*)MOB.MobName, "Perzen Mistico") == 0 &&
+			!strcmp((char*)MOB.MobName, "Kibita") == 0 &&
+			!strcmp((char*)MOB.MobName, "Fame BeastSB") == 0 &&
+			!strcmp((char*)MOB.MobName, "Fame FoemaSB") == 0 &&
+			!strcmp((char*)MOB.MobName, "Fame HunterSB") == 0 &&
+			!strcmp((char*)MOB.MobName, "Fame TransSB") == 0)
+		{
+			NextX = SegmentX + rand() % 5 - 2;
+			NextY = SegmentY + rand() % 5 - 2;
+		}
+		else
+		{
+			NextX = SegmentX;
+			NextY = SegmentY;
+		}
+
+		int i = 0;
+
+		for (i = distance;; i--)
+		{
+			if (i > 0)
+			{
+				BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+
+				if (pMobGrid[NextY][NextX])
+				{
+					if (i == distance)
+						continue;
+
+					GetEmptyMobGrid(0, &NextX, &NextY);
+
+					BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+
+					if (pMobGrid[NextY][NextX])
+						continue;
+				}
+			}
+			break;
+		}
+
+		if (i < 0 || Route[0] == 0)
+		{
+			NextX = TargetX;
+			NextY = TargetY;
+
+			Route[0] = 0;
+		}
+	}
+	else
+	{
+		NextX = TargetX;
+		NextY = TargetY;
+	}
+}
+
 void CMob::GetNextPos(int battle)
 {
-	if(MOB.Equip[0].sIndex == 219 || MOB.Equip[0].sIndex == 220 || GenerateIndex == KEFRA_BOSS)
+	if (MOB.Equip[0].sIndex == 219 || MOB.Equip[0].sIndex == 220 || GenerateIndex == KEFRA_BOSS)
 	{
 		NextX = TargetX;
 		NextY = TargetY;
@@ -1177,7 +2037,7 @@ void CMob::GetNextPos(int battle)
 	{
 		int str = MOB.BaseScore.Str + 1;
 		int res = str;
-		
+
 		if (res > distance)
 			res = distance;
 	}
@@ -1193,8 +2053,8 @@ void CMob::GetNextPos(int battle)
 	NextY = SegmentY;
 
 	GetEmptyMobGrid(0, &NextX, &NextY);
-	
-	if(NextX == -1)
+
+	if (NextX == -1)
 		return;
 
 	int i = 0;
@@ -1251,7 +2111,7 @@ int CMob::GetEnemyFromView(void)
 	{
 		for (int x = sx1; x < sx2; x++)
 		{
-			if(x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
 				continue;
 
 			int tmob = pMobGrid[y][x];
@@ -1259,7 +2119,7 @@ int CMob::GetEnemyFromView(void)
 			if (x == TargetX && y == TargetY)
 				continue;
 
-			if(pMob[tmob].MOB.CurrentScore.Hp > 0 && pMob[tmob].Mode)
+			if (pMob[tmob].MOB.CurrentScore.Hp > 0 && pMob[tmob].Mode)
 			{
 				if ((tmob < MAX_USER && pMob[tmob].MOB.Rsv & 0x10))
 					continue;

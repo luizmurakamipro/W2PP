@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -42,7 +43,7 @@ void Exec_MSG_SplitItem(int conn, char *pMsg)
 	int slot = m->Slot;
 
 	if(pMob[conn].MOB.Carry[slot].sIndex != 413 && pMob[conn].MOB.Carry[slot].sIndex != 412
-	&& pMob[conn].MOB.Carry[slot].sIndex != 419 && pMob[conn].MOB.Carry[slot].sIndex != 420
+	&& pMob[conn].MOB.Carry[slot].sIndex != 419 && pMob[conn].MOB.Carry[slot].sIndex != 420 
 	&& (pMob[conn].MOB.Carry[slot].sIndex < 2390 || pMob[conn].MOB.Carry[slot].sIndex > 2419))
 	{
 		Log("splititem, no validitem", pUser[conn].AccountName, pUser[conn].IP);

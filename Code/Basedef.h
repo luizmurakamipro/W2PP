@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,17 +14,114 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at: 
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 
-#ifndef _BASEDEF_ // Last updated 27/01/2013
+#ifndef _BASEDEF_ // Last updated 2017
 #define _BASEDEF_
 
 #include <time.h>
 #include <Windows.h>
 
 #pragma region Defines
+
+//Color
+#define Snow                    0xFFFFFAFA
+#define GhostWhite              0xFFF8F8FF
+#define WhiteSmoke              0xFFF5F5F5
+#define Gainsboro               0xFFDCDCDC
+#define FloralWhite             0xFFFFFAF0
+#define OldLace                 0xFFFDF5E6
+#define Linen                   0xFFFAF0E6
+#define AntiqueWhite            0xFFFAEBD7
+#define PapayaWhip              0xFFFFEFD5
+#define BlanchedAlmond			0xFFFFEBCD
+#define Bisque					0xFFFFE4C4
+#define PeachPuff				0xFFFFDAB9
+#define NavajoWhite				0xFFFFDEAD
+#define Moccasin				0xFFFFE4B5
+#define Cornsilk				0xFFFFF8DC
+#define Ivory					0xFFFFFFF0
+#define LemonChiffon			0xFFFFFACD
+#define Seashell				0xFFFFF5EE
+#define Honeydew				0xFFF0FFF0
+#define MintCream				0xFFF5FFFA
+#define Azure					0xFFF0FFFF
+#define AliceBlue				0xFFF0F8FF
+#define lavender				0xFFE6E6FA
+#define LavenderBlush			0xFFFFF0F5
+#define MistyRose				0xFFFFE4E1
+#define White					0xFFFFFFFF
+#define Black					0xFF000000
+#define DarkSlateGray			0xFF2F4F4F
+#define DimGrey					0xFF696969
+#define SlateGrey				0xFF708090
+#define LightSlateGray			0xFF778899
+#define Grey					0xFFBEBEBE
+#define LightGray				0xFFD3D3D3
+#define MidnightBlue			0xFF191970
+#define NavyBlue				0xFF000080
+#define CornflowerBlue			0xFF6495ED
+#define DarkSlateBlue			0xFF483D8B
+#define SlateBlue				0xFF6A5ACD
+#define MediumSlateBlue			0xFF7B68EE
+#define LightSlateBlue			0xFF8470FF
+#define MediumBlue				0xFF0000CD
+#define RoyalBlue				0xFF4169E1
+#define Blue					0xFF0000FF
+#define DodgerBlue				0xFF1E90FF
+#define DeepSkyBlue				0xFF00BFFF
+#define SkyBlue					0xFF87CEEB
+#define LightSkyBlue			0xFF87CEFA
+#define SeaGreen				0xFF2E8B57
+#define MediumSeaGreen			0xFF3CB371
+#define LightSeaGreen			0xFF20B2AA
+#define PaleGreen				0xFF98FB98
+#define SpringGreen				0xFF00FF7F
+#define LawnGreen				0xFF7CFC00
+#define Green					0xFF00FF00
+#define Yellow					0xFFFFFF00
+
+//BUFS INDEX
+#define LENTIDAO                1
+#define FM_VELOCIDADE           2
+#define RESISTENCIA_N           3
+#define EVASAO_N                5
+#define POCAO_ATK               6
+#define VELOCIDADE_N            7
+#define ADD_                    8
+#define FM_BUFFATK              9
+#define ATKMENOS                10
+#define FM_ESCUDO_MAGICO        11
+#define DEFESA_N                12
+#define TK_ASSALTO              13
+#define TK_POSSUIDO             14
+#define FM_SKILLS               15
+#define BM_MUTACAO              16
+#define TK_AURAVIDA             17
+#define FM_CONTROLE_MANA        18
+#define HT_IMUNIDADE            19
+#define VENENO                  20
+#define HT_MEDITACAO            21
+#define FM_TROVAO               22
+#define BM_AURA_BESTIAL         23
+#define TK_SAMARITANO           24
+#define BM_PROTELEMENT          25
+#define HT_EVASAO_APRIMORADA    26
+#define HT_GELO                 27
+#define HT_INIVISIBILIDADE      28
+#define LIMITE_DA_ALMA          29
+#define PvM                     30
+#define HT_ESCUDO_DOURADO       31
+#define CANCELAMENTO            32
+#define MUTACAO2                33
+#define COMIDA                  34
+#define BONUS_HP_MP             35
+#define HT_VENENO               36
+#define HT_LIGACAO_ESPCTRAL     37
+#define HT_TROCAESP             38
+#define BAU_EXP                 39
 
 //#define PKDrop
 
@@ -109,13 +206,14 @@
 #define		MAX_NPCGENERATOR		8192
 
 #define		MAX_SKILL				24
+#define		MAX_CSKILL				12
 
 #define		MAX_COMBINE				8
 
 #define		MAX_CLASS				4
 
 #define		MAX_LEVEL				399
-#define		MAX_CLEVEL				199
+#define		MAX_CLEVEL				400 // 199
 
 #define		MAX_CLASSMASTER			4
 
@@ -127,7 +225,8 @@
 
 #define		MAX_NOTIFY_LENGTH		96
 #define		MESSAGE_LENGTH			96 
-#define		MESSAGEWHISPER_LENGTH	100 
+#define		MESSAGEWHISPER_LENGTH	100
+#define		MESSAGECHAT_LENGTH		128
 
 #define		NAME_LENGTH				16
 
@@ -136,8 +235,18 @@
 #define		TIMER_SEC				0
 #define		TIMER_MIN				1
 
+#define		ELMO_TYPE				2 // Swedka 21/04/2017
+#define		PEITO_TYPE				4
+#define		CALCA_TYPE				8
+#define		LUVA_TYPE				16
+#define		LUVA_TYPE1				16
+#define		BOTA_TYPE				32
+#define		ARMA_TYPE1				192
+#define		ARMA_TYPE2				64
+#define		ESCUDO_TYPE				128	
+
 #define		MAX_ITEMLIST			6500
-#define		MAX_SKILLINDEX			103
+#define		MAX_SKILLINDEX			248 //103
 #define		MAX_INITITEM			256
 #define		MAX_EFFECTINDEX			128
 #define		ITEMNAME_LENGTH			64
@@ -180,6 +289,10 @@
 #define		CELESTIAL				3
 #define		CELESTIALCS				4
 #define		SCELESTIAL				5
+#define     HARDCORE                6
+#define		HARDCOREA				7
+#define		HARDCORECS				8
+#define		SHARDCORE				9
 
 #define		RSV_FROST    0x01
 #define		RSV_DRAIN    0x02
@@ -200,12 +313,24 @@
 #define		REF_14					22
 #define		REF_15					27
 
-#define		MAX_HP					2000000000
-#define		MAX_MP					2000000000
-#define		MAX_DAMAGE				1000000
-#define		MAX_DAMAGE_MG			254
-#define		AFFECT_1H				450
+#define		MAX_HP					100000
+#define		MAX_MP					100000
+#define		MAX_DAMAGE				500000
+#define		MAX_DAMAGE_MG			190000000
 #define		AFFECT_1D				10800
+#define		AFFECT_1H				450
+#define		MAX_VELOATK				32000
+#define		MAX_CRITICAL			186000
+
+#define		LIMT_STR				32000
+#define		LIMT_INT				32000
+#define		LIMT_DEX				32000
+#define		LIMT_CON				32000
+#define		LIMT_DAM				186000
+#define		LIMT_DAM_MG				190000000
+#define		MAX_ESCUDOS				21
+#define		MAX_ARCOS				19
+#define		MAX_RAD_ARCOS			4
 
 #define		SOUL_NULL				0
 #define		SOUL_KIBITA				1
@@ -272,6 +397,16 @@
 #define SOBREVIVENTE			33
 #define LIDER_APRENDIZ			34
 #define GUARDA_REAL_EVT1		35
+#define JULIARZAN               36
+#define JULIGELO                37
+#define MESTREGRIFO             38
+#define UNICORNIO_PURO          39
+#define TELEPORT_EQUILIBRIO     40
+#define NPCEQUILIBRIO           41
+#define TELEPORT_CHANCE         42
+#define NPCCHANCE               43
+#define GUARDA_REAL_EVT2		44
+#define GUARDA_REAL_EVT3		45
 
 /////////////////////////////////////////////////////////////
 
@@ -290,6 +425,43 @@
 #define WATER_M_INITIAL						10
 #define WATER_N_INITIAL						171
 #define WATER_A_INITIAL						183
+
+
+#define PESANPC_N_INITIAL					270
+#define PESANPC_N_END						274
+#define Martin 								270
+#define Balmers 							271
+#define Rubyen								272
+#define Naomi								273
+#define Arnold								274
+
+
+#define PESANPC_M_INITIAL					285
+#define PESANPC_M_END						291
+#define Arnold_ 							285
+#define	Lainy								286
+#define	Reimers 							287
+#define	RoPerion 							288
+#define	Irena								289
+#define	Jeffi								290
+#define	Smith								291
+
+
+#define PESANPC_A_INITIAL					302
+#define PESANPC_A_END						309
+#define Escuridao						    302
+#define Kara								303
+#define Kei									304
+#define Erin								305
+#define Kemi							    306
+#define Fenix							    307
+#define Uie								    308
+#define Leao							    309
+
+#define TransKnight							0
+#define Foema								1
+#define BeastMaster							2
+#define Huntress							3
 
 #define SECRET_ROOM_N_INITIAL				2395
 
@@ -381,13 +553,50 @@
 #define RUNEQUEST_LV6_MOB_BOSS				5767
 
 #define RVRTORRE_1							4236
-#define RVRTORRE_2							4237
+#define RVRTORRE_2				     		4237
 
 #define GTORRE								1078
 
 #define KEFRA_BOSS							396
 #define KEFRA_MOB_INITIAL					397
 #define KEFRA_MOB_END						400
+
+#define SOMBRANEGRA							4077
+
+#define ESPELHO_RAINHAG						6058
+#define VERIDRAINHAG						6059
+
+#define BOSS1_INITIAL						4069
+#define BOSS1_END							4076
+#define BOSS1_INITIAL2						4080
+#define BOSS1_END2							4098
+
+#define PI_INITIAL1							6064 // Inicio
+#define PI_END1								6073
+#define TARANTULA							6074
+#define CTARANTULA							6075
+
+#define PI_INITIAL2							6076 // Quadra 1
+#define PI_END2								6084
+#define LICHBOSS1							6085
+
+#define PI_INITIAL3							6086 // Quadra 2
+#define PI_END3								6094
+#define LICHBOSS2							6095
+
+#define PI_INITIAL4							6096 // Quadra 3
+#define PI_END4								6104
+#define LICHBOSS3							6105
+
+#define PI_INITIAL5							6106 // Quadra 4
+#define PI_END5								6114
+#define LICHBOSS4							6115
+
+#define PI_INITIAL6							6116
+#define PI_END6								6129
+
+#define CUBO_N_INITIAL						195
+#define CUBO_N_END							219
 
 ////////////////////////////////////////////////////////////
 
@@ -411,183 +620,205 @@ struct STRUCT_ITEM
 	}stEffect[3];
 };
 
-struct STRUCT_SCORE
+struct STRUCT_SCORE // SIZE 44
 {
-	int Level;	 // The mob's level
-	int Ac;		 // The mob's defense
-	int Damage;   // The mob's damage force
+	int					Level;	 // The mob's level // 0 - 3 // 44 - 47
+	int					Ac;		 // The mob's defense // 4 - 7 // 48 - 51
+	int					Damage;   // The mob's damage force // 8 - 11 // 52 - 55
+	 
+	unsigned char		Merchant; // UNK // 12 // 56
+	unsigned char		AttackRun; // The mob's speed // 13 // 57
+	unsigned char		Direction; // 14 // 58
+	unsigned char		ChaosRate; // 15 // 59
 
-	unsigned char  Merchant; // UNK
-	unsigned char  AttackRun; // The mob's speed
-	unsigned char  Direction;
-	unsigned char  ChaosRate;
+	int					MaxHp;     // The max HP the mob can have // 16 - 19 // 60 - 63
+	int					MaxMp;	  // The max MP the mob can have // 20 - 23 // 64 - 67
+	int					Hp;		  // The current HP of the mob // 24 - 27 // 68 - 71
+	int					Mp;		  // The current MP of the mob // 28 - 31 // 72 - 75
 
-	int MaxHp;     // The max HP the mob can have
-	int MaxMp;	  // The max MP the mob can have
-	int Hp;		  // The current HP of the mob
-	int Mp;		  // The current MP of the mob
+	unsigned short		Str;		  // The mob's strength points, affects it's attack power // 32 - 33 // 76 - 77
+	unsigned short		Int;		  // The mob's intelligence points, affects it's skill attack powers and MP // 34 - 35 // 78 - 79
+	unsigned short		Dex;		  // The mob's dexterity points, affects it's attack speed // 36 - 37 // 80 - 81
+	unsigned short		Con;       // The mob's constitution points, affects it's HP // 38 - 39 // 82 - 83
 
-	short		   Str;		  // The mob's strength points, affects it's attack power
-	short		   Int;		  // The mob's intelligence points, affects it's skill attack powers and MP
-	short		   Dex;		  // The mob's dexterity points, affects it's attack speed
-	short		   Con;       // The mob's constitution points, affects it's HP
-
-	short  Special[4]; // The mob's special points, affects it's skill tiers
+	short				Special[4]; // The mob's special points, affects it's skill tiers // 40 - 43 // 84 - 87 // FINAL 88 CurrentScore
 };
 
 struct STRUCT_MOB
 {
-	char		   MobName[NAME_LENGTH];	  // The name of the mob
-	char		   Clan;		  // The clan the mob belongs to
-	unsigned char  Merchant;	  // The mob's merchant ID
-	unsigned short Guild;		  // The ID of the guild the mob belongs to
-	unsigned char  Class;		  // The mobs class
-	unsigned short  Rsv;
-	unsigned char Quest;
+	char		   MobName[NAME_LENGTH];	  // The name of the mob // 0 - 15
+	char		   Clan;		  // The clan the mob belongs to // 16
+	unsigned char  Merchant;	  // The mob's merchant ID // 17
+	unsigned short Guild;		  // The ID of the guild the mob belongs to // 18 - 19
+	unsigned char  Class;		  // The mobs class // 20
+	unsigned short Rsv; // 21 - 22
+	unsigned char  Quest; // 23
 
-	int			   Coin;		  // The ammount of coins the mob has
+	int			   Coin;		  // The ammount of coins the mob has // 24 - 27
 
-	long long   Exp;			  // The ammount of experience the mob has to level up
+	long long      Exp;			  // The ammount of experience the mob has to level up // 28 - 35
 
-	short		   SPX;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll
-	short		   SPY;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll
+	short		   SPX;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll // 36 - 37
+	short		   SPY;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll // 38 - 39
 
-	STRUCT_SCORE   BaseScore;    // The base score of the mob 
-	STRUCT_SCORE   CurrentScore; // The score the mob actually has
+	STRUCT_SCORE   BaseScore;    // The base score of the mob // 40 - 87
+	STRUCT_SCORE   CurrentScore; // The score the mob actually has // 88 - 135
 
-	STRUCT_ITEM    Equip[MAX_EQUIP];	 // The items the mob is wearing
-	STRUCT_ITEM	   Carry[MAX_CARRY];	 // The items the mob is carrying
+	STRUCT_ITEM    Equip[MAX_EQUIP];	 // The items the mob is wearing // 136 - 263
+	STRUCT_ITEM	   Carry[MAX_CARRY];	 // The items the mob is carrying // 264 - 775
 
-	long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00)
+	long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00) // 776 - 779
 
-	unsigned int Magic;
+	unsigned int Magic; // 780 - 783
 
-	unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con)
-	unsigned short SpecialBonus; // The points the mob can use to increase special, to increase effect of learned skills (score->Special[4])
-	unsigned short SkillBonus;	 // The points the mob can use to buy skills
+	unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con) // 784 - 785
+	unsigned short SpecialBonus; // The points the mob can use to increase special, to increase effect of learned skills (score->Special[4]) // 786 - 787
+	unsigned short SkillBonus;	 // The points the mob can use to buy skills // 788 - 789
 
-	unsigned char  Critical;	 // The chance the mob has to deliver critical hits
-	unsigned char  SaveMana;	 // Uknown use, nomenclature of variable is correct to all current standards
+	unsigned char  Critical;	 // The chance the mob has to deliver critical hits // 790
+	unsigned char  SaveMana;	 // Uknown use, nomenclature of variable is correct to all current standards // 791
 
-	unsigned char  SkillBar[4];  // The skills saved on the first 4 slots of the skill bar
+	unsigned char  SkillBar[4];  // The skills saved on the first 4 slots of the skill bar // 792 - 795
 
-	unsigned char  GuildLevel;   // The mob's guuld level, used to define if it's a guild member or leader
+	unsigned char  GuildLevel;   // The mob's guuld level, used to define if it's a guild member or leader // 796
 
-	unsigned short  RegenHP;		 // UNK
-	unsigned short  RegenMP;		 // UNK
+	unsigned short  RegenHP;		 // UNK // 797 - 798
+	unsigned short  RegenMP;		 // UNK // 799 - 800
 
-	char  Resist[4];	 // The mob's resistencies, to fire / ice / thunder / magic
+	unsigned char  Resist[4];	 // The mob's resistencies, to fire / ice / thunder / magic // 801 - 804 // 805
 
 };
 
 struct STRUCT_MOBEXTRA
 {
-	short ClassMaster;
-	char  Citizen;
+	short ClassMaster; // 0 - 1
+	char  Citizen; // 2
 
-	int	  Fame;
+	long  SecLearnedSkill; // 2 - 5
 
-	char  Soul;
+	int	  Fame; // 6 - 9
 
-	short MortalFace;
+	char  Soul; // 10
+
+	short MortalFace; // 10 - 11
 
 	struct
 	{
 		struct
 		{
-			char Newbie;//00_01_02_03_04  quest com quatro etapas
-			char TerraMistica;//0 : não pegou a quest 1: pegou a quest e não concluiu 2: quest completa
-			char MolarGargula;
-			char PilulaOrc;
+			char Newbie;//00_01_02_03_04  quest com quatro etapas // 12
+			char TerraMistica;//0 : não pegou a quest 1: pegou a quest e não concluiu 2: quest completa // 13
+			char MolarGargula; // 14
+			char PilulaOrc; // 15
+			char bencao; // 16
+			char equilibrio; // 17
 
-			char EMPTY[30];
+			char EMPTY[30]; // 18 - 47
 		}Mortal;
 
 		struct
 		{
-			char MortalSlot;
-			char MortalLevel;
+			char MortalSlot; // 48
+			char MortalLevel; // 49
 
-			char Level355;
-			char Level370;
+			char Level355; // 50 
+			char Level370; // 51
 
-			char Cristal;//00_01_02_03_04 quest com quatro etapas
+			char Cristal;//00_01_02_03_04 quest com quatro etapas // 52
 
-			char EMPTY[30];
+			char EMPTY[30]; // 53 - 82
 		}Arch;
 
 		struct
 		{
-			short ArchLevel;
-			short CelestialLevel;
-			short SubCelestialLevel;
+			short ArchLevel; // 83 - 84
+			short CelestialLevel; // 85 - 86
+			short SubCelestialLevel; // 87 - 88
 
-			char Lv40;
-			char Lv90;
+			char Lv40; // 89
+			char Lv90; // 90
+			char Lv240; // 91
+			char Lv280; // 92
+  			char Lv320; // 93
+			char Lv360; // 94
 
-			char Add120;
-			char Add150;
-			char Add180;
-			char Add200;
+			char Add120; // 95
+			char Add150; // 96
+			char Add180; // 97
+			char Add200; // 98
 
-			char Arcana;
-			char Reset;
+			char Arcana; // 99
+			char Reset; // 100
 
-			char EMPTY[30];
+			char EMPTY[30]; // 101 - 130
 		}Celestial;
 
-		char Circle;
-		char EMPTY[30];
+		struct
+		{
+			char Reset; // 131
+			char Cristal;//00_01_02_03_04 quest com quatro etapas // 132
+			char EMPTY[30]; // 133 - 162
+			char Add200; // 163
+		}Hardcore;
+
+		char Circle; // 164
+		char EMPTY[30]; // 165 - 194
 
 	}QuestInfo;
 
 	struct
 	{
-		int Class;
+		int Class; // 195 - 198
 
-		long long   Exp;			  // The ammount of experience the mob has to level up
+		long long  Exp;			  // The ammount of experience the mob has to level up // 199 - 206
 
-		short		   SPX;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll
-		short		   SPY;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll
+		short		   SPX;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll // 207 - 208
+		short		   SPY;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll // 209 - 210
 
-		STRUCT_SCORE   BaseScore;    // The base score of the mob 
+		STRUCT_SCORE   BaseScore;    // The base score of the mob // 211 - 258
 
-		long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00)
+		long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00) // 259 - 262
+		long SecLearnedSkill; // 263 - 266
 
 
-		unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con)
-		unsigned short SpecialBonus; // The points the mob can use to increase special, to increase effect of learned skills (score->Special[4])
-		unsigned short SkillBonus;	 // The points the mob can use to buy skills
+		unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con) // 267 - 268
+		unsigned short SpecialBonus; // The points the mob can use to increase special, to increase effect of learned skills (score->Special[4]) // 269 - 270
+		unsigned short SkillBonus;	 // The points the mob can use to buy skills // 271 - 272
 
-		unsigned char  SkillBar1[4];  // The skills saved on the first 4 slots of the skill bar
-		unsigned char  SkillBar2[16];  // The skills saved on the first 4 slots of the skill bar
+		unsigned char  SkillBar1[4];  // The skills saved on the first 4 slots of the skill bar // 273 - 276
+		unsigned char  SkillBar2[16];  // The skills saved on the first 4 slots of the skill bar // 277 - 292
 
-		char Soul;
-		char EMPTY[30];
-	}SaveCelestial[2];
 
-	time_t LastNT;
-	int NT;
+		char Soul; // 293 
+		char EMPTY[30]; // 294 - 323 // 324
+	}SaveCelestial[2]; // 324 * 2 = 648
 
-	int KefraTicket;
+	time_t LastNT; // 648 - 655
+	int NT; // 656 - 659
 
-	time_t DivineEnd;
+	time_t LastPT; // 670 - 677
+	int PT; // 678 - 681
 
-	unsigned int Hold;
+	int KefraTicket; // 682 - 685
+
+	time_t DivineEnd; // 686 - 693
+
+	unsigned int Hold; // 694 - 697
 
 	struct
 	{
-		long long Exp;
-		int		  YearDay;
+		long long Exp; // 698 - 705
+		int		  YearDay; // 706 - 709
 	}DayLog;
 
 	struct
 	{
-		time_t LastTime;
-		int Count;
+		time_t LastTime; // 710 - 717
+		int Count; // 718 - 721
 	}DonateInfo;
 
-	int EMPTY[9];
+	int isCitizen; // 722 - 725
+	int EMPTY[9]; // 726 - 761 - 762
 };
 
 struct STRUCT_AFFECT
@@ -607,10 +838,18 @@ struct STRUCT_LEVELBONUS
 	unsigned short Ac;
 };
 
+
 struct STRUCT_CAPSULE
 {
 	STRUCT_MOB MOB;
 	STRUCT_MOBEXTRA extra;
+};
+
+struct STRUCT_BAN
+{
+	char AccountName[ACCOUNTNAME_LENGTH];
+	char Reason[MESSAGECHAT_LENGTH];
+	int Warning;
 };
 
 struct STRUCT_BEASTBONUS
@@ -764,11 +1003,11 @@ struct STRUCT_SEALOFSOUL
 
 struct STRUCT_SELCHAR
 {
-	short SPX[4];
-	short SPY[4];
-	char Name[4][16];
+	short SPX[4]; // 0 - 1 / 2 - 3 / 4 - 5 / 6 - 7
+	short SPY[4]; // 8 - 9 / 10 - 11 / 12 - 13 / 14 - 15
+	char Name[4][16]; // 16 - 31 / 32 - 47 / 48 - 63 / 64 - 79
 
-	STRUCT_SCORE Score[4];
+	STRUCT_SCORE Score[4]; // 80 
 	STRUCT_ITEM  Equip[4][16];
 
 	unsigned short Guild[4];
@@ -804,6 +1043,45 @@ typedef struct
 	char Sub2;
 	char Sub3;
 } STRUCT_GUILDINFO;
+
+typedef struct
+{
+	int PosX;
+	int PosY;
+
+} sPoint;
+
+typedef struct
+{
+	short PosX;
+	short PosY;
+
+} STRUCT_POSITION;
+
+typedef struct
+{
+	int pRoom;//[25]; // Jogadores dentro da Sala
+	int CurrentQuestion[25]; // Pergunta Corrente
+	int Mobs[25]; // Mobs (GenerateIndex)
+	int Time[25]; // Time restante para cada sala
+	int Status[25]; // 1 Matou / 0 Não Matou
+
+	int Room; // Contagem de Salas
+
+	bool Answer[25]; // Respostas
+
+	char Question[25][128]; // Perguntas
+
+	STRUCT_POSITION O[25];
+	STRUCT_POSITION X[25];
+
+} STRUCT_CUBOFILE;
+
+struct STRUCT_AVISOGUILD
+{
+	char Aviso[120];
+};
+
 
 #pragma pack(push, 1)
 struct STRUCT_RANKING
@@ -857,26 +1135,26 @@ struct STRUCT_ACCOUNTFILE
 
 struct STRUCT_SPELL
 {
-	int	SkillPoint;
-	int	TargetType;
-	int	ManaSpent;
-	int	Delay;
-	int	Range;
-	int	InstanceType;
-	int	InstanceValue;
-	int	TickType;
-	int	TickValue;
-	int	AffectType;
-	int	AffectValue;
-	int	AffectTime;
-	unsigned char Act[8];
-	int	InstanceAttribute;
-	int	TickAttribute;
-	int	Aggressive;
-	int	MaxTarget;
-	int	bParty;
-	int	AffectResist;
-	int	Passive;
+	int	SkillPoint; // 0 - 4
+	int	TargetType; // 4 - 8
+	int	ManaSpent; // 8 - 12
+	int	Delay; // 12 - 16
+	int	Range; // 16 - 20
+	int	InstanceType; // 24
+	int	InstanceValue; // 28
+	int	TickType; // 32
+	int	TickValue; // 36
+	int	AffectType; // 40
+	int	AffectValue; // 44
+	int	AffectTime; // 48
+	unsigned char Act[8]; // 56
+	int	InstanceAttribute; // 60
+	int	TickAttribute; // 64
+	int	Aggressive; // 68
+	int	MaxTarget; // 72
+	int	bParty; // 76
+	int	AffectResist; // 80
+	int	Passive; // 84
 };
 
 struct STRUCT_ITEMLIST
@@ -911,6 +1189,49 @@ struct STRUCT_INITITEM
 	short PosY;
 	short ItemIndex;
 	short Rotate;
+};
+
+struct DropEvent
+{
+	bool isOn;
+
+	int Rate;
+	WORD Id;
+
+	int Quantity;
+	int Dropped;
+};
+
+struct TradeEvent
+{
+	STRUCT_ITEM RequestItem[5],
+				 SendedItem[5];
+
+	int Rates;
+};
+
+
+struct Events
+{
+	DropEvent Drop;
+
+	TradeEvent Trade[6];
+};
+
+typedef struct ServerInfos
+{
+	// Status do SombraNegra
+	int BossOvo : 1;
+
+	int EventoOn;
+
+	// Tempo do servidor online
+	int  Seconds,
+		 Minuts,
+		 Hours,
+		 Days;
+
+	Events Event;
 };
 
 struct STRUCT_BLOCKMAC
@@ -1161,6 +1482,27 @@ struct		 MSG_DBCreateArchCharacter
 	int  MortalSlot;
 };
 
+const short _MSG_DBCreateHardCoreCharacter		= (32 | FLAG_GAME2DB);
+struct		 MSG_DBCreateHardCoreCharacter
+{
+	_MSG;
+
+	char MobName[NAME_LENGTH];
+	int  MobClass;
+	int  Class;
+	int  CelestialFace;
+	int  CelestialSlot;
+	int  CelestialCape;
+	int  quest1;
+	int	 quest2;
+	int  skill0;
+	int  skill1;
+	int  skill2;
+	int  skill3;
+	int	 learn;
+	STRUCT_MOB mob;
+};
+
 const short  _MSG_SavingQuit			    = (6 | FLAG_GAME2DB);
 struct		  MSG_SavingQuit
 {
@@ -1205,6 +1547,13 @@ struct		  MSG_MessageBoxOk
 	int Useless1;
 	int Useless2;
 	char String[MESSAGE_LENGTH];
+};
+
+const short  _MSG_MessageWindow				= (5 | FLAG_GAME2CLIENT);
+struct		  MSG_MessageWindow
+{
+	_MSG;
+	char     String[128];
 };
 
 const short  _MSG_AccountLogin				= (13 | FLAG_CLIENT2GAME);
@@ -1332,6 +1681,7 @@ struct		 MSG_GuildInfo
 	STRUCT_GUILDINFO GuildInfo;
 };
 
+
 const short  _MSG_CharacterLogin			= (19 | FLAG_CLIENT2GAME);
 struct		  MSG_CharacterLogin
 {
@@ -1402,6 +1752,7 @@ struct		  MSG_MagicTrumpet
 {
 	_MSG;
 	char String[MESSAGE_LENGTH];
+	int  Color;
 };
 
 const short  _MSG_DBNotice					= (30 | FLAG_DB2GAME | FLAG_GAME2DB | FLAG_GAME2CLIENT);
@@ -1440,7 +1791,7 @@ const short  _MSG_MessageChat				= (51 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_MessageChat
 {
 	_MSG;
-	char String[MESSAGE_LENGTH];
+	char String[MESSAGECHAT_LENGTH];//Corrigido
 };
 
 
@@ -1477,7 +1828,7 @@ struct		  MSG_UpdateScore
 	unsigned short Guild;
 	unsigned short GuildLevel;
 
-	char           Resist[4];
+	unsigned char Resist[4];
 
 	unsigned char RegenHP;
 	unsigned char RegenMP;
@@ -1485,7 +1836,7 @@ struct		  MSG_UpdateScore
 	int CurrHp;
 	int CurrMp;
 
-	int Magic;
+	unsigned int Magic;
 	unsigned char Special[4];
 
 };
@@ -1496,9 +1847,10 @@ struct		  MSG_UpdateEtc
 {
 	_MSG;
 
-	unsigned int				Hold;
+	unsigned int			Hold;
 	long long				Exp;
-	long long				Learn;
+	DWORD					Learn;
+	DWORD					SecLearn;
 
 	unsigned short			ScoreBonus;
 	unsigned short			SpecialBonus;
@@ -1937,6 +2289,14 @@ struct		 MSG_ReqBuy
 	STRUCT_ITEM item;
 };
 
+const short _MSG_MestreGrifo				= (217 | FLAG_GAME2DB | FLAG_CLIENT2GAME);
+struct       MSG_MestreGrifo
+{
+	_MSG;
+	int WarpID;
+	int Typpe;
+
+};
 const short _MSG_ItemSold					= (155 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); // Standard Parm2  Parm1:Seller Parm2:Pos
 
 
@@ -1946,6 +2306,8 @@ const short _MSG_CombineItemLindy			= (195 | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemShany			= (196 | FLAG_CLIENT2GAME);
 const short _MSG_CapsuleInfo				= (205 | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemOdin			= (210 | FLAG_CLIENT2GAME);
+const short _MSG_CombineDedekinto           = (230 | FLAG_CLIENT2GAME);
+const short _MSG_CombineDedekinto2          = (233 | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemExtracao		= (212 | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemAlquimia		= (225 | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemOdin2			= (226 | FLAG_CLIENT2GAME);
@@ -2011,36 +2373,38 @@ struct	STRUCT_DAM
 const short  _MSG_Attack					= (103 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_Attack
 {
-	_MSG;
+	_MSG; // 0 - 11
 
-	char Unk_1[4];
+	char Unk_1[4]; // 12 - 15
 
-	int  CurrentHp;
+	int  CurrentHp; // 16 - 19
+	 
+	char Unk_2[4]; // 20 - 23
 
-	char Unk_2[4];
+	long long CurrentExp; // 24 - 31
+	short unk0; // 32 - 33
 
-	long long CurrentExp;
-	short unk0;
+	unsigned short		PosX, PosY; // 34 - 37
+	unsigned short		TargetX, TargetY; // 38 - 41
 
-	unsigned short		PosX, PosY;
-	unsigned short		TargetX, TargetY;
+	unsigned short		AttackerID; // 42 - 43
+	unsigned short		Progress; // 44 - 45
 
-	unsigned short		AttackerID;
-	unsigned short		Progress;
+	unsigned char		Motion; // 46
+	unsigned char		SkillParm;  // 47
+	unsigned char		DoubleCritical; // 48
+	unsigned char		FlagLocal; // 49
 
-	unsigned char		Motion;
-	unsigned char		SkillParm;
-	unsigned char		DoubleCritical;
-	unsigned char		FlagLocal;
+	short				Rsv; // 50 - 51
 
-	short				Rsv;
+	int					CurrentMp; // 52 - 55
 
-	int					CurrentMp;
+	short 				SkillIndex; // 56 - 57
+	short				ReqMp; // 58 - 59
 
-	short 				SkillIndex;
-	short				ReqMp;
+	STRUCT_DAM			Dam[MAX_TARGET]; // 60 - 163
 
-	STRUCT_DAM			Dam[MAX_TARGET];
+	// TOTALSIZE 164
 };
 
 const short _MSG_Trade						= (131 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -2182,6 +2546,7 @@ const short _MSG_SendCastleState2			= (173 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME
 const short  _MSG_MobLeft					= (176 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); //SignalParm
 
 const short _MSG_SendArchEffect				= (180 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); // SignalParm	
+const short _MSG_SendCelestialEffect		= (181 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); // SignalParm	
 
 const short  _MSG_SendAffect				= (185 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_SendAffect
@@ -2232,6 +2597,61 @@ struct		 MSG_UpdateExpRanking
 	}
 };
 
+const short _MSG_PartyEvocation				= (234 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
+struct		 MSG_PartyEvocation
+{
+	_MSG; // 0 - 11
+ 
+	short Leader; // 12 - 13
+	short EvocationList[MAX_PARTY]; // 14 - 37
+
+	char Unknown[2]; // 38 - 39
+};
+
+struct QuizInfo
+{
+	int RespostaCorreta; //de 0 a 3
+	bool Status;
+};
+
+const short _MSG_AnswerQuiz					= (199 | FLAG_CLIENT2GAME);
+const short _MSG_Quiz						= (198 | FLAG_GAME2CLIENT);
+struct       MSG_Quiz
+{
+	_MSG;
+
+	char Title[MESSAGECHAT_LENGTH];
+	char Answer[4][32];
+	int CorrectAlternative;
+};
+
+const short _MSG_BigQuiz					= (177 | FLAG_DB2GAME | FLAG_CLIENT2GAME | FLAG_GAME2CLIENT);
+struct		 MSG_BigQuiz
+{
+	_MSG;			// 0 - 12
+
+	int Unknow;		// 12 - 16
+
+	char Title[128];// 16 - 144
+
+	char Line[3][128]; // 144 - 528
+};
+
+
+const short _MSG_Firework					= (201 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
+struct		 MSG_Firework
+{
+	_MSG;
+
+
+};
+const short _MSG_Firework_2					= (202 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
+struct		 MSG_Firework_2
+{
+	_MSG;
+
+
+};
 
 //////////////////////////////////////////////////////////////////////
 //																	//
@@ -2410,8 +2830,7 @@ int  BASE_GetAccuracyRate(STRUCT_SCORE *att);
 int  BASE_GetDoubleCritical(STRUCT_MOB *mob, unsigned short *sProgress, unsigned short *cProgress, unsigned char *bDoubleCritical);
 int  BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight);
 int  BASE_GetDistance(int x1, int y1, int x2, int y2);
-//void BASE_GetHitPosition		(int,int,int *,int *,char *)
-//void BASE_GetHitPosition2		(int,int,int *,int *,char *)
+void BASE_GetHitPosition(int sx, int sy, int *tx, int *ty, char *pHeight);
 void BASE_WriteInitItem();
 int  BASE_ReadInitItem();
 void BASE_InitializeInitItem();
@@ -2423,6 +2842,7 @@ int  BASE_InitializeServerList();
 int  BASE_InitializeAttribute();
 int  BASE_GetHttpRequest(char *httpname, char *Request, int MaxBuffer);
 int  BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage);
+int  BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage, int master);
 int  BASE_GetEnglish(char *name);
 int  BASE_GetWeekNumber();
 int  BASE_CheckPacket(struct MSG_STANDARD *m);
@@ -2431,17 +2851,27 @@ int  BASE_VisualItemCode(STRUCT_ITEM *Item, int mnt);
 int  BASE_VisualAnctCode(STRUCT_ITEM *Item);
 
 void BASE_SetItemDate(STRUCT_ITEM *Item, int day);
+void BASE_FadaDate(STRUCT_ITEM *Item, int Time);
 int  BASE_CheckItemDate(STRUCT_ITEM *Item);
 void BASE_CheckFairyDate(STRUCT_ITEM *Item);
 
 #pragma endregion
 
 #pragma region Basedef Externs
-
+extern ServerInfos Server;
 extern STRUCT_GUILDZONE g_pGuildZone[MAX_GUILDZONE];
 
 extern int				g_pIncrementHp[4];
 extern int				g_pIncrementMp[4];
+
+extern int				g_pIncrementHp_2[4];
+extern int				g_pIncrementMp_2[4];
+
+extern int				g_pIncrementHp_3[4];
+extern int				g_pIncrementMp_3[4];
+
+extern int				BaseArcos[4][19];
+extern int				BaseGarras[4][19];
 
 extern int				g_pGroundMask[MAX_GROUNDMASK][4][6][6];
 
@@ -2455,6 +2885,7 @@ extern long long		g_pNextLevel[MAX_LEVEL + 2];
 extern long long	    g_pNextLevel_2[MAX_CLEVEL + 202];
 extern STRUCT_BEASTBONUS pSummonBonus[MAX_SUMMONLIST];
 extern STRUCT_BEASTBONUS pTransBonus[5];
+extern STRUCT_AVISOGUILD AvisarGuild[4096];
 
 extern int  ChargedGuildList[MAX_SERVER][MAX_GUILDZONE];
 extern char g_pGuildName[10][16][MAX_GUILD][GUILDNAME_LENGTH];
@@ -2482,6 +2913,7 @@ extern int g_pClanTable[9][9];
 extern int g_pSancRate[3][12];
 extern int g_pSancGrade[2][5];
 extern int g_pEhreRate[10];
+extern int g_pDedekintoRate[3];
 extern int g_pOdinRate[12];
 extern int g_pCelestialRate[15];
 extern int g_pTinyBase;

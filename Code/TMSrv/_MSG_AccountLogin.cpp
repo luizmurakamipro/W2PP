@@ -1,21 +1,4 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*   Contact at:
-*/
+
 #include "ProcessClientMessage.h"
 
 void Exec_MSG_AccountLogin(int conn, char *pMsg)
@@ -37,12 +20,12 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 		CloseUser(conn);
 		return;
 	}
-		
-#ifdef _PACKET_DEBUG
+
+
 	if (Size < sizeof(MSG_AccountLogin))
-#else
-	if (Size < sizeof(MSG_AccountLogin) || m->ClientVersion != ClientVersion)
-#endif
+		return;
+
+	/*if (Size < sizeof(MSG_AccountLogin) || m->ClientVersion != ClientVersion)
 	{
 		sprintf(temp, g_pMessageStringTable[_NN_Version_Not_Match_Rerun], APP_VERSION);
 		SendClientMessage(conn, temp);
@@ -51,14 +34,55 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 
 		CloseUser(conn);
 		return;
+	}*/
+
+	/*if (CheckBan(m->AccountName))
+	{
+		SendClientMessage(conn, "Conta bloqueada, entre em contato com Suporte.");
+		CrackLog(conn, " accbanned");
+		pUser[conn].cSock.SendMessageA();
+		return;
 	}
-			
-	if(pUser[conn].Mode != USER_ACCEPT)
+
+	if (CheckMacBan(&pUser[conn].Mac[0], &pUser[conn].Mac[1], &pUser[conn].Mac[2], &pUser[conn].Mac[3]))
+	{
+		SendClientMessage(conn, "Você foi banido permanentemente do Servidor.");
+		CrackLog(conn, " macbanned");
+		pUser[conn].cSock.SendMessageA();
+		return;
+	}
+
+	if (CheckIpBan(pUser[conn].IP))
+	{
+		SendClientMessage(conn, "Você foi banido permanentemente do Servidor.");
+		CrackLog(conn, " ipbanned");
+		pUser[conn].cSock.SendMessageA();
+		return;
+	}
+
+	if (CheckBan3Hours(pUser[conn].IP))
+	{
+		SendClientMessage(conn, "Você foi banido por 3 Horas do Servidor (Leia as Regras).");
+		CrackLog(conn, " ipbanned");
+		pUser[conn].cSock.SendMessageA();
+		return;
+	}
+
+	if (Check3HoursAccBan(m->AccountName))
+	{
+		SendClientMessage(conn, "Você foi banido por 3 Horas do Servidor (Leia as Regras).");
+		CrackLog(conn, " accbanned");
+		pUser[conn].cSock.SendMessageA();
+		return;
+	}
+	*/
+
+	if (pUser[conn].Mode != USER_ACCEPT)
 	{
 		SendClientMessage(conn, "Login now, wait a moment.");
 
 		CrackLog(conn, " accountlogin");
-		pUser[conn].cSock.SendMessageA(); 
+		pUser[conn].cSock.SendMessageA();
 		return;
 	}
 
@@ -81,7 +105,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 
 	int check = CheckFailAccount(m->AccountName);
 
-	if(check >= 3)
+	if (check >= 3)
 	{
 		SendClientMessage(conn, g_pMessageStringTable[_NN_3_Tims_Wrong_Pass]);
 
@@ -94,3 +118,4 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 	pUser[conn].Mode = USER_LOGIN;
 	pMob[conn].Mode = MOB_EMPTY;
 }
+

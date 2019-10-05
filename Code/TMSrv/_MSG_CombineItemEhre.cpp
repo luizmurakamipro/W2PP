@@ -1,20 +1,4 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*/
+
 #include "ProcessClientMessage.h"
 
 void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
@@ -36,7 +20,6 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 
 		if (memcmp(&pMob[conn].MOB.Carry[invPos], &m->Item[i], sizeof(STRUCT_ITEM)))
 		{
-			ItemLog("err,msg_CombineEhre - item remove or changed.", pUser[conn].AccountName, pUser[conn].IP);
 			SendClientSignalParm(conn, ESCENE_FIELD, _MSG_CombineComplete, 0);
 			return;
 		}
@@ -52,7 +35,7 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 	}
 
 	if (combine == 5 && (pMob[conn].MOB.Exp < 5000000 || pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH || pMob[conn].MOB.CurrentScore.Level < 39))
-	{	 //Ref AbenÃ§oada
+	{	 //Ref Abençoada
 		SendClientMessage(conn, g_pMessageStringTable[_NN_Wrong_Combination]);
 		SendClientSignalParm(conn, ESCENE_FIELD, _MSG_CombineComplete, 0);
 		return;
@@ -90,8 +73,6 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 		SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[i], &pMob[conn].MOB.Carry[m->InvenPos[i]]);
 	}
 
-	ItemLog("*** Item combine ehre. ***", pUser[conn].AccountName, pUser[conn].IP);
-
 	for (int i = 0; i < MAX_COMBINE; i++)
 	{
 		if (m->Item[i].sIndex)
@@ -103,8 +84,6 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 			strcat(temp, itemlog);
 		}
 	}
-	ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
-	ItemLog("*** ------------------- ***", pUser[conn].AccountName, pUser[conn].IP);
 
 	int _rand = rand() % 115;
 	if (_rand >= 100)
@@ -146,7 +125,7 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 		else if(pMob[conn].MOB.CurrentScore.Level < 190)
 			rate = 70;
 
-		else if(pMob[conn].MOB.CurrentScore.Level <= MAX_CLEVEL)
+		else if(pMob[conn].MOB.CurrentScore.Level <= MAX_LEVEL)
 			rate = 100;
 
 		int newlevel = 0;
@@ -356,8 +335,6 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 			BASE_GetItemCode(&pMob[conn].MOB.Carry[ipos], tt);
 			strcat(temp, tt);
 
-			ItemLog(temp, "*** Combine ehre sucess ***", pUser[conn].IP);
-
 			return;
 		}
 
@@ -371,7 +348,6 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 		BASE_GetItemCode(&pMob[conn].MOB.Carry[ipos], tt);
 		strcat(temp, tt);
 
-		ItemLog(temp, "*** Combine ehre sucess ***", pUser[conn].IP);
 		SendItem(conn, ITEM_PLACE_CARRY, ipos, &pMob[conn].MOB.Carry[ipos]);
 
 		return;
@@ -379,7 +355,7 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 	else
 	{
 		if (combine == 5)
-		{//Ref AbenÃ§oada
+		{//Ref Abençoada
 			memcpy(&pMob[conn].MOB.Carry[m->InvenPos[2]], &m->Item[2], sizeof(STRUCT_ITEM));
 			SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[2], &pMob[conn].MOB.Carry[m->InvenPos[2]]);
 		}
@@ -388,7 +364,6 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 		SendClientMessage(conn, temp);
 
 		SendClientSignalParm(conn, ESCENE_FIELD, _MSG_CombineComplete, 2);
-		ItemLog("*** Combine ehre fail ***", pUser[conn].AccountName, pUser[conn].IP);
 
 		return;
 	}

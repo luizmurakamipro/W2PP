@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at: 
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #ifndef __CNPCGENE__
 #define __CNPCGENE__
@@ -26,28 +26,28 @@
 
 #define MAX_SEGMENT 5
 
-struct NPCGENLIST // 2988 total
+struct NPCGENLIST // BDEA94
 {
-	int  Mode;//0
-	int  MinuteGenerate;  //4
-	int  MaxNumMob;     //8
-	int  CurrentNumMob;    //12
-	int  MinGroup;     //16 //uNK3 COMEËåø AQUI
-	int  MaxGroup;    //20
-	int  SegmentListX[MAX_SEGMENT]; //20 - 40
-	int  SegmentListY[MAX_SEGMENT]; //40 - 60
-	int  SegmentRange[MAX_SEGMENT]; //60 - 80
-	int  SegmentWait[MAX_SEGMENT]; // 80 - 100
-	char SegmentAction[MAX_SEGMENT][80]; //100 - 500
-	char FightAction[4][80]; //500 - 820
+	int  Mode; //  0 - 3
+	int  MinuteGenerate;  // 4 - 7
+	int  MaxNumMob;     // 8 - 11
+	int  CurrentNumMob;     // 12 - 15
+	int  MinGroup;     // 16 - 19
+	int  MaxGroup;     // 20 - 23
+	int  SegmentListX[MAX_SEGMENT]; // 24
+	int  SegmentListY[MAX_SEGMENT]; 
+	int  SegmentRange[MAX_SEGMENT]; 
+	int  SegmentWait[MAX_SEGMENT]; 
+	char SegmentAction[MAX_SEGMENT][80]; 
+	char FightAction[4][80]; 
 	char FleeAction[4][80];
 	char DieAction[4][80];
 	int  Formation;
 	int  RouteType;
 	int	 Offset;
 
-	STRUCT_MOB   Leader;                    // ÁºöÁãº ÊäÄ‰Ωï ÈÉ¥‰æ©.
-	STRUCT_MOB   Follower;                  // Â¶í‰ªòËÅ™ ÊäÄ‰ΩïÈÉ¥‰æ©
+	STRUCT_MOB   Leader;                    // ∏ø¿« ºº∫Œ ≥ªøÎ.
+	STRUCT_MOB   Follower;                  // ∂ ∏∂¥œ ºº∫Œ≥ªøÎ
 };
 
 struct MAPREGION

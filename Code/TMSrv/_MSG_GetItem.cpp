@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include "ProcessClientMessage.h"
 
@@ -80,6 +81,7 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 		Log(temp, pUser[conn].AccountName, pUser[conn].IP);
 		return;
 	}
+
 
 	if (itemID == 1727 && pMob[conn].MOB.CurrentScore.Level < 1000)
 		return;

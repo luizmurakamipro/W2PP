@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 #ifndef _CFILEDB_
@@ -33,6 +33,7 @@ typedef struct
 } STRUCT_ACCOUNTLIST;
 
 int ProcessRecord(int conn, char * str);
+const char* inet_ntop2(int af, const void* src, char* dst, int cnt);
 
 class CFileDB
 {

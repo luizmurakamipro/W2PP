@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 #ifndef __SERVER__
@@ -35,7 +35,7 @@ void ReadAdmin(); // Last updated 15/01/2013
 int  ReadConfig(); // Last Updated 15/01/2013
 int  WriteConfig(); // Last updated 15/01/2013
 
-int  ProcessAdminClientMessage(char *msg); // Last updated 15/01/2013 -
+//int  ProcessAdminClientMessage(char *msg); // Last updated 15/01/2013 -
 void ProcessClientMessage(int conn, char *msg); // Last updated 15/01/2013
 
 LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam); // Last updated 21/01/2013

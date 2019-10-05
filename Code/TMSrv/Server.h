@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #ifndef __SERVER_H__
 #define	__SERVER_H__
@@ -63,6 +63,7 @@ extern CNPCGenerator mNPCGen;
 
 extern CUser pUser[MAX_USER];
 extern STRUCT_BLOCKMAC pMac[MAX_MAC];
+extern int BigCubo;
 
 // Funcs
 
@@ -81,6 +82,7 @@ int   SendBilling2(_AUTH_GAME *m, int hostlong);
 void  SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus);
 int   Challange(int conn, int mob, int coin);
 int   GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num);
+int   GenerateEvocation(int conn, int SummonID, STRUCT_ITEM *sItem, int Num);
 int   CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type); 
 void  GenerateMob(int index, int PosX, int PosY);
 void  RebuildGenerator();
@@ -111,6 +113,7 @@ void  ClearAreaLevel(int x1, int y1, int x2, int y2, int minLv, int maxLv);
 void  ClearAreaGuild(int x1, int y1, int x2, int y2, int Guild);
 void  ClearAreaTeleport(int x1, int y1, int x2, int y2, int tx, int ty);
 void  ClearGuildPKZone();
+void  SetBigCuboDoor(int state);
 void  SetColoseumDoor(int state); 
 void  SetColoseumDoor2(int state);
 void  GenerateColoseum(int InitID);
@@ -143,6 +146,7 @@ void  MobKilled(int conn, int target, int PosX, int PosY);
 int   CreateItem(int x, int y, STRUCT_ITEM *item, int rotate, int Create);
 void  RemoveTrade(int conn);
 void  RemoveParty(int conn);
+void  RemoveEvocation(int conn);
 int   UpdateItem(int Gate, int state, int *height);
 void  DoRecall(int conn);  
 void  DoWar(int myguild, int target);     
@@ -150,7 +154,10 @@ void  DoAlly(int myguild, int target);
 void  DoDeprivate(int conn, int target);     
 void  ProcessRanking();    
 void  DoRanking(int tDuel, int conn, int enemy);   
-void  DoRemoveHide(int conn);      
+void  DoRemoveHide(int conn);  
+void  DoRemoveAbsoluteProtection(int conn);
+void  DoRemoveAllBuffs(int conn);
+void  DoRemoveMutation(int conn);
 void  DoTeleport(int mob, int x, int y);     
 void  DoSummon(int target, int x, int y);       
 int   SetAffect(int conn, int skillnum, int time, int Level);
@@ -179,17 +186,46 @@ void  StartChatLog();
 void  ChatLog(char *str1, char *str2, unsigned int ip);
 void  StartItemLog();
 void  ItemLog(char *str1, char *str2, unsigned int ip);
-int   ParseCastleString(int Num, char *str);
+//int   ParseCastleString(int Num, char *str);
 int   ParseMobMercString(int Num, char *str);
-int   ParseCampString(int Num, char *str);
+//int   ParseCampString(int Num, char *str);
 void  DeleteGenerateMob(int generate);
 int   CreateTreasureBox(int x, int y, STRUCT_ITEM *item, int rotate, int State);
 void  ClearAreaQuest(int x1, int y1, int x2, int y2);
+void  ClearMobArea(int x1, int y1, int x2, int y2);
+void  RefinarItemMais(STRUCT_ITEM *item, int value);
+//void  ItemRefinar(STRUCT_ITEM *item, int value);
+int   GetItemSanc(STRUCT_ITEM *item);
+bool  CheckArchItem(int id);
+bool  CheckHardItem(int id);
+void  AmountMinus(STRUCT_ITEM *item);
+bool  CheckMount(STRUCT_ITEM *Item, INT16 Mount);
+bool  CheckMount2(STRUCT_ITEM *Item, INT16 Mount);
+void  SetItemSanc(STRUCT_ITEM *item, int value);
+bool  PutAddOnItem(STRUCT_ITEM *Item, UINT8 ef1, UINT8 ef2, UINT8 efv1, UINT8 efv2);
+/*INT64 SystemTimeDifference(const SYSTEMTIME time1, const SYSTEMTIME time2);
+bool  FileExist(const char* Name );
+bool  CheckBan(const char *login);
+void  SendBan(const char *login);
+void  SendBan3Hours(unsigned int ip);
+bool  CheckBan3Hours(unsigned int ip);
+bool  Check3HoursAccBan(const char *login);
+void  Send3HoursAccBan(const char *login);
+bool  CheckMacBan(const int *mac0, const int *mac1, const int *mac2, const int *mac3);
+void  SendMacBan(const int *mac0, const int *mac1, const int *mac2, const int *mac3);
+void  SendIpBan(unsigned int ip);
+bool  CheckIpBan(unsigned int ip);
+void  ReadArquivo(void);
+void  DoItemArquivo(int conn);*/
+bool ReadQuiz();
+bool ReadCuboQuiz();
+BOOL PutItemArea(STRUCT_ITEM *item, int x1, int y1, int x2, int y2);
+void ReadDirectory();
+//bool LoadCuboCoord();
+//bool LoadCubo();
 // External func
 
 void ProcessImple(int conn, int level, char * str);
-
-
 
 //Externs
 
@@ -203,6 +239,9 @@ extern int ServerIndex;
 extern int Sapphire;
 extern int ServerGroup;
 extern int GuildCounter;
+extern bool TarantulaKilled;
+extern bool MsgArea;
+extern bool MsgArea2;
 
 extern int ValidGuild ;
 extern int WaterScrollPosition[3][10][2];
@@ -220,6 +259,7 @@ extern HFONT hFont;
 extern FILE *fLogFile;
 extern FILE *fChatLogFile;
 extern FILE *fItemLogFile;
+extern FILE *fReadDir;
 
 extern CPSock DBServerSocket;
 
@@ -247,6 +287,7 @@ extern int LastLogDay;
 extern int LastChatLogDay;
 extern int LastItemLogDay;
 extern int maxNightmare;
+extern int maxPortaoInfernal;
 
 extern int ConfigReady;
 
@@ -320,6 +361,13 @@ extern unsigned int pAdminIP[MAX_ADMIN];
 extern char DBServerAddress[32];
 extern int DBServerPort;
 
+extern QuizInfo SendQuiz[1000];
+extern char QuizLineCounter;
+extern MSG_Quiz QuizList[50];
+
+extern MSG_BigQuiz CuboList[50];
+extern char CuboQuizLine;
+
 extern int CurrentWeather;
 extern int TESTSERVER;
 extern int LOCALSERVER;
@@ -337,6 +385,12 @@ extern int BrGrid;
 extern int CastleState;
 extern int Colo150Limit;
 extern int KefraLive;
+extern int EspelhoLive;
+extern int RandBoss;
+extern int Lich_1;
+extern int Lich_2;
+extern int Lich_3;
+extern int Lich_4;
 extern char KefraKiller[32];
 
 extern int g_dLevel;
@@ -347,6 +401,7 @@ extern int Kingdom1Clear;
 extern int Kingdom2Clear;
 extern int PARTY_DIF;
 extern int isDropItem;
+extern int isHardCore;
 extern int RvRHour;
 
 ///////////////////////////////////////
@@ -388,11 +443,14 @@ extern int TaxChanged[MAX_GUILDZONE];
 
 extern int WaterClear1[3][10];
 extern int PartyPesa[3];
+extern int PartyPortao[3];
 extern int PesaNPosStandard[13][2];
 extern int PesaMPosStandard[13][2];
 extern int PesaAPosStandard[13][2];
 extern int CartaPos[4][2];
 extern int PistaPos[7][3][2];
+extern int TarantulaPos[2][2][2];
+extern int CTarantulaPos[4][2];
 extern int CartaTime;
 extern int CartaSala;
 
@@ -411,8 +469,62 @@ extern int GTorreGuild;
 extern int RvRBluePoint;
 extern int RvRRedPoint;
 
+extern char ACCOUNT_DIRECTORY[MESSAGECHAT_LENGTH];
+
 /////////////////////////////////////
 //Externs
+
+static const INT16 MountCheck[7][4] =
+{
+	{
+		2363, 2364, 2365, 0
+	},
+	{
+		2367, 2368, 2372, 2373
+	},
+	{
+		2369, 2370, 2374, 2375
+	},
+	{
+		2376, 2377, 2378, 0
+	},
+	{
+		2381, 2382, 2383, 0
+	},
+	{
+		2384, 2385, 2386, 0
+	},
+	{
+		2379, 2380, 2387, 2388
+	}
+};
+
+static const INT16 MountCheck2[7][4] =
+{
+	{
+		2333, 2334, 2335, 0
+	},
+	{
+		2337, 2338, 2342, 2343
+	},
+	{
+		2339, 2340, 2344, 2345
+	},
+	{
+		2346, 2347, 2348, 0
+	},
+	{
+		2351, 2352, 2353, 0
+	},
+	{
+		2354, 2355, 2356, 0
+	},
+	{
+		2349, 2350, 2357, 2358
+	}
+};
+
+static unsigned char ref[11] = { 43, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125 };
 
 extern STRUCT_GUILDZONE g_pGuildZone[MAX_GUILDZONE];
 #endif

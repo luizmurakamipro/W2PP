@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,10 +14,11 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 
 #include <Windows.h>
+#include "Main.h"
 
 void strip_xtrap()
 {
@@ -39,6 +40,7 @@ int __stdcall DllMain(HINSTANCE hInstDLL, DWORD catchReason, LPVOID lpResrv)
 
 		VirtualProtect((void*)0x401000, 0x1F3000, PAGE_READWRITE, &dwOldProtectFlag_text);
 
+		LoadHooks();
 		strip_xtrap();
 		strip_odd_connection_request();
 

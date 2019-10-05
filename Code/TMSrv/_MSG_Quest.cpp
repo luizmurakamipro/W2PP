@@ -1,20 +1,4 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*/
+
 #include "ProcessClientMessage.h"
 
 void Exec_MSG_Quest(int conn, char *pMsg)
@@ -30,7 +14,7 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 	int npcMode = -1;
 
 	int npcMerc = pMob[npcIndex].MOB.Merchant;
-	int npcGrade = BASE_GetItemAbilityNosanc(&pMob[npcIndex].MOB.Equip[0], EF_GRADE0);
+	int npcGrade = pMob[npcIndex].MOB.BaseScore.Str;
 
 	if (pUser[conn].Trade.OpponentID)
 	{
@@ -45,6 +29,8 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 		return;
 	}
 
+	if (BASE_GetDistance(pMob[conn].TargetX, pMob[conn].TargetY, pMob[npcIndex].TargetX, pMob[npcIndex].TargetY) > 12)
+		return;
 
 #pragma region Set npcMode Base
 
@@ -66,7 +52,7 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 	if (npcMerc == 100 && npcGrade == 5)
 		npcMode = LIDER_APRENDIZ;
 
-	if (npcMerc == 100 && npcGrade == 9 || npcMerc == 100 && npcGrade == 8 || npcMerc == 100 && npcGrade == 7)
+	if (npcMerc == 100 && npcGrade == 9 || npcMerc == 100 && npcGrade == 8 || npcMerc == 100 && npcGrade == 7 || npcMerc == 100 && npcGrade == 10)
 		npcMode = PERZEN;
 
 	if (npcMerc == 100 && npcGrade == 13)
@@ -78,37 +64,67 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 	if (npcMerc == 100 && npcGrade == 15)
 		npcMode = MOLARGARGULA;
 
-	if (npcMerc == 100 && npcGrade == 16)
-		npcMode = TREINADORNEWBIE4;
-
 	if (npcMerc == 100 && npcGrade == 22)
 		npcMode = SOBREVIVENTE;
 
 	if (npcMerc == 100 && npcGrade == 30)
 		npcMode = GUARDA_REAL_EVT1;
 
+	if (npcMerc == 100 && npcGrade == 50)
+		npcMode = GUARDA_REAL_EVT2;
+
+	if (npcMerc == 100 && npcGrade == 51)
+		npcMode = GUARDA_REAL_EVT3;
+
 	if (npcMerc == 72)
 		npcMode = UXMAL;
 
-	if (npcMerc == 36)
+	if (npcMerc == 42 && npcGrade == 33)
+		npcMode = MESTREGRIFO;
+
+	if (npcMerc == 100 && npcGrade == 34)
+		npcMode = UNICORNIO_PURO;
+
+	if (npcMerc == 100 && npcGrade == 37)
 		npcMode = TREINADORNEWBIE1;
 
-	if (npcMerc == 40)
+	if (npcMerc == 100 && npcGrade == 38)
 		npcMode = TREINADORNEWBIE2;
 
-	if (npcMerc == 41)
+	if (npcMerc == 100 && npcGrade == 39)
 		npcMode = TREINADORNEWBIE3;
+
+	if (npcMerc == 42 && npcGrade == 40)
+		npcMode = TREINADORNEWBIE4;
+
+	if (npcMerc == 100 && npcGrade == 43)
+		npcMode = JULIARZAN;
+
+	if (npcMerc == 100 && npcGrade == 42)
+		npcMode = JULIGELO;
+
+	if (npcMerc == 100 && npcGrade == 45)
+		npcMode = TELEPORT_EQUILIBRIO;
+
+	if (npcMerc == 100 && npcGrade == 46) 
+		npcMode = NPCEQUILIBRIO;
+
+	if (npcMerc == 100 && npcGrade == 47)
+		npcMode = TELEPORT_CHANCE;
+
+	if (npcMerc == 100 && npcGrade == 48)
+		npcMode = NPCCHANCE;
 
 	if (npcMerc == 8)
 		npcMode = CAPAVERDE_TRADE;
 
-	if(npcMerc == 78)
+	if (npcMerc == 78)
 		npcMode = BLACKORACLE;
 
-	if(npcMerc == 120)
+	if (npcMerc == 120)
 		npcMode = CARBUNCLE_WIND;
 
-	if(npcMerc == 4)
+	if (npcMerc == 4)
 		npcMode = GOLD_DRAGON;
 
 	if (npcMerc == 10)
@@ -129,7 +145,7 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 	if (npcMerc == 15)
 		npcMode = KING;
 
-	if(npcMerc == 19)
+	if (npcMerc == 19)
 		npcMode = COMP_SEPHI;
 
 	if (npcMerc == 26)
@@ -138,10 +154,10 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 	if (npcMerc == 30)
 		npcMode = ZAKUM;
 
-	if (npcMerc == 31)
+	if (npcMerc == 42 && npcGrade == 41)
 		npcMode = MESTREHAB;
 
-	if(npcMerc == 68)
+	if (npcMerc == 68)
 		npcMode = GODGOVERNMENT;
 
 	if (npcMerc == 58)
@@ -166,1144 +182,1151 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 #pragma region MOUNT_MASTER
 	case MOUNT_MASTER:
 	{
-						int mountIndex = pMob[conn].MOB.Equip[14].sIndex;
+		int mountIndex = pMob[conn].MOB.Equip[14].sIndex;
 
-						if (mountIndex < 2330 || mountIndex >= 2390)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Cure_animals]);
-							break;
-						}
+		if (mountIndex < 2330 || mountIndex >= 2390)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Cure_animals]);
+			break;
+		}
 
-						if (pMob[conn].MOB.Equip[14].stEffect[0].sValue > 0)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Cure_animals]);
-							break;
-						}
+		if (pMob[conn].MOB.Equip[14].stEffect[0].sValue > 0)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Cure_animals]);
+			break;
+		}
 
-						int price = g_pItemList[mountIndex].Price;
+		int price = g_pItemList[mountIndex].Price;
 
-						if (confirm == 0)
-						{
-							sprintf(temp, g_pMessageStringTable[_DS_S_cure_price_D], g_pItemList[mountIndex].Name, price);
-							SendSay(npcIndex, temp);
-							break;
-						}
+		if (confirm == 0)
+		{
+			sprintf(temp, g_pMessageStringTable[_DS_S_cure_price_D], g_pItemList[mountIndex].Name, price);
+			SendSay(npcIndex, temp);
+			break;
+		}
 
-						if (pMob[conn].MOB.Coin < price)
-						{
-							SendClientMessage(conn, g_pMessageStringTable[_NN_Not_Enough_Money]);
-							break;
-						}
+		if (pMob[conn].MOB.Coin < price)
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Not_Enough_Money]);
+			break;
+		}
 
-						if (price < 0 || price > 2000000000)
-							break;
+		if (price < 0 || price > 2000000000)
+			break;
 
-						pMob[conn].MOB.Coin -= price;
+		pMob[conn].MOB.Coin -= price;
 
-						int vit = BASE_GetItemAbility(&pMob[conn].MOB.Equip[14], 79);
+		int vit = BASE_GetItemAbility(&pMob[conn].MOB.Equip[14], 79);
 
-						vit -= rand() % 3;
+		vit -= rand() % 3;
 
-						if (vit > 0)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Cured]);
-							pMob[conn].MOB.Equip[14].stEffect[1].cValue = vit;
-							pMob[conn].MOB.Equip[14].stEffect[0].sValue = 20;
-							pMob[conn].MOB.Equip[14].stEffect[2].cEffect = 5;
-						}
-						else
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Cure_failed]);
-							memset(&pMob[conn].MOB.Equip[14], 0, sizeof(STRUCT_ITEM));
-						}
-						
+		if (vit > 0)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Cured]);
+			pMob[conn].MOB.Equip[14].stEffect[1].cValue = vit;
+			pMob[conn].MOB.Equip[14].stEffect[0].sValue = 20;
+			pMob[conn].MOB.Equip[14].stEffect[2].cEffect = 5;
+		}
+		else
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Cure_failed]);
+			memset(&pMob[conn].MOB.Equip[14], 0, sizeof(STRUCT_ITEM));
+		}
 
-						pMob[conn].GetCurrentScore(conn);
-						SendScore(conn);
 
-						SendItem(conn, ITEM_PLACE_EQUIP, 14, &pMob[conn].MOB.Equip[14]);
+		pMob[conn].GetCurrentScore(conn);
 
-						MountProcess(conn, 0);
+		SendItem(conn, ITEM_PLACE_EQUIP, 14, &pMob[conn].MOB.Equip[14]);
 
-						SendEtc(conn);
+		MountProcess(conn, &pMob[conn].MOB.Equip[14]);
 
-						sprintf(temp, "etc,mount ressurect index:%d vit:%d - %d", pMob[conn].MOB.Equip[14].sIndex, vit, pMob[conn].MOB.Equip[14].stEffect[1].cEffect);
-						Log(temp, "-system", 0);
+		SendEtc(conn);
+
+		sprintf(temp, "etc,mount ressurect index:%d vit:%d - %d", pMob[conn].MOB.Equip[14].sIndex, vit, pMob[conn].MOB.Equip[14].stEffect[1].cEffect);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region ZAKUM
 	case ZAKUM:
 	{
-					char UserNameArea[128];
+		char UserNameArea[128];
 
-					int count = GetUserInArea(2180, 1160, 2296, 1270, UserNameArea);
+		int count = GetUserInArea(2180, 1160, 2296, 1270, UserNameArea);
 
-					if (count < 1)
-						sprintf(temp, g_pMessageStringTable[_NN_Zakum_Quest_empty]);
-					else
-						sprintf(temp, g_pMessageStringTable[_SD_Zakum_Quest_by_S_N], UserNameArea, count - 1);
+		if (count < 1)
+			sprintf(temp, g_pMessageStringTable[_NN_Zakum_Quest_empty]);
+		else
+			sprintf(temp, g_pMessageStringTable[_SD_Zakum_Quest_by_S_N], UserNameArea, count - 1);
 
-					SendSay(npcIndex, temp);
+		SendSay(npcIndex, temp);
 	} break;
 #pragma endregion
 #pragma region AMU_MISTICO
 	case AMU_MISTICO:
 	{
-						if (pMob[conn].extra.QuestInfo.Mortal.TerraMistica != 0 || pMob[conn].extra.ClassMaster != MORTAL)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Hurry_Helping_them]);
-							break;
-						}
+		if (pMob[conn].extra.QuestInfo.Mortal.TerraMistica != 0 || pMob[conn].extra.ClassMaster != MORTAL)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Hurry_Helping_them]);
+			break;
+		}
 
-						if (confirm == 0)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Monster_Attaking_Us_Help]);
-							break;
-						}
+		if (confirm == 0)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Monster_Attaking_Us_Help]);
+			break;
+		}
 
-						if (pMob[conn].Leader)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Party_Only]);
-							break;
-						}
+		if (pMob[conn].Leader)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Party_Only]);
+			break;
+		}
 
-						int partycont = 0;
+		int partycont = 0;
 
-						for (int i = 0; i < MAX_PARTY; i++)
-						if (pMob[conn].PartyList[i] > 0 && pMob[conn].PartyList[i] < MAX_USER)
-							partycont++;
+		for (int i = 0; i < MAX_PARTY; i++)
+			if (pMob[conn].PartyList[i] > 0 && pMob[conn].PartyList[i] < MAX_USER)
+				partycont++;
 
-						if (partycont == 0)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Party_Only]);
-							break;
-						}
+		if (partycont == 0)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Party_Only]);
+			break;
+		}
 
-						pMob[conn].extra.QuestInfo.Mortal.TerraMistica = 1;
-						SendClientMessage(conn, g_pMessageStringTable[_NN_Get_Watching_Town_Mission]);
+		pMob[conn].extra.QuestInfo.Mortal.TerraMistica = 1;
+		SendClientMessage(conn, g_pMessageStringTable[_NN_Get_Watching_Town_Mission]);
 
-						sprintf(temp, "etc,mysticalland complete. name:%s", pMob[conn].MOB.MobName);
-						Log(temp, "-system", 0);
+		sprintf(temp, "etc,mysticalland complete. name:%s", pMob[conn].MOB.MobName);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region QUEST_COVEIRO
 	case QUEST_COVEIRO:
 	{
-							if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
-							{
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
-								break;
-							}
+		if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
+			break;
+		}
 
-							int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 39 : 39;
-							int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 115 : 115;
+		int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 39 : 39;
+		int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 115 : 115;
 
-							if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
-							{
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
-								break;
-							}
+		if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
 
-							int i = 0;
+		int i = 0;
 
-							for (i = 0; i < pMob[conn].MaxCarry; i++)
-							{
-								if (pMob[conn].MOB.Carry[i].sIndex != 4038)
-									continue;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != 4038)
+				continue;
 
-								BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
-								SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-								break;
-							}
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+			break;
+		}
 
-							if (i == pMob[conn].MaxCarry)
-							{
-								sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4038].Name);
-								SendSay(npcIndex, temp);
-								break;
-							}
+		if (i == pMob[conn].MaxCarry)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4038].Name);
+			SendSay(npcIndex, temp);
+			break;
+		}
 
-							pMob[conn].QuestFlag = 1;
+		pMob[conn].QuestFlag = 1;
 
-							DoTeleport(conn, 2398 + rand() % 5 - 3, 2105 + rand() % 5 - 3);
+		DoTeleport(conn, 2398 + rand() % 5 - 3, 2105 + rand() % 5 - 3);
 
-							sprintf(temp, "etc,quest256 ticket coveiro name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-							Log(temp, "-system", 0);
+		sprintf(temp, "etc,quest256 ticket coveiro name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region QUEST_JARDINEIRO
 	case QUEST_JARDINEIRO:
 	{
-							if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
-							{
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
-								break;
-							}
+		if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
+			break;
+		}
 
-							int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 115 : 115;
-							int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 190 : 190;
+		int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 115 : 115;
+		int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 190 : 190;
 
-							if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
-							{
-									SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
-									break;
-							}
+		if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
 
-							int i = 0;
+		int i = 0;
 
-							for (i = 0; i < pMob[conn].MaxCarry; i++)
-							{
-								if (pMob[conn].MOB.Carry[i].sIndex != 4039)
-									continue;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != 4039)
+				continue;
 
-								BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
-								SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-								break;
-							}
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+			break;
+		}
 
-							if (i == pMob[conn].MaxCarry)
-							{
-								sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4039].Name);
-								SendSay(npcIndex, temp);
-								break;
-							}
-							pMob[conn].QuestFlag = 2;
+		if (i == pMob[conn].MaxCarry)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4039].Name);
+			SendSay(npcIndex, temp);
+			break;
+		}
+		pMob[conn].QuestFlag = 2;
 
-							DoTeleport(conn, 2234 + rand() % 5 - 3, 1714 + rand() % 5 - 3);
+		DoTeleport(conn, 2234 + rand() % 5 - 3, 1714 + rand() % 5 - 3);
 
-							sprintf(temp, "etc,quest256 ticket jardineiro name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-							Log(temp, "-system", 0);
+		sprintf(temp, "etc,quest256 ticket jardineiro name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region QUEST_KAIZEN
 	case QUEST_KAIZEN:
 	{
-						if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
-							break;
-						}
+		if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
+			break;
+		}
 
-						int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 190 : 190;
-						int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 265 : 265;
+		int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 190 : 190;
+		int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 265 : 265;
 
-						if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
-						{
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
-								break;
-						}
+		if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
 
-						int i = 0;
+		int i = 0;
 
-						for (i = 0; i < pMob[conn].MaxCarry; i++)
-						{
-							if (pMob[conn].MOB.Carry[i].sIndex != 4040)
-								continue;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != 4040)
+				continue;
 
-							BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							break;
-						}
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+			break;
+		}
 
-						if (i == pMob[conn].MaxCarry)
-						{
-							sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4040].Name);
-							SendSay(npcIndex, temp);
-							break;
-						}
-						pMob[conn].QuestFlag = 3;
+		if (i == pMob[conn].MaxCarry)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4040].Name);
+			SendSay(npcIndex, temp);
+			break;
+		}
+		pMob[conn].QuestFlag = 3;
 
-						DoTeleport(conn, 464 + rand() % 5 - 3, 3902 + rand() % 5 - 3);
+		DoTeleport(conn, 464 + rand() % 5 - 3, 3902 + rand() % 5 - 3);
 
-						sprintf(temp, "etc,quest256 ticket kaizen name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-						Log(temp, "-system", 0);
+		sprintf(temp, "etc,quest256 ticket kaizen name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region QUEST_HIDRA
 	case QUEST_HIDRA:
 	{
-						if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
-							break;
-						}
+		if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
+			break;
+		}
 
-						int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 265 : 265;
-						int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 320 : 320;
+		int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 265 : 265;
+		int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 320 : 320;
 
-						if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
-						{
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
-								break;
-						}
+		if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
 
-						int i = 0;
+		int i = 0;
 
-						for (i = 0; i < pMob[conn].MaxCarry; i++)
-						{
-							if (pMob[conn].MOB.Carry[i].sIndex != 4041)
-								continue;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != 4041)
+				continue;
 
-							BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							break;
-						}
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+			break;
+		}
 
-						if (i == pMob[conn].MaxCarry)
-						{
-							sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4041].Name);
-							SendSay(npcIndex, temp);
-							break;
-						}
-						pMob[conn].QuestFlag = 4;
+		if (i == pMob[conn].MaxCarry)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4041].Name);
+			SendSay(npcIndex, temp);
+			break;
+		}
+		pMob[conn].QuestFlag = 4;
 
-						DoTeleport(conn, 668 + rand() % 5 - 3, 3756 + rand() % 5 - 3);
+		DoTeleport(conn, 668 + rand() % 5 - 3, 3756 + rand() % 5 - 3);
 
-						sprintf(temp, "etc,quest256 ticket hidra name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-						Log(temp, "-system", 0);
+		sprintf(temp, "etc,quest256 ticket hidra name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region QUEST_ELFOS
 	case QUEST_ELFOS:
 	{
-						if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
-							break;
-						}
+		if (pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
+			break;
+		}
 
-						int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 320 : 320;
-						int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 350 : 350;
+		int minlevel = pMob[conn].extra.ClassMaster == MORTAL ? 320 : 320;
+		int maxlevel = pMob[conn].extra.ClassMaster == MORTAL ? 350 : 350;
 
-						if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
-						{
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
-								break;
-						}
+		if (pMob[conn].MOB.CurrentScore.Level < minlevel || pMob[conn].MOB.CurrentScore.Level >= maxlevel)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
 
-						int i = 0;
+		int i = 0;
 
-						for (i = 0; i < pMob[conn].MaxCarry; i++)
-						{
-							if (pMob[conn].MOB.Carry[i].sIndex != 4042)
-								continue;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != 4042)
+				continue;
 
-							BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							break;
-						}
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+			break;
+		}
 
-						if (i == pMob[conn].MaxCarry)
-						{
-							sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4042].Name);
-							SendSay(npcIndex, temp);
-							break;
-						}
-						pMob[conn].QuestFlag = 5;
+		if (i == pMob[conn].MaxCarry)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4042].Name);
+			SendSay(npcIndex, temp);
+			break;
+		}
+		pMob[conn].QuestFlag = 5;
 
-						DoTeleport(conn, 1322 + rand() % 5 - 3, 4041 + rand() % 5 - 3);
+		DoTeleport(conn, 1322 + rand() % 5 - 3, 4041 + rand() % 5 - 3);
 
-						sprintf(temp, "etc,quest256 ticket elfos name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-						Log(temp, "-system", 0);
+		sprintf(temp, "etc,quest256 ticket elfos name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+		Log(temp, "-system", 0);
 	} break;
 #pragma endregion
 #pragma region JEFFI
 	case JEFFI:
 	{
-					if (pMob[conn].MOB.Equip[13].sIndex == 447 || pMob[conn].MOB.Equip[13].sIndex == 692)
+		if (pMob[conn].MOB.Equip[13].sIndex == 447 || pMob[conn].MOB.Equip[13].sIndex == 692)
+		{
+			int price = 0;
+			if (pMob[conn].MOB.Equip[13].sIndex == 447)
+				price = 1000000;
+
+			else
+			{
+				if (pMob[conn].MOB.Equip[13].sIndex != 692)
+					break;
+
+				price = 5000000;
+			}
+
+			if (pMob[conn].MOB.Coin >= price)
+			{
+				if (price == 1000000)
+				{
+					pMob[conn].MOB.Coin -= 1000000;
+					pMob[conn].MOB.Equip[13].sIndex = rand() % 3 + 448;
+				}
+				else
+				{
+					pMob[conn].MOB.Coin -= 5000000;
+					pMob[conn].MOB.Equip[13].sIndex = rand() % 3 + 693;
+				}
+
+				SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
+				SendEtc(conn);
+				SendSay(npcIndex, g_pMessageStringTable[_NN_Processing_Complete]);
+				SetAffect(conn, 44, 20, 20);
+				SendScore(conn);
+
+				sprintf(temp, "etc,jeffi make reset50-100 name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+				Log(temp, "-system", 0);
+			}
+			else
+			{
+				if (price == 1000000)
+					SendSay(npcIndex, g_pMessageStringTable[_NN_Need_1000000_Gold]);
+				else
+					SendSay(npcIndex, g_pMessageStringTable[_NN_Need_5000000_Gold]);
+			}
+		}
+		else
+		{
+			int Ori = 0;
+			int Lac = 0;
+
+			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			{
+				if (pMob[conn].MOB.Carry[i].sIndex == 419)
+					Ori += pMob[conn].MOB.Carry[i].stEffect[0].cEffect == 61 ? pMob[conn].MOB.Carry[i].stEffect[0].cValue : 1;
+
+				if (pMob[conn].MOB.Carry[i].sIndex == 420)
+					Lac += pMob[conn].MOB.Carry[i].stEffect[0].cEffect == 61 ? pMob[conn].MOB.Carry[i].stEffect[0].cValue : 1;
+			}
+
+			if (Ori >= 10 || Lac >= 10)
+			{
+				if (pMob[conn].MOB.Coin >= 1000000)
+				{
+					for (; Ori >= 10 || Lac >= 10;)
 					{
-						int price = 0;
-						if (pMob[conn].MOB.Equip[13].sIndex == 447)
-							price = 1000000;
-
-						else
+						if (Ori >= 10)
 						{
-							if (pMob[conn].MOB.Equip[13].sIndex != 692)
-								break;
-
-							price = 5000000;
+							Combine(conn, 419, 412);
+							Ori -= 10;
 						}
-
-						if (pMob[conn].MOB.Coin >= price)
+						if (Lac >= 10)
 						{
-							if (price == 1000000)
-							{
-								pMob[conn].MOB.Coin -= 1000000;
-								pMob[conn].MOB.Equip[13].sIndex = rand() % 3 + 448;
-							}
-							else
-							{
-								pMob[conn].MOB.Coin -= 5000000;
-								pMob[conn].MOB.Equip[13].sIndex = rand() % 3 + 693;
-							}
-
-							SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
-							SendEtc(conn);
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Processing_Complete]);
-							SetAffect(conn, 44, 20, 20);
-							SendScore(conn);
-
-							sprintf(temp, "etc,jeffi make reset50-100 name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-							Log(temp, "-system", 0);
-						}
-						else
-						{
-							if (price == 1000000)
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Need_1000000_Gold]);
-							else
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Need_5000000_Gold]);
+							Combine(conn, 420, 413);
+							Lac -= 10;
 						}
 					}
-					else
-					{
-						int Ori = 0;
-						int Lac = 0;
+					SendSay(npcIndex, g_pMessageStringTable[_NN_Processing_Complete]);
+					pMob[conn].MOB.Coin -= 1000000;
+					SetAffect(conn, 44, 20, 20);
+					SendScore(conn);
+					SendCarry(conn);
+					SendEtc(conn);
 
-						for (int i = 0; i < pMob[conn].MaxCarry; i++)
-						{
-							if (pMob[conn].MOB.Carry[i].sIndex == 419)
-								Ori += pMob[conn].MOB.Carry[i].stEffect[0].cEffect == 61 ? pMob[conn].MOB.Carry[i].stEffect[0].cValue : 1;
-							
-							if (pMob[conn].MOB.Carry[i].sIndex == 420)
-								Lac += pMob[conn].MOB.Carry[i].stEffect[0].cEffect == 61 ? pMob[conn].MOB.Carry[i].stEffect[0].cValue : 1;
-						}
+					sprintf(temp, "etc,jeffi make lac_ori name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+					Log(temp, "-system", 0);
+				}
+				else
+					SendSay(npcIndex, g_pMessageStringTable[_NN_Need_1000000_Gold]);
 
-						if (Ori >= 10 || Lac >= 10)
-						{
-							if (pMob[conn].MOB.Coin >= 1000000)
-							{
-								for (; Ori >= 10 || Lac >= 10;)
-								{
-									if (Ori >= 10)
-									{
-										Combine(conn, 419, 412);
-										Ori -= 10;
-									}
-									if (Lac >= 10)
-									{
-										Combine(conn, 420, 413);
-										Lac -= 10;
-									}
-								}
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Processing_Complete]);
-								pMob[conn].MOB.Coin -= 1000000;
-								SetAffect(conn, 44, 20, 20);
-								SendScore(conn);
-								SendCarry(conn);
-								SendEtc(conn);
-
-								sprintf(temp, "etc,jeffi make lac_ori name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-								Log(temp, "-system", 0);
-							}
-							else
-								SendSay(npcIndex, g_pMessageStringTable[_NN_Need_1000000_Gold]);
-
-						}
-						else
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Need_10_Particle]);
-					}
+			}
+			else
+				SendSay(npcIndex, g_pMessageStringTable[_NN_Need_10_Particle]);
+		}
 
 	} break;
 #pragma endregion
 #pragma region SHAMA
 	case SHAMA:
 	{
-					int circle = pMob[conn].MOB.Equip[13].sIndex;
+		int circle = pMob[conn].MOB.Equip[13].sIndex;
 
-					int ncircle = circle;
-					int circlemode = 0;
+		int ncircle = circle;
+		int circlemode = 0;
 
-					if (circle != 448 && circle != 449 && circle != 450)
-					{
-						if (circle != 693 && circle != 694 && circle != 695)
-						{
-							SendSay(npcIndex, g_pMessageStringTable[_NN_Need_Pure_Divine]);
-							break;
-						}
-						ncircle -= 693;
-						circlemode = 2;
-					}
-					else
-					{
-						ncircle -= 448;
-						circlemode = 1;
-					}
+		if (circle != 448 && circle != 449 && circle != 450)
+		{
+			if (circle != 693 && circle != 694 && circle != 695)
+			{
+				SendSay(npcIndex, g_pMessageStringTable[_NN_Need_Pure_Divine]);
+				break;
+			}
+			ncircle -= 693;
+			circlemode = 2;
+		}
+		else
+		{
+			ncircle -= 448;
+			circlemode = 1;
+		}
 
-					if (circlemode == 1 && pMob[conn].extra.QuestInfo.Circle == 1)
-					{
-						SendSay(npcIndex, g_pMessageStringTable[_NN_Youve_Done_It_Already]);
-						break;
-					}
+		if (circlemode == 1 && pMob[conn].extra.QuestInfo.Circle == 1)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Youve_Done_It_Already]);
+			break;
+		}
+		
+		int specialreset = 50;
 
-					int specialreset = 50;
+		if (circlemode == 2)
+			specialreset = 100;
 
-					if (circlemode == 2)
-						specialreset = 100;
+		int special = pMob[conn].MOB.SpecialBonus;
 
-					int special = pMob[conn].MOB.SpecialBonus;
+		for (int i = 0; i < 4; i++)
+		{
+			if (pMob[conn].MOB.BaseScore.Special[i] <= specialreset)
+			{
+				special += pMob[conn].MOB.BaseScore.Special[i];
+				pMob[conn].MOB.BaseScore.Special[i] = 0;
+			}
+			else
+			{
+				special += specialreset;
+				pMob[conn].MOB.BaseScore.Special[i] -= specialreset;
+			}
+		}
 
-					for (int i = 0; i < 4; i++)
-					{
-						if (pMob[conn].MOB.BaseScore.Special[i] <= specialreset)
-						{
-							special += pMob[conn].MOB.BaseScore.Special[i];
-							pMob[conn].MOB.BaseScore.Special[i] = 0;
-						}
-						else
-						{
-							special += specialreset;
-							pMob[conn].MOB.BaseScore.Special[i] -= specialreset;
-						}
-					}
+		pMob[conn].MOB.SpecialBonus = special;
 
-					pMob[conn].MOB.SpecialBonus = special;
+	if (circlemode == 1)
+			pMob[conn].extra.QuestInfo.Circle = 1;
+			
+		if (ncircle == 0)
+			pMob[conn].MOB.LearnedSkill &= 0xFFFFFF00;
 
-					if (circlemode == 1)
-						pMob[conn].extra.QuestInfo.Circle = 1;
+		if (ncircle == 1)
+			pMob[conn].MOB.LearnedSkill &= 0xFFFF00FF;
 
-					if (ncircle == 0)
-						pMob[conn].MOB.LearnedSkill &= 0xFFFFFF00;
+		if (ncircle == 2)
+			pMob[conn].MOB.LearnedSkill &= 0xFF00FFFF;
 
-					if (ncircle == 1)
-						pMob[conn].MOB.LearnedSkill &= 0xFFFF00FF;
+		BASE_GetBonusSkillPoint(&pMob[conn].MOB, &pMob[conn].extra);
 
-					if (ncircle == 2)
-						pMob[conn].MOB.LearnedSkill &= 0xFF00FFFF;
+		memset(&pMob[conn].MOB.Equip[13], 0, sizeof(STRUCT_ITEM));
 
-					BASE_GetBonusSkillPoint(&pMob[conn].MOB, &pMob[conn].extra);
+		SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
+		SendEtc(conn);
+		SendSay(npcIndex, g_pMessageStringTable[_NN_Initialize_Skill]);
+		SetAffect(conn, 44, 20, 20);
+		SendScore(conn);
 
-					memset(&pMob[conn].MOB.Equip[13], 0, sizeof(STRUCT_ITEM));
-
-					SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
-					SendEtc(conn);
-					SendSay(npcIndex, g_pMessageStringTable[_NN_Initialize_Skill]);
-					SetAffect(conn, 44, 20, 20);
-					SendScore(conn);
-
-					SendClientMessage(conn, g_pMessageStringTable[_NN_Qest06Complete]);
-					sprintf(temp, "etc,device circle quest item:%d mode:%d type:%d", circle, circlemode, ncircle);
-					Log(temp, pUser[conn].AccountName, pUser[conn].IP);
-					break;
+		SendClientMessage(conn, g_pMessageStringTable[_NN_Qest06Complete]);
+		sprintf(temp, "etc,device circle quest item:%d mode:%d type:%d", circle, circlemode, ncircle);
+		Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+		break;
 	} break;
 #pragma endregion
 #pragma region KING
 	case KING:
 	{
-				int ReiClan = pMob[npcIndex].MOB.Clan;
+		int ReiClan = pMob[npcIndex].MOB.Clan;
 
-				int Clan = pMob[conn].MOB.Clan;
-				int cLevel = pMob[conn].MOB.CurrentScore.Level;
-				int CapeMode = 0;
+		int Clan = pMob[conn].MOB.Clan;
+		int cLevel = pMob[conn].MOB.CurrentScore.Level;
+		int CapeMode = 0;
 
-				STRUCT_ITEM *Capa = &pMob[conn].MOB.Equip[15];
+		STRUCT_ITEM *Capa = &pMob[conn].MOB.Equip[15];
 
-				if (Capa->sIndex == 543 || Capa->sIndex == 545)
-					Clan = 7;
+		if (Capa->sIndex == 543 || Capa->sIndex == 545)
+			Clan = 7;
 
-				if (Capa->sIndex == 544 || Capa->sIndex == 546)
-					Clan = 8;
+		if (Capa->sIndex == 544 || Capa->sIndex == 546)
+			Clan = 8;
 
-				if (Capa->sIndex == 734 || Capa->sIndex == 736)
-					Clan = 7;
+		if (Capa->sIndex == 734 || Capa->sIndex == 736)
+			Clan = 7;
 
-				if (Capa->sIndex == 735 || Capa->sIndex == 737)
-					Clan = 8;
+		if (Capa->sIndex == 735 || Capa->sIndex == 737)
+			Clan = 8;
 
-				if (Capa->sIndex == 3191 || Capa->sIndex == 3194)
-					Clan = 7;
+		if (Capa->sIndex == 3191 || Capa->sIndex == 3194)
+			Clan = 7;
 
-				if (Capa->sIndex == 3192 || Capa->sIndex == 3195)
-					Clan = 8;
+		if (Capa->sIndex == 3192 || Capa->sIndex == 3195)
+			Clan = 8;
 
-				if (Capa->sIndex == 3197)
-					Clan = 7;
+		if (Capa->sIndex == 3197)
+			Clan = 7;
 
-				if (Capa->sIndex == 3198)
-					Clan = 8;
+		if (Capa->sIndex == 3198)
+			Clan = 8;
 
-				if (Capa->sIndex == 543 || Capa->sIndex == 544 || Capa->sIndex == 3191 || Capa->sIndex == 3194 || Capa->sIndex == 3192 || Capa->sIndex == 3195 || Capa->sIndex == 3197 || Capa->sIndex == 3198)
-					CapeMode = 2;
+		if (Capa->sIndex == 543 || Capa->sIndex == 544 || Capa->sIndex == 3191 || Capa->sIndex == 3194 || Capa->sIndex == 3192 || Capa->sIndex == 3195 || Capa->sIndex == 3197 || Capa->sIndex == 3198)
+			CapeMode = 2;
 
-				if (Capa->sIndex == 545 || Capa->sIndex == 546 || Capa->sIndex == 549)
-					CapeMode = 1;
+		if (Capa->sIndex == 545 || Capa->sIndex == 546 || Capa->sIndex == 549)
+			CapeMode = 1;
 
-				if(Capa->sIndex == 3193)
-					CapeMode = 1;
+		if (Capa->sIndex == 3193)
+			CapeMode = 1;
 
-				if(Capa->sIndex == 3196)
-					CapeMode = 1;								
+		if (Capa->sIndex == 3196)
+			CapeMode = 1;
 
-				if (Clan != 0 && Clan != ReiClan)
-					break;
+		if (Clan != 0 && Clan != ReiClan)
+			break;
 
 
-				int Saphire = Sapphire;
+		int Saphire = Sapphire;
 
-				if (ReiClan == 8)
+		if (ReiClan == 8)
+		{
+			if (Sapphire == 1)
+				Saphire = 60;
+			if (Sapphire == 2)
+				Saphire = 32;
+			if (Sapphire == 4)
+				Saphire = 16;
+			if (Sapphire == 16)
+				Saphire = 4;
+			if (Sapphire == 32)
+				Saphire = 2;
+			if (Sapphire == 64)
+				Saphire = 1;
+		}
+
+		if (confirm == 0)
+		{
+			sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
+			SendClientMessage(conn, temp);
+			break;
+		}
+
+		if (pMob[conn].MOB.Equip[10].sIndex == 1742 && pMob[conn].MOB.Equip[11].sIndex >= 1760 && pMob[conn].MOB.Equip[11].sIndex <= 1763)
+		{
+			int sAgua = 0;
+			int sTerra = 0;
+			int sSol = 0;
+			int sVento = 0;
+
+
+			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			{
+				if (pMob[conn].MOB.Carry[i].sIndex == 5334)
+					sAgua = 1;
+
+				if (pMob[conn].MOB.Carry[i].sIndex == 5335)
+					sTerra = 1;
+
+				if (pMob[conn].MOB.Carry[i].sIndex == 5336)
+					sSol = 1;
+
+				if (pMob[conn].MOB.Carry[i].sIndex == 5337)
+					sVento = 1;
+			}
+
+			if (sAgua == 1 && sTerra == 1 && sSol == 1 && sVento == 1)
+			{
+				for (int i = 0; i < pMob[conn].MaxCarry; i++)
 				{
-					if (Sapphire == 1)
-						Saphire = 60;
-					if (Sapphire == 2)
-						Saphire = 32;
-					if (Sapphire == 4)
-						Saphire = 16;
-					if (Sapphire == 16)
-						Saphire = 4;
-					if (Sapphire == 32)
-						Saphire = 2;
-					if (Sapphire == 64)
-						Saphire = 1;
-				}
-
-				if (confirm == 0)
-				{
-					sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
-					SendClientMessage(conn, temp);
-					break;
-				}
-
-				if (pMob[conn].MOB.Equip[10].sIndex == 1742 && pMob[conn].MOB.Equip[11].sIndex >= 1760 && pMob[conn].MOB.Equip[11].sIndex <= 1763)
-				{
-					int sAgua = 0;
-					int sTerra = 0;
-					int sSol = 0;
-					int sVento = 0;
-
-
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
+					if (pMob[conn].MOB.Carry[i].sIndex == 5334 && sAgua == 1)
 					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 5334)
-							sAgua = 1;
+						memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
 
-						if (pMob[conn].MOB.Carry[i].sIndex == 5335)
-							sTerra = 1;
+						pMob[conn].MOB.Carry[i].sIndex = 5338;
 
-						if (pMob[conn].MOB.Carry[i].sIndex == 5336)
-							sSol = 1;
-
-						if (pMob[conn].MOB.Carry[i].sIndex == 5337)
-							sVento = 1;
+						SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+						sAgua = 0;
 					}
 
-					if (sAgua == 1 && sTerra == 1 && sSol == 1 && sVento == 1)
+					if (pMob[conn].MOB.Carry[i].sIndex == 5335 && sTerra == 1)
 					{
-						for (int i = 0; i < pMob[conn].MaxCarry; i++)
-						{
-							if (pMob[conn].MOB.Carry[i].sIndex == 5334 && sAgua == 1)
-							{
-								memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-
-								pMob[conn].MOB.Carry[i].sIndex = 5338;
-
-								SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-								sAgua = 0;
-							}
-
-							if (pMob[conn].MOB.Carry[i].sIndex == 5335 && sTerra == 1)
-							{
-								memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-								SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-								sTerra = 0;
-							}
-
-							if (pMob[conn].MOB.Carry[i].sIndex == 5336 && sSol == 1)
-							{
-								memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-								SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-								sSol = 0;
-							}
-
-							if (pMob[conn].MOB.Carry[i].sIndex == 5337 && sVento == 1)
-							{
-								memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-								SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-								sVento = 0;
-							}
-						}
-
-						memset(&pMob[conn].MOB.Equip[10], 0, sizeof(STRUCT_ITEM));
-						SendItem(conn, ITEM_PLACE_EQUIP, 10, &pMob[conn].MOB.Equip[10]);
-
-						memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
-						SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
-
-						SendSay(npcIndex, g_pMessageStringTable[_NN_My_King_Bless1]);
-
-						sprintf(temp, "etc,king make ideal_stone name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-						Log(temp, "-system", 0);
-
-						break;
+						memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+						SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+						sTerra = 0;
 					}
 
-					if (pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level >= 299 && pMob[conn].Mode != MOB_WAITDB)
+					if (pMob[conn].MOB.Carry[i].sIndex == 5336 && sSol == 1)
 					{
-									
-						int cls = pMob[conn].MOB.Equip[11].sIndex - 1760;
+						memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+						SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+						sSol = 0;
+					}
 
-						MSG_DBCreateArchCharacter sm_ca;
-						memset(&sm_ca, 0, sizeof(MSG_DBCreateArchCharacter));
-
-						sm_ca.Size = sizeof(MSG_DBCreateArchCharacter);
-						sm_ca.Type = _MSG_DBCreateArchCharacter;
-						sm_ca.ID = conn;
-
-						sm_ca.MobClass = cls;
-						sm_ca.MortalFace = pMob[conn].extra.MortalFace;
-						sm_ca.MortalSlot = pUser[conn].Slot;
-
-						strncpy(sm_ca.MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
-
-						pMob[conn].Mode = MOB_WAITDB;
-						DBServerSocket.SendOneMessage((char*)&sm_ca, sizeof(MSG_DBCreateArchCharacter));
-
-						sprintf(temp, "etc,king_arch name:%s class:%d mortalface:%d mortalslot:%d", pMob[conn].MOB.MobName, cls, pMob[conn].extra.MortalFace, pUser[conn].Slot);
-						Log(temp, pUser[conn].AccountName, pUser[conn].IP);
-						break;
+					if (pMob[conn].MOB.Carry[i].sIndex == 5337 && sVento == 1)
+					{
+						memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+						SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+						sVento = 0;
 					}
 				}
 
-				if (CapeMode >= 2)
+				memset(&pMob[conn].MOB.Equip[10], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_EQUIP, 10, &pMob[conn].MOB.Equip[10]);
+
+				memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
+
+				SendSay(npcIndex, g_pMessageStringTable[_NN_My_King_Bless1]);
+
+				sprintf(temp, "etc,king make ideal_stone name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+				Log(temp, "-system", 0);
+
+				break;
+			}
+
+			if (pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level >= 299 && pMob[conn].Mode != MOB_WAITDB)
+			{
+
+				int cls = pMob[conn].MOB.Equip[11].sIndex - 1760;
+
+				MSG_DBCreateArchCharacter sm_ca;
+				memset(&sm_ca, 0, sizeof(MSG_DBCreateArchCharacter));
+
+				sm_ca.Size = sizeof(MSG_DBCreateArchCharacter);
+				sm_ca.Type = _MSG_DBCreateArchCharacter;
+				sm_ca.ID = conn;
+
+				sm_ca.MobClass = cls;
+				sm_ca.MortalFace = pMob[conn].extra.MortalFace;
+				sm_ca.MortalSlot = pUser[conn].Slot;
+
+				memset(&pMob[conn].MOB.Equip[10], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_EQUIP, 10, &pMob[conn].MOB.Equip[10]);
+
+				memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
+
+				strncpy(sm_ca.MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
+
+				pMob[conn].Mode = MOB_WAITDB;
+				DBServerSocket.SendOneMessage((char*)&sm_ca, sizeof(MSG_DBCreateArchCharacter));
+
+				sprintf(temp, "etc,king_arch name:%s class:%d mortalface:%d mortalslot:%d", pMob[conn].MOB.MobName, cls, pMob[conn].extra.MortalFace, pUser[conn].Slot);
+				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+				SendClientMessage(conn, "Você criou o Arch. Que a glória de Sephira esteja com você.");
+				break;
+			}
+		}
+
+		if (CapeMode >= 2)
+		{
+			if (ReiClan == 7)
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+			else
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
+
+			break;
+		}
+
+		if ((pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS || pMob[conn].extra.ClassMaster == SCELESTIAL || pMob[conn].extra.ClassMaster == HARDCORE || pMob[conn].extra.ClassMaster == HARDCOREA || pMob[conn].extra.ClassMaster == HARDCORECS || pMob[conn].extra.ClassMaster == SHARDCORE))
+		{
+			if (Capa->sIndex != 3199)
+				break;
+
+			int NumSepInv = 0;
+
+			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			{
+				if (pMob[conn].MOB.Carry[i].sIndex == 697)
+					NumSepInv++;
+
+				else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
+					NumSepInv += 10;
+			}
+
+			if (NumSepInv < Saphire)
+			{
+				sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
+				SendClientMessage(conn, temp);
+				break;
+			}
+
+			MSG_STANDARDPARM sm_us;
+			memset(&sm_us, 0, sizeof(MSG_STANDARDPARM));
+
+			sm_us.ID = 0;
+			sm_us.Type = _MSG_DBUpdateSapphire;
+
+			sm_us.Size = sizeof(MSG_STANDARDPARM);
+
+			sm_us.Parm = ReiClan == 7;
+
+			DBServerSocket.SendOneMessage((char*)&sm_us, sizeof(MSG_STANDARD));
+
+			for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0; i++)
+			{
+				if (pMob[conn].MOB.Carry[i].sIndex == 697)
+				{
+					memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+					SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+					Saphire--;
+				}
+
+				else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
+				{
+					memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+					SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+					if ((Saphire - 10) < 0)
+						Saphire = 0;
+
+					else
+						Saphire -= 10;
+				}
+			}
+
+
+			if (ReiClan == 7)
+				pMob[conn].MOB.Equip[15].sIndex = 3197;
+			else
+				pMob[conn].MOB.Equip[15].sIndex = 3198;
+
+			SendItem(conn, ITEM_PLACE_EQUIP, 15, &pMob[conn].MOB.Equip[15]);
+
+			if (ReiClan == 7)
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+			else
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
+
+			int Guild = pMob[conn].MOB.Guild;
+			int Group = ServerGroup;
+			int Server = Guild / MAX_GUILD;
+			int usGuild = Guild & MAX_GUILD - 1;
+
+			if (Guild && pMob[conn].MOB.GuildLevel == 9)
+			{
+				MSG_GuildInfo sm_gi;
+				memset(&sm_gi, 0, sizeof(MSG_GuildInfo));
+
+				sm_gi.Type = _MSG_GuildInfo;
+				sm_gi.Size = sizeof(MSG_GuildInfo);
+				sm_gi.ID = conn;
+
+				sm_gi.Guild = Guild;
+
+				GuildInfo[Guild].Clan = ReiClan;
+				GuildInfo[Guild].Fame = 0;
+
+				sm_gi.GuildInfo = GuildInfo[Guild];
+
+				DBServerSocket.SendOneMessage((char*)&sm_gi, sizeof(MSG_GuildInfo));
+			}
+
+			sprintf(temp, "etc,get mantle %d - sapphire:%d", pMob[conn].MOB.Equip[15].sIndex, Saphire);
+			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+			break;
+		}
+
+		if (cLevel < 219)
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Need_Level]);
+			break;
+		}
+
+		if (CapeMode != 1 || cLevel >= 255)
+		{
+			int NumSepInv = 0;
+
+			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			{
+				if (pMob[conn].MOB.Carry[i].sIndex == 697)
+					NumSepInv++;
+
+				else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
+					NumSepInv += 10;
+			}
+
+			if (NumSepInv < Saphire && pMob[conn].MOB.Equip[13].sIndex != 4081)
+			{
+				sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
+				SendClientMessage(conn, temp);
+				break;
+			}
+
+			MSG_STANDARDPARM sm_us;
+			memset(&sm_us, 0, sizeof(MSG_STANDARDPARM));
+
+			sm_us.ID = 0;
+			sm_us.Type = _MSG_DBUpdateSapphire;
+
+			sm_us.Size = sizeof(MSG_STANDARDPARM);
+
+			sm_us.Parm = ReiClan == 7;
+
+			DBServerSocket.SendOneMessage((char*)&sm_us, sizeof(MSG_STANDARD));
+
+			for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0 && pMob[conn].MOB.Equip[13].sIndex != 4081; i++)
+			{
+				if (pMob[conn].MOB.Carry[i].sIndex == 697)
+				{
+					memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+					SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+					Saphire--;
+				}
+
+				else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
+				{
+					memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+					SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+					if ((Saphire - 10) < 0)
+						Saphire = 0;
+
+					else
+						Saphire -= 10;
+				}
+			}
+
+			if (pMob[conn].MOB.Equip[13].sIndex == 4081)
+			{
+				memset(&pMob[conn].MOB.Equip[13], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
+			}
+
+			if (CapeMode == 0)
+			{
+				if (Capa->sIndex != 548)
+					memset(&pMob[conn].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
+
+				if (ReiClan == 7)
+					pMob[conn].MOB.Equip[15].sIndex = 545;
+				else
+					pMob[conn].MOB.Equip[15].sIndex = 546;
+			}
+
+			if (CapeMode == 1)
+			{
+				if (Capa->sIndex == 3193)
 				{
 					if (ReiClan == 7)
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+						pMob[conn].MOB.Equip[15].sIndex = 3191;
 					else
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
-
-					break;
+						pMob[conn].MOB.Equip[15].sIndex = 3192;
 				}
 
-				if ((pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS || pMob[conn].extra.ClassMaster == SCELESTIAL))
+				else if (Capa->sIndex == 3196)
 				{
-					if (Capa->sIndex != 3199)
-						break;
-
-					int NumSepInv = 0;
-
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
-					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 697)
-							NumSepInv++;
-
-						else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
-							NumSepInv += 10;
-					}
-
-					if (NumSepInv < Saphire)
-					{
-						sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
-						SendClientMessage(conn, temp);
-						break;
-					}
-
-					MSG_STANDARDPARM sm_us;
-					memset(&sm_us, 0, sizeof(MSG_STANDARDPARM));
-
-					sm_us.ID = 0;
-					sm_us.Type = _MSG_DBUpdateSapphire;
-
-					sm_us.Size = sizeof(MSG_STANDARDPARM);
-
-					sm_us.Parm = ReiClan == 7;
-
-					DBServerSocket.SendOneMessage((char*)&sm_us, sizeof(MSG_STANDARD));
-
-					for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0; i++)
-					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 697)
-						{
-							memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							Saphire--;
-						}
-
-						else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
-						{
-							memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-
-							if((Saphire-10) < 0)
-								Saphire = 0;
-												
-							else
-								Saphire -= 10;
-						}
-					}
-
-
 					if (ReiClan == 7)
-						pMob[conn].MOB.Equip[15].sIndex = 3197;
+						pMob[conn].MOB.Equip[15].sIndex = 3194;
 					else
-						pMob[conn].MOB.Equip[15].sIndex = 3198;
-
-					SendItem(conn, ITEM_PLACE_EQUIP, 15, &pMob[conn].MOB.Equip[15]);
-
-					if (ReiClan == 7)
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
-					else
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
-
-					int Guild = pMob[conn].MOB.Guild;
-					int Group = ServerGroup;
-					int Server = Guild / MAX_GUILD;
-					int usGuild = Guild & MAX_GUILD - 1;
-
-					if(Guild && pMob[conn].MOB.GuildLevel == 9)
-					{
-						MSG_GuildInfo sm_gi;
-						memset(&sm_gi, 0, sizeof(MSG_GuildInfo));
-
-						sm_gi.Type = _MSG_GuildInfo;
-						sm_gi.Size = sizeof(MSG_GuildInfo);
-						sm_gi.ID = conn;
-
-						sm_gi.Guild = Guild;
-
-						GuildInfo[Guild].Clan = ReiClan;
-						GuildInfo[Guild].Fame = 0;
-
-						sm_gi.GuildInfo = GuildInfo[Guild];
-
-						DBServerSocket.SendOneMessage((char*)&sm_gi, sizeof(MSG_GuildInfo));
-					}
-
-					sprintf(temp, "etc,get mantle %d - sapphire:%d", pMob[conn].MOB.Equip[15].sIndex, Saphire);
-					Log(temp, pUser[conn].AccountName, pUser[conn].IP);
-					break;
+						pMob[conn].MOB.Equip[15].sIndex = 3195;
 				}
 
-				if (cLevel < 219)
-				{
-					SendClientMessage(conn, g_pMessageStringTable[_NN_Need_Level]);
-					break;
-				}
-
-				if (CapeMode != 1 || cLevel >= 255)
-				{
-					int NumSepInv = 0;
-										
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
-					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 697)
-							NumSepInv++;
-
-						else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
-							NumSepInv += 10;
-					}
-
-					if (NumSepInv < Saphire && pMob[conn].MOB.Equip[13].sIndex != 4081)
-					{
-						sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
-						SendClientMessage(conn, temp);
-						break;
-					}
-
-					MSG_STANDARDPARM sm_us;
-					memset(&sm_us, 0, sizeof(MSG_STANDARDPARM));
-
-					sm_us.ID = 0;
-					sm_us.Type = _MSG_DBUpdateSapphire;
-
-					sm_us.Size = sizeof(MSG_STANDARDPARM);
-
-					sm_us.Parm = ReiClan == 7;
-
-					DBServerSocket.SendOneMessage((char*)&sm_us, sizeof(MSG_STANDARD));
-
-					for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0 && pMob[conn].MOB.Equip[13].sIndex != 4081; i++)
-					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 697)
-						{
-							memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							Saphire--;
-						}
-
-						else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
-						{
-							memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-
-							if((Saphire-10) < 0)
-								Saphire = 0;
-												
-							else
-								Saphire -= 10;
-						}
-					}
-
-					if(pMob[conn].MOB.Equip[13].sIndex == 4081)
-					{
-						memset(&pMob[conn].MOB.Equip[13], 0, sizeof(STRUCT_ITEM));
-						SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
-					}
-
-					if (CapeMode == 0)
-					{
-						if (Capa->sIndex != 548)
-							memset(&pMob[conn].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
-
-						if (ReiClan == 7)
-							pMob[conn].MOB.Equip[15].sIndex = 545;
-						else
-							pMob[conn].MOB.Equip[15].sIndex = 546;
-					}
-
-					if (CapeMode == 1)
-					{
-						if(Capa->sIndex == 3193)
-						{
-							if (ReiClan == 7)
-								pMob[conn].MOB.Equip[15].sIndex = 3191;
-							else
-								pMob[conn].MOB.Equip[15].sIndex = 3192;
-						}
-
-						else if(Capa->sIndex == 3196)
-						{
-							if (ReiClan == 7)
-								pMob[conn].MOB.Equip[15].sIndex = 3194;
-							else
-								pMob[conn].MOB.Equip[15].sIndex = 3195;
-						}
-
-						else
-						{
-							if (Capa->sIndex != 549)
-								memset(&pMob[conn].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
-
-							if (ReiClan == 7)
-								pMob[conn].MOB.Equip[15].sIndex = 543;
-							else
-								pMob[conn].MOB.Equip[15].sIndex = 544;
-						}
-					}
-
-
-					SendItem(conn, ITEM_PLACE_EQUIP, 15, &pMob[conn].MOB.Equip[15]);
-										
-					if (ReiClan == 7)
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
-					else
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
-										
-					int Guild = pMob[conn].MOB.Guild;
-					int Group = ServerGroup;
-					int Server = Guild / MAX_GUILD;
-					int usGuild = Guild & MAX_GUILD - 1;
-
-					if(Guild && pMob[conn].MOB.GuildLevel == 9)
-					{
-						MSG_GuildInfo sm_gi;
-						memset(&sm_gi, 0, sizeof(MSG_GuildInfo));
-
-						sm_gi.Type = _MSG_GuildInfo;
-						sm_gi.Size = sizeof(MSG_GuildInfo);
-						sm_gi.ID = conn;
-
-						sm_gi.Guild = Guild;
-
-						GuildInfo[Guild].Clan = ReiClan;
-
-						sm_gi.GuildInfo = GuildInfo[Guild];
-
-						DBServerSocket.SendOneMessage((char*)&sm_gi, sizeof(MSG_GuildInfo));
-					}
-
-					sprintf(temp,"etc,get mantle %d - sapphire:%d", pMob[conn].MOB.Equip[15].sIndex, Saphire);
-					Log(temp, pUser[conn].AccountName, pUser[conn].IP);
-					break;
-				}
 				else
 				{
-					SendClientMessage(conn, g_pMessageStringTable[_NN_Need_Level]);
-					break;
+					if (Capa->sIndex != 549)
+						memset(&pMob[conn].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
+
+					if (ReiClan == 7)
+						pMob[conn].MOB.Equip[15].sIndex = 543;
+					else
+						pMob[conn].MOB.Equip[15].sIndex = 544;
 				}
+			}
+
+
+			SendItem(conn, ITEM_PLACE_EQUIP, 15, &pMob[conn].MOB.Equip[15]);
+
+			if (ReiClan == 7)
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+			else
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
+
+			int Guild = pMob[conn].MOB.Guild;
+			int Group = ServerGroup;
+			int Server = Guild / MAX_GUILD;
+			int usGuild = Guild & MAX_GUILD - 1;
+
+			if (Guild && pMob[conn].MOB.GuildLevel == 9)
+			{
+				MSG_GuildInfo sm_gi;
+				memset(&sm_gi, 0, sizeof(MSG_GuildInfo));
+
+				sm_gi.Type = _MSG_GuildInfo;
+				sm_gi.Size = sizeof(MSG_GuildInfo);
+				sm_gi.ID = conn;
+
+				sm_gi.Guild = Guild;
+
+				GuildInfo[Guild].Clan = ReiClan;
+
+				sm_gi.GuildInfo = GuildInfo[Guild];
+
+				DBServerSocket.SendOneMessage((char*)&sm_gi, sizeof(MSG_GuildInfo));
+			}
+
+			sprintf(temp, "etc,get mantle %d - sapphire:%d", pMob[conn].MOB.Equip[15].sIndex, Saphire);
+			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+			break;
+		}
+		else
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Need_Level]);
+			break;
+		}
 	} break;
 #pragma endregion
 #pragma region KINGDOM BROKER
 	case KINGDOM:
 	{
-					int Clan = pMob[conn].MOB.Clan;
+		int Clan = pMob[conn].MOB.Clan;
+
+		time_t rawtime;
+		tm *timeinfo;
+
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		
+		if (timeinfo->tm_wday == 0)
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_NotEquip_Saturday]);
+			break;
+		}
+		
+		if (Clan != 7 && Clan != 8)
+		{
+			if (Clan == 7)
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+			else
+				SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
+
+			break;
+		}
+
+		if (confirm == 0)
+		{
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Leaving_kingdom]);
+
+			break;
+		}
+		int Saphire = 16;
+		int NumSepInv = 0;
+
+		for (int i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex == 697)
+				NumSepInv++;
+
+			else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
+				NumSepInv += 10;
+		}
+
+		if (NumSepInv < Saphire)
+		{
+			sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
+			SendClientMessage(conn, temp);
+			break;
+		}
 
 
-					time_t rawtime;
-					tm *timeinfo;
 
-					time(&rawtime);
-					timeinfo = localtime(&rawtime);
+		for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex == 697)
+			{
+				memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+				Saphire--;
+			}
 
-					if(timeinfo->tm_wday == 6 || timeinfo->tm_wday == 0)
-					{
-						SendClientMessage(conn, g_pMessageStringTable[_NN_NotEquip_Saturday]);
-						break;
-					}
+			else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
+			{
+				memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
 
-					if (Clan != 7 && Clan != 8)
-					{
-						if (Clan == 7)
-							SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
-						else
-							SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
+				if ((Saphire - 10) < 0)
+					Saphire = 0;
 
-						break;
-					}
-
-					if (confirm == 0)
-					{
-						SendClientMessage(conn, g_pMessageStringTable[_NN_Leaving_kingdom]);
-
-						break;
-					}
-					int Saphire = 16;
-					int NumSepInv = 0;
-
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
-					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 697)
-							NumSepInv++;
-
-						else if(pMob[conn].MOB.Carry[i].sIndex == 4131)
-							NumSepInv += 10;
-					}
-
-					if (NumSepInv < Saphire)
-					{
-						sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire], Saphire);
-						SendClientMessage(conn, temp);
-						break;
-					}
+				else
+					Saphire -= 10;
+			}
+		}
 
 
+		if (pMob[conn].MOB.Equip[15].sIndex == 543 || pMob[conn].MOB.Equip[15].sIndex == 544)
+			pMob[conn].MOB.Equip[15].sIndex = 549;
 
-					for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0; i++)
-					{
-						if (pMob[conn].MOB.Carry[i].sIndex == 697)
-						{
-							memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							Saphire--;
-						}
+		if (pMob[conn].MOB.Equip[15].sIndex == 545 || pMob[conn].MOB.Equip[15].sIndex == 546)
+			pMob[conn].MOB.Equip[15].sIndex = 548;
 
-						else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
-						{
-							memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
-							SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+		if (pMob[conn].MOB.Equip[15].sIndex == 3191 || pMob[conn].MOB.Equip[15].sIndex == 3192)
+			pMob[conn].MOB.Equip[15].sIndex = 3193;
 
-							if((Saphire - 10) < 0)
-								Saphire = 0;
-												
-							else
-								Saphire -= 10;
-						}
-					}
+		if (pMob[conn].MOB.Equip[15].sIndex == 3194 || pMob[conn].MOB.Equip[15].sIndex == 3195)
+			pMob[conn].MOB.Equip[15].sIndex = 3196;
 
 
-					if (pMob[conn].MOB.Equip[15].sIndex == 543 || pMob[conn].MOB.Equip[15].sIndex == 544)
-						pMob[conn].MOB.Equip[15].sIndex = 549;
+		if (pMob[conn].MOB.Equip[15].sIndex == 3197 || pMob[conn].MOB.Equip[15].sIndex == 3198)
+			pMob[conn].MOB.Equip[15].sIndex = 3199;
 
-					if (pMob[conn].MOB.Equip[15].sIndex == 545 || pMob[conn].MOB.Equip[15].sIndex == 546)
-						pMob[conn].MOB.Equip[15].sIndex = 548;
+		if (Clan == 7)
+			SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+		else
+			SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
 
-					if (pMob[conn].MOB.Equip[15].sIndex == 3191 || pMob[conn].MOB.Equip[15].sIndex == 3192)
-						pMob[conn].MOB.Equip[15].sIndex = 3193;
+		SendItem(conn, ITEM_PLACE_EQUIP, 15, &pMob[conn].MOB.Equip[15]);
 
-					if (pMob[conn].MOB.Equip[15].sIndex == 3194 || pMob[conn].MOB.Equip[15].sIndex == 3195)
-						pMob[conn].MOB.Equip[15].sIndex = 3196;
+		pMob[conn].GetCurrentScore(conn);
 
-					if (pMob[conn].MOB.Equip[15].sIndex == 3197 || pMob[conn].MOB.Equip[15].sIndex == 3198)
-						pMob[conn].MOB.Equip[15].sIndex = 3199;
+		MSG_STANDARDPARM sm_scl;
+		memset(&sm_scl, 0, sizeof(MSG_STANDARDPARM));
 
-					if (Clan == 7)
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
-					else
-						SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless2]);
+		sm_scl.Type = _MSG_SetClan;
+		sm_scl.Size = sizeof(MSG_STANDARDPARM);
+		sm_scl.ID = conn;
+		sm_scl.Parm = pMob[conn].MOB.Clan;
+		m->ClientTick = CurrentTime;
 
-					SendItem(conn, ITEM_PLACE_EQUIP, 15, &pMob[conn].MOB.Equip[15]);
-
-					pMob[conn].GetCurrentScore(conn);
-
-					MSG_STANDARDPARM sm_scl;
-					memset(&sm_scl, 0, sizeof(MSG_STANDARDPARM));
-
-					sm_scl.Type = _MSG_SetClan;
-					sm_scl.Size = sizeof(MSG_STANDARDPARM);
-					sm_scl.ID = conn;
-					sm_scl.Parm = pMob[conn].MOB.Clan;
-					m->ClientTick = CurrentTime;
-									   
-					GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&sm_scl, 0);
-
-					SendEquip(conn, conn);
-					sprintf(temp, "etc,remove mantle");
-					Log(temp, pUser[conn].AccountName, pUser[conn].IP);
-					break;
+		GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&sm_scl, 0);
+		SendEtc(conn);
+		SendEquip(conn, conn);
+		sprintf(temp, "etc,remove mantle");
+		Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+		break;
 
 	} break;
 #pragma endregion
 #pragma region URNAMMU
 	case URNAMMU:
 	{
-					if (pMob[conn].extra.ClassMaster != CELESTIALCS)
-					{
-						sprintf(temp, g_pMessageStringTable[_SN_NEEDCLASS], "Sub Celestial");
-						SendClientMessage(conn, temp);
-						break;
-					}				   
-					if (pMob[conn].MOB.Equip[11].sIndex < 1760 || pMob[conn].MOB.Equip[11].sIndex > 1763)
-					{
-						sprintf(temp, g_pMessageStringTable[_SN_WANTEQUIPITEM], "o Sephirot da classe escolhida");
-						SendClientMessage(conn, temp);
-						break;
-					}
-					if (pMob[conn].extra.Fame < 2000)
-					{
-						sprintf(temp, g_pMessageStringTable[_DN_NEEDFAME], 2000);
-						SendClientMessage(conn, temp);
-						break;
-					}
+		if (pMob[conn].extra.ClassMaster != CELESTIALCS)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_NEEDCLASS], "Sub Celestial");
+			SendClientMessage(conn, temp);
+			break;
+		}
+		if (pMob[conn].MOB.Equip[11].sIndex < 1760 || pMob[conn].MOB.Equip[11].sIndex > 1763)
+		{
+			sprintf(temp, g_pMessageStringTable[_SN_WANTEQUIPITEM], "o Sephirot da classe escolhida");
+			SendClientMessage(conn, temp);
+			break;
+		}
+		if (pMob[conn].extra.Fame < 2000)
+		{
+			sprintf(temp, g_pMessageStringTable[_DN_NEEDFAME], 2000);
+			SendClientMessage(conn, temp);
+			break;
+		}
 
-					sprintf(temp, "etc,change SubClass class:%d to %d name:%s level:%d", pMob[conn].MOB.Class, pMob[conn].MOB.Equip[11].sIndex - 1760, pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
-					Log(temp, "-system", 0);
+		sprintf(temp, "etc,change SubClass class:%d to %d name:%s level:%d", pMob[conn].MOB.Class, pMob[conn].MOB.Equip[11].sIndex - 1760, pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
+		Log(temp, "-system", 0);
 
-					pMob[conn].extra.Fame -= 2000;
+		pMob[conn].extra.Fame -= 2000;
 
-					pMob[conn].extra.SaveCelestial[1].Class = pMob[conn].MOB.Equip[11].sIndex - 1760;
+		pMob[conn].extra.SaveCelestial[1].Class = pMob[conn].MOB.Equip[11].sIndex - 1760;
 
-					pMob[conn].extra.SaveCelestial[1].BaseScore.Str = BaseSIDCHM[pMob[conn].MOB.Class][0];
-					pMob[conn].extra.SaveCelestial[1].BaseScore.Int = BaseSIDCHM[pMob[conn].MOB.Class][1];
-					pMob[conn].extra.SaveCelestial[1].BaseScore.Dex = BaseSIDCHM[pMob[conn].MOB.Class][2];
-					pMob[conn].extra.SaveCelestial[1].BaseScore.Con = BaseSIDCHM[pMob[conn].MOB.Class][3];
+		pMob[conn].extra.SaveCelestial[1].BaseScore.Str = BaseSIDCHM[pMob[conn].MOB.Class][0];
+		pMob[conn].extra.SaveCelestial[1].BaseScore.Int = BaseSIDCHM[pMob[conn].MOB.Class][1];
+		pMob[conn].extra.SaveCelestial[1].BaseScore.Dex = BaseSIDCHM[pMob[conn].MOB.Class][2];
+		pMob[conn].extra.SaveCelestial[1].BaseScore.Con = BaseSIDCHM[pMob[conn].MOB.Class][3];
 
-					memset(pMob[conn].extra.SaveCelestial[1].SkillBar1, 0, 4);
-					memset(pMob[conn].extra.SaveCelestial[1].SkillBar2, 0, 16);
+		memset(pMob[conn].extra.SaveCelestial[1].SkillBar1, 0, 4);
+		memset(pMob[conn].extra.SaveCelestial[1].SkillBar2, 0, 16);
 
-					int special = pMob[conn].extra.SaveCelestial[1].SpecialBonus;
-					int specialreset = 55;
+		int special = pMob[conn].extra.SaveCelestial[1].SpecialBonus;
+		int specialreset = 55;
 
-					for (int i = 0; i < 4; i++)
-					{
-						if (pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i] <= 55)
-						{
-							special += pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i];
-							pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i] = 0;
-						}
-						else
-						{
-							special += specialreset;
-							pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i] -= specialreset;
-						}
-					}
+		for (int i = 0; i < 4; i++)
+		{
+			if (pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i] <= 55)
+			{
+				special += pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i];
+				pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i] = 0;
+			}
+			else
+			{
+				special += specialreset;
+				pMob[conn].extra.SaveCelestial[1].BaseScore.Special[i] -= specialreset;
+			}
+		}
 
-					pMob[conn].extra.SaveCelestial[1].SpecialBonus = special;
+		pMob[conn].extra.SaveCelestial[1].SpecialBonus = special;
 
-					pMob[conn].extra.SaveCelestial[1].LearnedSkill &= 0xFF000000;
+		pMob[conn].extra.SaveCelestial[1].LearnedSkill &= 0xFF000000;
+		pMob[conn].extra.SaveCelestial[1].SecLearnedSkill = 0;
 
-					memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
+		memset(&pMob[conn].MOB.Equip[11], 0, sizeof(STRUCT_ITEM));
 
-					SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
+		SendItem(conn, ITEM_PLACE_EQUIP, 11, &pMob[conn].MOB.Equip[11]);
 
-					SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
-					break;
+		SendClientMessage(conn, g_pMessageStringTable[_NN_My_King_Bless1]);
+		break;
 	} break;
 #pragma endregion
 #pragma region UXMAL
@@ -1314,7 +1337,7 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 		time(&now);
 		when = *localtime(&now);
 
-		if(when.tm_min >= 0 && when.tm_min <= 15 || when.tm_min >= 20 && when.tm_min <= 35 || when.tm_min >= 40 && when.tm_min <= 55)
+		if (when.tm_min >= 0 && when.tm_min <= 15 || when.tm_min >= 20 && when.tm_min <= 35 || when.tm_min >= 40 && when.tm_min <= 55)
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_Night_Already]);
 			break;
@@ -1322,8 +1345,8 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 		if (pMob[conn].Leader != -1 && pMob[conn].Leader)
 		{
-				SendClientMessage(conn, g_pMessageStringTable[_NN_Party_Leader_Only]);
-				break;
+			SendClientMessage(conn, g_pMessageStringTable[_NN_Party_Leader_Only]);
+			break;
 		}
 
 		int i = 0;
@@ -1337,9 +1360,9 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 			sala = BASE_GetItemSanc(&pMob[conn].MOB.Carry[i]);
 
-			if(sala > 6)
+			if (sala > 6)
 				sala = 6;
-								
+
 			break;
 		}
 
@@ -1351,25 +1374,25 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 		}
 		int j = 0;
 
-		for(j = 0; j < (sala == 0 ? 2 : 3); j++)
+		for (j = 0; j < (sala == 0 ? 2 : 3); j++)
 		{
-			if(Pista[sala].Party[j].LeaderID == 0)
+			if (Pista[sala].Party[j].LeaderID == 0)
 				break;
 		}
 
-		if(j == (sala == 0 ? 2 : 3))
+		if (j == (sala == 0 ? 2 : 3))
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_Night_Limited]);
 			break;
 		}
 
 		int c = 0;
-		for(c = 0; c < 3; c++)
+		for (c = 0; c < 3; c++)
 		{
-			if(Pista[sala].Party[c].LeaderID == conn)
+			if (Pista[sala].Party[c].LeaderID == conn)
 				break;
 		}
-		if(c != 3)
+		if (c != 3)
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_Night_Already]);
 			break;
@@ -1393,17 +1416,17 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 #pragma region ARZAN_DRAGON
 	case ARZAN_DRAGON:
 	{
-		if(pMob[conn].MOB.Coin < 2000000)
+		if (pMob[conn].MOB.Coin < 2000000)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_snowimp_need_2MGold]);
 			break;
 		}
 
-		int Materiais[5] = {0, 0, 0, 0, 0};
+		int Materiais[5] = { 0, 0, 0, 0, 0 };
 
 		for (int i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex < 1721 || pMob[conn].MOB.Carry[i].sIndex > 1725)
+			if (pMob[conn].MOB.Carry[i].sIndex < 1721 || pMob[conn].MOB.Carry[i].sIndex > 1725)
 				continue;
 
 			int Id = pMob[conn].MOB.Carry[i].sIndex - 1721;
@@ -1411,28 +1434,28 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 			Materiais[Id]++;
 		}
 
-		if(Materiais[0] < 10 || Materiais[1] < 2 || Materiais[2] < 4 || Materiais[3] < 1 || Materiais[4] < 1)
+		if (Materiais[0] < 10 || Materiais[1] < 2 || Materiais[2] < 4 || Materiais[3] < 1 || Materiais[4] < 1)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Need_5_materials]);
 			break;
 		}
 
-		if(Materiais[0] > 10)
+		if (Materiais[0] > 10)
 			Materiais[0] = 10;
 
-		if(Materiais[1] > 2)
+		if (Materiais[1] > 2)
 			Materiais[1] = 2;
 
-		if(Materiais[2] > 4)
+		if (Materiais[2] > 4)
 			Materiais[2] = 4;
 
-		if(Materiais[3] > 1)
+		if (Materiais[3] > 1)
 			Materiais[3] = 1;
 
-		if(Materiais[4] > 1)
+		if (Materiais[4] > 1)
 			Materiais[4] = 1;
 
-		for(int x = 0;x < 5; x++)
+		for (int x = 0; x < 5; x++)
 		{
 			for (int i = 0; i < pMob[conn].MaxCarry && Materiais[x] > 0; i++)
 			{
@@ -1446,7 +1469,7 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 		}
 
 		pMob[conn].MOB.Coin -= 2000000;
-        SendEtc(conn);
+		SendEtc(conn);
 
 		STRUCT_ITEM Item;
 
@@ -1454,12 +1477,12 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 		Item.sIndex = 1726;
 		Item.stEffect[0].cEffect = 43;
-		Item.stEffect[0].cValue = rand()%4;
+		Item.stEffect[0].cValue = rand() % 4;
 
 		PutItem(conn, &Item);
 
 		SendClientMessage(conn, g_pMessageStringTable[_NN_snowimp_create_success]);
-							
+
 		sprintf(temp, "etc,arzan_dragon snowimp create name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
 		Log(temp, "-system", 0);
 	}break;
@@ -1469,19 +1492,19 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 	{
 		int treasure = CombineTreasureMap(conn);
 
-		if(treasure)
+		if (treasure)
 			break;
 
-		for(int i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
 		{
-			if(g_pTreasure[i].Source == 0)
+			if (g_pTreasure[i].Source == 0)
 				continue;
 
 			int x = 0;
 
 			for (x = 0; x < pMob[conn].MaxCarry; x++)
 			{
-				if(pMob[conn].MOB.Carry[x].sIndex == g_pTreasure[i].Source)
+				if (pMob[conn].MOB.Carry[x].sIndex == g_pTreasure[i].Source)
 					break;
 			}
 
@@ -1490,12 +1513,12 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 				char itemlog[1024];
 
 				sprintf(temp, "tra,_gold_ 0");
-									
+
 				BASE_GetItemCode(&pMob[conn].MOB.Carry[x], itemlog);
 				strcat(temp, itemlog);
 
 				Log(temp, pUser[conn].AccountName, pUser[conn].IP);
-									
+
 				memset(&pMob[conn].MOB.Carry[x], 0, sizeof(STRUCT_ITEM));
 
 				SendItem(conn, ITEM_PLACE_CARRY, x, &pMob[conn].MOB.Carry[x]);
@@ -1506,32 +1529,32 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 				memset(&Item, 0, sizeof(STRUCT_ITEM));
 
-				if(_rand < g_pTreasure[i].Rate[0])
+				if (_rand < g_pTreasure[i].Rate[0])
 					memcpy(&Item, &g_pTreasure[i].Target[0], sizeof(STRUCT_ITEM));
-									
-				else if(_rand < g_pTreasure[x].Rate[1])
+
+				else if (_rand < g_pTreasure[x].Rate[1])
 					memcpy(&Item, &g_pTreasure[i].Target[1], sizeof(STRUCT_ITEM));
 
-				else if(_rand < g_pTreasure[i].Rate[2])
+				else if (_rand < g_pTreasure[i].Rate[2])
 					memcpy(&Item, &g_pTreasure[i].Target[2], sizeof(STRUCT_ITEM));
 
-				else if(_rand < g_pTreasure[i].Rate[3])
+				else if (_rand < g_pTreasure[i].Rate[3])
 					memcpy(&Item, &g_pTreasure[i].Target[3], sizeof(STRUCT_ITEM));
 
-				else if(_rand < g_pTreasure[i].Rate[4])
+				else if (_rand < g_pTreasure[i].Rate[4])
 					memcpy(&Item, &g_pTreasure[i].Target[4], sizeof(STRUCT_ITEM));
 
-				if(Item.sIndex == 0)
+				if (Item.sIndex == 0)
 				{
 					SendSay(npcIndex, g_pMessageStringTable[_NN_Next_Chance]);
 					return;
 				}
 
 				sprintf(temp, "tra,%s 0", pUser[conn].AccountName);
-									
+
 				BASE_GetItemCode(&Item, itemlog);
 				strcat(temp, itemlog);
-									
+
 				Log(temp, "_gold_", pUser[conn].IP);
 
 				PutItem(conn, &Item);
@@ -1541,23 +1564,23 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 			}
 		}
 
-		int Cristais[7] = {-1, -1, -1, -1, -1, -1, -1};
+		int Cristais[7] = { -1, -1, -1, -1, -1, -1, -1 };
 		int NumCristal = 0;
 
 		for (int i = 0; i < pMob[conn].MaxCarry; i++)
 		{
 			int ItemId = pMob[conn].MOB.Carry[i].sIndex;
-								
-			if(ItemId >= 421 && ItemId <= 427 && Cristais[ItemId-421] == -1)
+
+			if (ItemId >= 421 && ItemId <= 427 && Cristais[ItemId - 421] == -1)
 			{
-				Cristais[ItemId-421] = i;
+				Cristais[ItemId - 421] = i;
 				NumCristal++;
 			}
 		}
 
-		if(Cristais[0] != -1 && Cristais[1] != -1 && Cristais[2] != -1 && Cristais[3] != -1 && Cristais[4] != -1 && Cristais[5] != -1 && Cristais[6] != -1)
+		if (Cristais[0] != -1 && Cristais[1] != -1 && Cristais[2] != -1 && Cristais[3] != -1 && Cristais[4] != -1 && Cristais[5] != -1 && Cristais[6] != -1)
 		{
-			if(pMob[conn].MOB.Equip[6].sIndex == 0)
+			if (pMob[conn].MOB.Equip[6].sIndex == 0)
 			{
 				SendSay(npcIndex, g_pMessageStringTable[_NN_Equip_Weapon_To_Enchant]);
 				break;
@@ -1565,13 +1588,13 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 			int sanc = BASE_GetItemSanc(&pMob[conn].MOB.Equip[6]);
 
-			if(sanc > 0)
+			if (sanc > 0)
 			{
 				SendSay(npcIndex, g_pMessageStringTable[_NN_Only_Nomal_Weapons]);
 				break;
 			}
 
-			if((pMob[conn].MOB.Equip[0].sIndex/10) == 0)
+			if ((pMob[conn].MOB.Equip[0].sIndex / 10) == 0)
 				SendEmotion(conn, 23, 0);
 
 			else
@@ -1596,9 +1619,9 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 			SetItemBonus(&pMob[conn].MOB.Equip[6], (25 * NumCristal / 10) + g_pItemList[pMob[conn].MOB.Equip[6].sIndex].ReqLvl, 1, pMob[conn].DropBonus);
 
-			for(int i = 0; i < 7; i++)
+			for (int i = 0; i < 7; i++)
 				memset(&pMob[conn].MOB.Carry[Cristais[i]], 0, sizeof(STRUCT_ITEM));
-								
+
 			SendCarry(conn);
 			SendClientMessage(conn, g_pMessageStringTable[_SN_I_Wwill_Enchant_Your_Weapon]);
 
@@ -1622,14 +1645,14 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 #pragma region EXPLOIT_LEADER
 	case EXPLOIT_LEADER:
 	{
-		if(pMob[conn].extra.QuestInfo.Mortal.TerraMistica == 0)
+		if (pMob[conn].extra.QuestInfo.Mortal.TerraMistica == 0)
 		{
 			BASE_GetLanguage(temp, _NN_Guard_This_Village);
 			SendSay(npcIndex, temp);
 			break;
 		}
 
-		if(pMob[conn].extra.QuestInfo.Mortal.TerraMistica != 2)
+		if (pMob[conn].extra.QuestInfo.Mortal.TerraMistica != 2)
 		{
 			BASE_GetLanguage(temp, _SN_All_Villagers_Thanks_Your, pMob[conn].MOB.MobName);
 			SendSay(npcIndex, temp);
@@ -1637,34 +1660,34 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 		}
 
 		int _Level = pMob[conn].MOB.CurrentScore.Level;
-        int _ItemID = 551;
-        int _ItemType = 1;
+		int _ItemID = 551;
+		int _ItemType = 1;
 
-        if (_Level >= 50 )
-        {
-            if (_Level >= 80 )
-            {
+		if (_Level >= 50)
+		{
+			if (_Level >= 80)
+			{
 				_ItemID = rand() % 4 + 559;
 				_ItemType = 0;
-            }
-            else
-            {
+			}
+			else
+			{
 				_ItemID = rand() % 4 + 555;
 				_ItemType = 1;
-            }
-        }
-        else
-        {
-            _ItemID = rand() % 4 + 551;
-            _ItemType = 1;
-        }
+			}
+		}
+		else
+		{
+			_ItemID = rand() % 4 + 551;
+			_ItemType = 1;
+		}
 
 		STRUCT_ITEM Item;
 		memset(&Item, 0, sizeof(STRUCT_ITEM));
 
 		Item.sIndex = _ItemID;
 
-		int _rd = rand()%10;
+		int _rd = rand() % 10;
 
 		int bonustype = g_pBonusType[_rd];
 
@@ -1675,13 +1698,13 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 		Item.stEffect[0].cEffect = 43;
 
-		for (int z = 1; z <= 2; ++z )
-        {
-            int rd_ = rand() % 8;
+		for (int z = 1; z <= 2; ++z)
+		{
+			int rd_ = rand() % 8;
 
-            if (rd_)
-            {
-				switch ( rd_ )
+			if (rd_)
+			{
+				switch (rd_)
 				{
 				case 1:
 					Item.stEffect[z].cEffect = 2;
@@ -1697,42 +1720,42 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 					Item.stEffect[z].cEffect = 5;
 					Item.stEffect[z].cValue = rand() % 51 + 20;
 					break;
-				
+
 				case 4:
 					Item.stEffect[z].cEffect = 60;
 					Item.stEffect[z].cValue = rand() % 7 + 2;
 					break;
-				
+
 				case 5:
 					Item.stEffect[z].cEffect = 7;
 					Item.stEffect[z].cValue = rand() % 16 + 5;
 					break;
-				
+
 				case 6:
 					Item.stEffect[z].cEffect = 8;
 					Item.stEffect[z].cValue = rand() % 16 + 5;
 					break;
-				
+
 				case 7:
 					Item.stEffect[z].cEffect = 9;
 					Item.stEffect[z].cValue = rand() % 16 + 5;
 					break;
 				}
-            }
-            else
-            {
+			}
+			else
+			{
 				Item.stEffect[z].cEffect = 4;
 				Item.stEffect[z].cValue = rand() % 41 + 20;
-            }
-        }
+			}
+		}
 
 		PutItem(conn, &Item);
 
-        BASE_GetLanguage(temp, _NN_Give_You_Some_Reward);
-        SendSay(npcIndex, temp);
+		BASE_GetLanguage(temp, _NN_Give_You_Some_Reward);
+		SendSay(npcIndex, temp);
 
 		pMob[conn].extra.QuestInfo.Mortal.TerraMistica = 3;
-        SendClientMessage(conn, g_pMessageStringTable[_NN_Watching_Town_Awarded]);
+		SendClientMessage(conn, g_pMessageStringTable[_NN_Watching_Town_Awarded]);
 
 		sprintf(temp, "etc,mystical_land complete %d-%d:%d:%d:%d:%d:%d name:%s conn:%d", Item.sIndex, Item.stEffect[0].cEffect, Item.stEffect[0].cValue, Item.stEffect[1].cEffect, Item.stEffect[1].cValue, Item.stEffect[2].cEffect, Item.stEffect[2].cValue, pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);
@@ -1741,16 +1764,16 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 #pragma region MESTREHAB
 	case MESTREHAB:
 	{
-		if(confirm == 0)
+		if (confirm == 0)
 		{
 			sprintf(temp, g_pMessageStringTable[_DN_Want_Stat_Init], StatSapphire);
 			SendSay(npcIndex, temp);
 			break;
 		}
 
-		for(int i = 1; i < 8; i++)
+		for (int i = 2; i < 8; i++)
 		{
-			if(pMob[conn].MOB.Equip[i].sIndex)
+			if (pMob[conn].MOB.Equip[i].sIndex)
 			{
 				SendSay(npcIndex, g_pMessageStringTable[_NN_Cant_with_armor]);
 				return;
@@ -1763,28 +1786,28 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 		for (int i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 697)
+			if (pMob[conn].MOB.Carry[i].sIndex == 697)
 				NumSappInv++;
 
-			else if(pMob[conn].MOB.Carry[i].sIndex == 4131)
+			else if (pMob[conn].MOB.Carry[i].sIndex == 4131)
 				NumSappInv += 10;
 
-			else if(pMob[conn].MOB.Carry[i].sIndex == 3336)
+			else if (pMob[conn].MOB.Carry[i].sIndex == 3336)
 				RetornoHab = 1;
 		}
 
-		if(NumSappInv < StatSapphire && RetornoHab == 0)
+		if (NumSappInv < StatSapphire && RetornoHab == 0)
 		{
 			sprintf(temp, g_pMessageStringTable[_DN_Need_D_Sapphire2], StatSapphire);
 			SendSay(npcIndex, temp);
 			break;
 		}
 
-		if(RetornoHab == 1)
+		if (RetornoHab == 1)
 		{
 			for (int i = 0; i < pMob[conn].MaxCarry; i++)
 			{
-				if(pMob[conn].MOB.Carry[i].sIndex == 3336)
+				if (pMob[conn].MOB.Carry[i].sIndex == 3336)
 				{
 					memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
 					SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -1795,12 +1818,12 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 
 			goto DiretoReset;
 		}
-		if(NumSappInv > StatSapphire)
+		if (NumSappInv > StatSapphire)
 			NumSappInv = StatSapphire;
 
 		for (int i = 0; i < pMob[conn].MaxCarry && NumSappInv > 0; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 697)
+			if (pMob[conn].MOB.Carry[i].sIndex == 697)
 			{
 				memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -1808,7 +1831,7 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 				NumSappInv--;
 			}
 
-			else if(pMob[conn].MOB.Carry[i].sIndex == 4131 && NumSappInv >= 10)
+			else if (pMob[conn].MOB.Carry[i].sIndex == 4131 && NumSappInv >= 10)
 			{
 				memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -1816,82 +1839,82 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 				NumSappInv -= 10;
 			}
 		}
-DiretoReset:
+	DiretoReset:
 
 		int cls = pMob[conn].MOB.Class;
 
-		if(cls < 0 || cls > 3)
+		if (cls < 0 || cls > 3)
 			break;
 
 		int resetp = 100;
-        int score = pMob[conn].MOB.ScoreBonus;
-        int str = pMob[conn].MOB.BaseScore.Str - BaseSIDCHM[cls][0];
-        int _int = pMob[conn].MOB.BaseScore.Int - BaseSIDCHM[cls][1];
-        int dex = pMob[conn].MOB.BaseScore.Dex - BaseSIDCHM[cls][2];
-        int con = pMob[conn].MOB.BaseScore.Con - BaseSIDCHM[cls][3];
-                                
-		if (str <= resetp)
-        {
-            pMob[conn].MOB.BaseScore.Str -= str;
-            score += str;
-        }
-        else
-        {
-            pMob[conn].MOB.BaseScore.Str -= resetp;
-            score += resetp;
-        }
-                                
-		if (_int <= resetp)
-        {
-            pMob[conn].MOB.BaseScore.Int -= _int;
-            score += _int;
-        }
-        else
-        {
-            pMob[conn].MOB.BaseScore.Int -= resetp;
-            score += resetp;
-        }
-                                
-		if (dex <= resetp)
-        {
-            pMob[conn].MOB.BaseScore.Dex -= dex;
-            score += dex;
-        }
-                                
-		else
-        {
-            pMob[conn].MOB.BaseScore.Dex -= resetp;
-            score += resetp;
-        }
+		int score = pMob[conn].MOB.ScoreBonus;
+		int str = pMob[conn].MOB.BaseScore.Str - BaseSIDCHM[cls][0];
+		int _int = pMob[conn].MOB.BaseScore.Int - BaseSIDCHM[cls][1];
+		int dex = pMob[conn].MOB.BaseScore.Dex - BaseSIDCHM[cls][2];
+		int con = pMob[conn].MOB.BaseScore.Con - BaseSIDCHM[cls][3];
 
-        if (con <= resetp )
-        {
-            pMob[conn].MOB.BaseScore.Con -= con;
-            score += con;
-        }
-        else
-        {
-            pMob[conn].MOB.BaseScore.Con -= resetp;
-            score += resetp;
-        }
+		if (str <= resetp)
+		{
+			pMob[conn].MOB.BaseScore.Str -= str;
+			score += str;
+		}
+		else
+		{
+			pMob[conn].MOB.BaseScore.Str -= resetp;
+			score += resetp;
+		}
+
+		if (_int <= resetp)
+		{
+			pMob[conn].MOB.BaseScore.Int -= _int;
+			score += _int;
+		}
+		else
+		{
+			pMob[conn].MOB.BaseScore.Int -= resetp;
+			score += resetp;
+		}
+
+		if (dex <= resetp)
+		{
+			pMob[conn].MOB.BaseScore.Dex -= dex;
+			score += dex;
+		}
+
+		else
+		{
+			pMob[conn].MOB.BaseScore.Dex -= resetp;
+			score += resetp;
+		}
+
+		if (con <= resetp)
+		{
+			pMob[conn].MOB.BaseScore.Con -= con;
+			score += con;
+		}
+		else
+		{
+			pMob[conn].MOB.BaseScore.Con -= resetp;
+			score += resetp;
+		}
 
 		sprintf(temp, "etc,mestre_hab resetscore 100 name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);
 
 		BASE_GetBonusScorePoint(&pMob[conn].MOB, &pMob[conn].extra);
-        BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+		BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
+		SetAffect(conn, 44, 20, 20);
 
-        SetAffect(conn, 44, 20, 20);
-
-        SendScore(conn);
-        SendEtc(conn);
-        SendClientMessage(conn, g_pMessageStringTable[_NN_Stat_Initialized]);
+		SendScore(conn);
+		SendEtc(conn);
+		SendClientMessage(conn, g_pMessageStringTable[_NN_Stat_Initialized]);
 	} break;
 #pragma endregion
+
 #pragma region TREINADORNEWBIE1
 	case TREINADORNEWBIE1:
 	{
-		if(pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].MOB.CurrentScore.Level >= FREEEXP || pMob[conn].extra.QuestInfo.Mortal.Newbie != 0)
+		if (pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].extra.QuestInfo.Mortal.Newbie != 0)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Already1]);
 			break;
@@ -1900,7 +1923,7 @@ DiretoReset:
 
 		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 451)
+			if (pMob[conn].MOB.Carry[i].sIndex == 451)
 				break;
 		}
 
@@ -1914,7 +1937,6 @@ DiretoReset:
 
 		pMob[conn].extra.QuestInfo.Mortal.Newbie = 1;
 		SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Complete1]);
-		SendClientMessage(conn, g_pMessageStringTable[_NN_NewbieQuest_Reward1]);
 
 		STRUCT_ITEM Item;
 		memset(&Item, 0, sizeof(STRUCT_ITEM));
@@ -1927,14 +1949,13 @@ DiretoReset:
 		PutItem(conn, &Item);
 
 		SetAffect(conn, 44, 200, 200);
-		SendScore(conn);
 		SendCarry(conn);
 	} break;
 #pragma endregion
 #pragma region TREINADORNEWBIE2
 	case TREINADORNEWBIE2:
 	{
-		if(pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].MOB.CurrentScore.Level >= FREEEXP || pMob[conn].extra.QuestInfo.Mortal.Newbie != 1)
+		if (pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].extra.QuestInfo.Mortal.Newbie != 1)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Already2]);
 			break;
@@ -1943,7 +1964,7 @@ DiretoReset:
 
 		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 452)
+			if (pMob[conn].MOB.Carry[i].sIndex == 452)
 				break;
 		}
 
@@ -1955,18 +1976,17 @@ DiretoReset:
 		sprintf(temp, "etc,newbiequest2 complete name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);
 
-		pMob[conn].extra.QuestInfo.Mortal.Newbie++;
+		pMob[conn].extra.QuestInfo.Mortal.Newbie = 2;
 		SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Complete2]);
-		SendClientMessage(conn, g_pMessageStringTable[_NN_NewbieQuest_Reward2]);
 
 		int WeaponId = pMob[conn].MOB.Equip[6].sIndex;
 		int cls = pMob[conn].MOB.Class;
 
-		if(WeaponId > 0 && WeaponId < MAX_ITEMLIST)
+		if (WeaponId > 0 && WeaponId < MAX_ITEMLIST)
 		{
 			int ReqLv = g_pItemList[WeaponId].ReqLvl;
 
-			if(ReqLv > 39)
+			if (ReqLv > 39)
 				break;
 
 			pMob[conn].MOB.Equip[6].stEffect[0].cEffect = 0;
@@ -1981,14 +2001,14 @@ DiretoReset:
 		}
 
 		SetAffect(conn, 44, 200, 200);
-		SendScore(conn);
+		SendEquip(conn,conn);
 		SendCarry(conn);
 	} break;
 #pragma endregion
 #pragma region TREINADORNEWBIE3
 	case TREINADORNEWBIE3:
 	{
-		if(pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].MOB.CurrentScore.Level >= FREEEXP || pMob[conn].extra.QuestInfo.Mortal.Newbie != 2)
+		if (pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].extra.QuestInfo.Mortal.Newbie != 2)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Already3]);
 			break;
@@ -1997,7 +2017,7 @@ DiretoReset:
 
 		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 453)
+			if (pMob[conn].MOB.Carry[i].sIndex == 453)
 				break;
 		}
 
@@ -2009,40 +2029,74 @@ DiretoReset:
 		sprintf(temp, "etc,newbiequest3 complete name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);
 
-		pMob[conn].extra.QuestInfo.Mortal.Newbie++;
+		pMob[conn].extra.QuestInfo.Mortal.Newbie = 3;
 		SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Complete3]);
-		SendClientMessage(conn, g_pMessageStringTable[_NN_NewbieQuest_Reward3]);
 
-		for (int j = 1; j < 8; j++)
+		if (pMob[conn].MOB.Equip[1].sIndex >= 3500 && pMob[conn].MOB.Equip[1].sIndex <= 3507)
 		{
-			int itemId = pMob[conn].MOB.Equip[6].sIndex;
-
-			if (itemId > 0 && itemId < MAX_ITEMLIST)
+			for (int j = 2; j < 8; j++)
 			{
-				int ReqLv = g_pItemList[itemId].ReqLvl;
+				int itemId = pMob[conn].MOB.Equip[6].sIndex;
 
-				pMob[conn].MOB.Equip[j].stEffect[0].cEffect = 0;
-				pMob[conn].MOB.Equip[j].stEffect[0].cValue = 0;
-				pMob[conn].MOB.Equip[j].stEffect[1].cEffect = 0;
-				pMob[conn].MOB.Equip[j].stEffect[1].cValue = 0;
-				pMob[conn].MOB.Equip[j].stEffect[2].cEffect = 0;
-				pMob[conn].MOB.Equip[j].stEffect[2].cValue = 0;
+				if (itemId > 0 && itemId < MAX_ITEMLIST)
+				{
+					int ReqLv = g_pItemList[itemId].ReqLvl;
 
-				SetItemBonus(&pMob[conn].MOB.Equip[j], 50 + ReqLv, 1, 0);
-				BASE_SetItemSanc(&pMob[conn].MOB.Equip[j], 3, 0);
+					pMob[conn].MOB.Equip[j].stEffect[0].cEffect = 0;
+					pMob[conn].MOB.Equip[j].stEffect[0].cValue = 0;
+					pMob[conn].MOB.Equip[j].stEffect[1].cEffect = 0;
+					pMob[conn].MOB.Equip[j].stEffect[1].cValue = 0;
+					pMob[conn].MOB.Equip[j].stEffect[2].cEffect = 0;
+					pMob[conn].MOB.Equip[j].stEffect[2].cValue = 0;
 
-				SendItem(conn, ITEM_PLACE_EQUIP, j, &pMob[conn].MOB.Equip[j]);
+					SetItemBonus(&pMob[conn].MOB.Equip[j], 50 + ReqLv, 1, 0);
+					BASE_SetItemSanc(&pMob[conn].MOB.Equip[j], 3, 0);
+
+					SendItem(conn, ITEM_PLACE_EQUIP, j, &pMob[conn].MOB.Equip[j]);
+				}
 			}
 		}
+		else
+		{
+			for (int j = 1; j < 8; j++)
+			{
+				int itemId = pMob[conn].MOB.Equip[6].sIndex;
+
+				if (itemId > 0 && itemId < MAX_ITEMLIST)
+				{
+					int ReqLv = g_pItemList[itemId].ReqLvl;
+
+					pMob[conn].MOB.Equip[j].stEffect[0].cEffect = 0;
+					pMob[conn].MOB.Equip[j].stEffect[0].cValue = 0;
+					pMob[conn].MOB.Equip[j].stEffect[1].cEffect = 0;
+					pMob[conn].MOB.Equip[j].stEffect[1].cValue = 0;
+					pMob[conn].MOB.Equip[j].stEffect[2].cEffect = 0;
+					pMob[conn].MOB.Equip[j].stEffect[2].cValue = 0;
+
+					SetItemBonus(&pMob[conn].MOB.Equip[j], 50 + ReqLv, 1, 0);
+					BASE_SetItemSanc(&pMob[conn].MOB.Equip[j], 3, 0);
+
+					SendItem(conn, ITEM_PLACE_EQUIP, j, &pMob[conn].MOB.Equip[j]);
+				}
+			}
+		}
+		STRUCT_ITEM Item;
+		memset(&Item, 0, sizeof(STRUCT_ITEM));
+
+		//Replation A com 5
+		Item.sIndex = 4016;
+		Item.stEffect[0].cEffect = 61;
+		Item.stEffect[0].cValue = 5;
+
+		PutItem(conn, &Item);
 		SetAffect(conn, 44, 200, 200);
-		SendScore(conn);
 		SendCarry(conn);
-	} break;
+	} break; break;
 #pragma endregion
 #pragma region TREINADORNEWBIE4
 	case TREINADORNEWBIE4:
 	{
-		if(pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].MOB.CurrentScore.Level >= FREEEXP || pMob[conn].extra.QuestInfo.Mortal.Newbie != 3)
+		if (pMob[conn].extra.ClassMaster != MORTAL || pMob[conn].extra.QuestInfo.Mortal.Newbie != 3)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Already4]);
 			break;
@@ -2051,7 +2105,7 @@ DiretoReset:
 
 		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 524)
+			if (pMob[conn].MOB.Carry[i].sIndex == 524)
 				break;
 		}
 
@@ -2065,7 +2119,6 @@ DiretoReset:
 
 		pMob[conn].extra.QuestInfo.Mortal.Newbie = 4;
 		SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Complete4]);
-		SendClientMessage(conn, g_pMessageStringTable[_NN_NewbieQuest_Reward4]);
 
 		STRUCT_ITEM Item;
 		memset(&Item, 0, sizeof(STRUCT_ITEM));
@@ -2091,21 +2144,20 @@ DiretoReset:
 		PutItem(conn, &Item);
 
 		SetAffect(conn, 44, 200, 200);
-		SendScore(conn);
 		SendCarry(conn);
 	} break;
 #pragma endregion
 #pragma region COMP_SEPHI
 	case COMP_SEPHI:
 	{
-		if(confirm == 0)
+		if (confirm == 0)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Soul_n_8_Sephera]);
 			break;
 		}
 		int Pedras = 0;
 
-		for(int j = 0; j < 8; j++)
+		for (int j = 0; j < 8; j++)
 		{
 			for (int i = 0; i < pMob[conn].MaxCarry; i++)
 			{
@@ -2117,21 +2169,21 @@ DiretoReset:
 			}
 		}
 
-		if(Pedras < 8)
+		if (Pedras < 8)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Need_8_Sephera]);
 			break;
 		}
-		if(pMob[conn].MOB.Coin < 30000000)
+		if (pMob[conn].MOB.Coin < 30000000)
 		{
-			SendSay(npcIndex, g_pMessageStringTable[_NN_Need_8_Sephera]);
+			SendSay(npcIndex, "Cade os 30(milhões) em gold? ");
 			break;
 		}
 
 		pMob[conn].MOB.Coin -= 30000000;
 		SendEtc(conn);
 
-		for(int j = 0; j < 8; j++)
+		for (int j = 0; j < 8; j++)
 		{
 			for (int i = 0; i < pMob[conn].MaxCarry; i++)
 			{
@@ -2150,7 +2202,19 @@ DiretoReset:
 
 		memset(&Item, 0, sizeof(STRUCT_ITEM));
 
-		Item.sIndex = 1760 + pMob[npcIndex].MOB.Class;
+		if (pMob[npcIndex].MOB.Exp == 994)
+			Item.sIndex = 1762;
+
+		else if (pMob[npcIndex].MOB.Exp == 995)
+			Item.sIndex = 1761;
+
+		else if (pMob[npcIndex].MOB.Exp == 996)
+			Item.sIndex = 1763;
+
+		else if (pMob[npcIndex].MOB.Exp == 997)
+			Item.sIndex = 1760;
+
+		//Item.sIndex = 1760 + pMob[npcIndex].MOB.Class; // <- Inutilizavel, so se fosse para funfar: Item.sIndex = 1760 + pMob[npcIndex].MOB.Exp;
 
 		PutItem(conn, &Item);
 
@@ -2238,7 +2302,7 @@ DiretoReset:
 			break;
 		}
 
-		if (pMob[conn].MOB.CurrentScore.Level < 199 || pMob[conn].MOB.CurrentScore.Level >= 254)
+		if (pMob[conn].MOB.CurrentScore.Level < 200 || pMob[conn].MOB.CurrentScore.Level >= 204)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
 			break;
@@ -2257,7 +2321,7 @@ DiretoReset:
 
 		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if(pMob[conn].MOB.Carry[i].sIndex == 1740)
+			if (pMob[conn].MOB.Carry[i].sIndex == 1740)
 				break;
 		}
 
@@ -2267,7 +2331,7 @@ DiretoReset:
 			break;
 		}
 
-		if(pMob[conn].MOB.Carry[i+1].sIndex != 1741)
+		if (pMob[conn].MOB.Carry[i + 1].sIndex != 1741)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Set_Soul]);
 			break;
@@ -2308,9 +2372,9 @@ DiretoReset:
 				memset(&pMob[conn].MOB.Carry[j], 0, sizeof(STRUCT_ITEM));
 				SendItem(conn, ITEM_PLACE_CARRY, j, &pMob[conn].MOB.Carry[j]);
 
-				if((Saphire - 10) < 0)
+				if ((Saphire - 10) < 0)
 					Saphire = 0;
-												
+
 				else
 					Saphire -= 10;
 			}
@@ -2318,9 +2382,9 @@ DiretoReset:
 
 		memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
 		SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-							
-		memset(&pMob[conn].MOB.Carry[i+1], 0, sizeof(STRUCT_ITEM));
-		SendItem(conn, ITEM_PLACE_CARRY, i+1, &pMob[conn].MOB.Carry[i+1]);
+
+		memset(&pMob[conn].MOB.Carry[i + 1], 0, sizeof(STRUCT_ITEM));
+		SendItem(conn, ITEM_PLACE_CARRY, i + 1, &pMob[conn].MOB.Carry[i + 1]);
 
 		STRUCT_ITEM Item;
 		memset(&Item, 0, sizeof(STRUCT_ITEM));
@@ -2370,23 +2434,17 @@ DiretoReset:
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_Limit2]);
 			break;
 		}
-
-		if(pMob[npcIndex].MOB.SkillBar[0] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[0], 400, 200);
-
-		if(pMob[npcIndex].MOB.SkillBar[1] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[1], 400, 200);
-
-		if(pMob[npcIndex].MOB.SkillBar[2] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[2], 400, 200);
-
-		if(pMob[npcIndex].MOB.SkillBar[3] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[3], 400, 200);
+		SetAffect(conn, 43, 216, 216);
+		SetAffect(conn, 44, 216, 216);
+		SetAffect(conn, 45, 216, 216);
+		SetAffect(conn, 41, 216, 216);
 
 		pMob[conn].GetCurrentScore(conn);
+		
+		sprintf(temp, "Sente-se mais forte agora?", pMob[conn].MOB.MobName);
+		SendEtc(conn);
+		SendAffect(conn);
 		SendScore(conn);
-
-		sprintf(temp, g_pMessageStringTable[_SN_CARBUNCLEMSG], pMob[conn].MOB.MobName);
 		SendSay(npcIndex, temp);
 
 		sprintf(temp, "etc,carbuncle buff name:%s conn:%d", pMob[conn].MOB.MobName, conn);
@@ -2402,7 +2460,7 @@ DiretoReset:
 		{
 			if (pMob[conn].MOB.Carry[i].sIndex != pMob[npcIndex].MOB.Carry[0].sIndex)
 				continue;
-								
+
 			break;
 		}
 
@@ -2416,7 +2474,7 @@ DiretoReset:
 		BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 
 		pMob[conn].MOB.Carry[i].sIndex = pMob[npcIndex].MOB.Carry[1].sIndex;
-							
+
 		BASE_SetItemDate(&pMob[conn].MOB.Carry[i], 30);
 
 		SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -2428,9 +2486,40 @@ DiretoReset:
 #pragma region KIBITA
 	case KIBITA:
 	{
-		if(pMob[conn].extra.Citizen == 0 && pMob[conn].MOB.Coin >= 4000000)
+		if (pMob[conn].extra.Citizen == 0 && pMob[conn].MOB.Coin >= 4000000 && pMob[conn].MOB.CurrentScore.Level <= 199)
 		{
 			pMob[conn].MOB.Coin -= 4000000;
+			pMob[conn].extra.Citizen = ServerIndex + 1;
+			SendClientMessage(conn, g_pMessageStringTable[_DD_JOINTOWNPEP]);
+
+			int Guild = pMob[conn].MOB.Guild;
+
+			if (Guild && pMob[conn].MOB.GuildLevel == 9)
+			{
+				MSG_GuildInfo sm_gi;
+				memset(&sm_gi, 0, sizeof(MSG_GuildInfo));
+
+				sm_gi.Type = _MSG_GuildInfo;
+				sm_gi.Size = sizeof(MSG_GuildInfo);
+				sm_gi.ID = conn;
+
+				sm_gi.Guild = Guild;
+
+				GuildInfo[Guild].Citizen = ServerIndex + 1;
+
+				sm_gi.GuildInfo = GuildInfo[Guild];
+
+				DBServerSocket.SendOneMessage((char*)&sm_gi, sizeof(MSG_GuildInfo));
+			}
+
+			sprintf(temp, "etc,set citizen server:%d name:%s conn:%d", ServerIndex + 1, pMob[conn].MOB.MobName, conn);
+			Log(temp, "-system", 0);
+
+			break;
+		}
+		else if (pMob[conn].extra.Citizen == 0 && pMob[conn].MOB.Coin >= 10000000 && pMob[conn].MOB.CurrentScore.Level >= 200)
+		{
+			pMob[conn].MOB.Coin -= 10000000;
 			pMob[conn].extra.Citizen = ServerIndex + 1;
 			SendClientMessage(conn, g_pMessageStringTable[_DD_JOINTOWNPEP]);
 
@@ -2465,8 +2554,7 @@ DiretoReset:
 		time(&now);
 		when = *localtime(&now);
 
-#ifdef KIBITA_SOUL
-		if (when.tm_wday != 0 && when.tm_wday != 6 && when.tm_hour == 21 && pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level < 369)
+		if (when.tm_wday != 0 && when.tm_wday != 4 && when.tm_hour == 21 && pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level < 369)
 		{
 			int i = 0;
 
@@ -2489,7 +2577,7 @@ DiretoReset:
 
 				if (sAffect == -1)
 					return;
-				
+
 
 				pMob[conn].Affect[sAffect].Type = 29;
 				pMob[conn].Affect[sAffect].Level = 0;
@@ -2512,18 +2600,17 @@ DiretoReset:
 				break;
 			}
 		}
-#endif
-		if(pMob[conn].extra.ClassMaster == MORTAL && (pMob[conn].MOB.LearnedSkill & (1 << 30)) == 0 && pMob[conn].MOB.CurrentScore.Level >= 369)
+		if (pMob[conn].extra.ClassMaster == MORTAL && (pMob[conn].MOB.LearnedSkill & (1 << 30)) == 0 && pMob[conn].MOB.CurrentScore.Level >= 369)
 		{
 			int i = 0;
 
-			int stones[4] = {5334, 5336, 5335, 5337};
+			int stones[4] = { 5334, 5336, 5335, 5337 };
 
 			for (i = 0; i < pMob[conn].MaxCarry; i++)
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex != stones[pMob[conn].MOB.Class])
 					continue;
-								
+
 				break;
 			}
 
@@ -2536,10 +2623,10 @@ DiretoReset:
 
 				memset(&pMob[conn].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
 
-				if(pMob[conn].MOB.Clan == 7)
+				if (pMob[conn].MOB.Clan == 7)
 					pMob[conn].MOB.Equip[15].sIndex = 3194;
 
-				else if(pMob[conn].MOB.Clan == 8)
+				else if (pMob[conn].MOB.Clan == 8)
 					pMob[conn].MOB.Equip[15].sIndex = 3195;
 
 				else
@@ -2565,15 +2652,37 @@ DiretoReset:
 	{
 		int curkill = GetCurKill(conn);
 		int PKPoint = GetPKPoint(conn);
+		if (pMob[conn].MOB.Equip[1].sIndex == 3505)
+		{
+			if (BASE_GetItemSanc(&pMob[conn].MOB.Equip[1]) < 9)
+			{
+				if (pMob[conn].extra.Fame >= 100)
+				{
+					RefinarItemMais(&pMob[conn].MOB.Equip[1], 1);
 
-		if(curkill >= 100)
+					SendItem(conn, ITEM_PLACE_EQUIP, 1, &pMob[conn].MOB.Equip[1]);
+
+					pMob[conn].extra.Fame -= 100;
+
+					SendClientMessage(conn, "Quest Finalizada.");
+				}
+				else
+				{
+					char msg[128];
+					sprintf(msg, "Para refinar sua Cythera [%s] é necessario 100 de Fame.", pMob[conn].MOB.MobName);
+					SendSay(npcIndex, msg);
+				}
+				return;
+			}
+		}
+		if (curkill >= 100)
 		{
 			PKPoint += 20;
 
-			if(PKPoint >= 150)
+			if (PKPoint >= 150)
 				PKPoint = 150;
 
-			SetCurKill(conn, curkill-100);
+			SetCurKill(conn, curkill - 100);
 			SetPKPoint(conn, PKPoint);
 
 			sprintf(temp, "etc,resetpk curpk:%d name:%s conn:%d", PKPoint, pMob[conn].MOB.MobName, conn);
@@ -2595,12 +2704,13 @@ DiretoReset:
 #pragma region SOBREVIVENTE
 	case SOBREVIVENTE:
 	{
+		int ItemReq = 4127;
 		int i = 0;
 		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			if (pMob[conn].MOB.Carry[i].sIndex != 4127)
+			if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
 				continue;
-								
+
 			break;
 		}
 
@@ -2616,8 +2726,11 @@ DiretoReset:
 
 			sprintf(temp, g_pMessageStringTable[_DN_CHANGE_COUNT], pMob[conn].extra.KefraTicket);
 			SendClientMessage(conn, temp);
+			break;
 		}
 
+		sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
+		SendSay(npcIndex, temp);
 	} break;
 #pragma endregion
 #pragma region LIDER_APRENDIZ
@@ -2659,50 +2772,385 @@ DiretoReset:
 		SendClientMessage(conn, temp);
 	} break;
 #pragma endregion
+#pragma region JULIARZAN
+	case JULIARZAN:
+	{
+		SendSay(npcIndex, "Foi teletransportado para Karden!");
+		DoTeleport(conn, 3652, 3134);
+
+	} break;
+#pragma endregion
+#pragma region JULIGELO
+	case JULIGELO:
+	{
+		SendSay(npcIndex, "Foi teletransportado para Arzan!");
+		DoTeleport(conn, 2480, 1649);
+
+	} break;
+#pragma endregion
+#pragma region MESTREGRIFO
+	case MESTREGRIFO:
+	{
+		if (pMob[conn].MOB.BaseScore.Level < 39)
+		{
+			SendClientMessage(conn, "!Chegou no destino [Campo do Treino].");
+			DoTeleport(conn, 2115, 2043);
+			return;
+		}
+		else if (pMob[conn].MOB.BaseScore.Level >= 39 && pMob[conn].MOB.BaseScore.Level <= 114)
+		{
+			SendClientMessage(conn, "!Chegou no destino [Defensor da Alma].");
+			DoTeleport(conn, 2372, 2103);
+			return;
+		}
+
+		else if (pMob[conn].MOB.BaseScore.Level >= 115 && pMob[conn].MOB.BaseScore.Level <= 189)
+		{
+			SendClientMessage(conn, "!Chegou no destino [Jardim dos Deuses].");
+			DoTeleport(conn, 2220, 1714);
+			return;
+		}
+		else if (pMob[conn].MOB.BaseScore.Level >= 190 && pMob[conn].MOB.BaseScore.Level <= 264)
+		{
+			SendClientMessage(conn, "!Chegou no destino [Ressu. Cav. Negro].");
+			DoTeleport(conn, 450, 3912);
+			return;
+		}
+		else if (pMob[conn].MOB.BaseScore.Level >= 265 && pMob[conn].MOB.BaseScore.Level <= 319)
+		{
+			SendClientMessage(conn, "!Chegou no destino [Hidra Imortal].");
+			DoTeleport(conn, 669, 3771);
+			return;
+		}
+		else if (pMob[conn].MOB.BaseScore.Level >= 320 && pMob[conn].MOB.BaseScore.Level <= 349)
+		{
+			SendClientMessage(conn, "!Chegou no destino [Inicio da Infelicidade].");
+			DoTeleport(conn, 1301, 4038);
+			return;
+		}
+		else if (pMob[conn].MOB.BaseScore.Level >= 350)
+		{
+			SendSay(npcIndex, "Não há quest disponivel para você ..");
+			return;
+		}
+	}
+
+#pragma endregion
 #pragma region GUARDA_REAL_EVT1
 	case GUARDA_REAL_EVT1:
+	{
+		int ItemReq = 4051;
+
+		int i = 0;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
 		{
-			int ItemReq = 4055;
+			if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
+				continue;
 
-			int i = 0;
-			for (i = 0; i < pMob[conn].MaxCarry; i++)
+			break;
+		}
+
+		if (i != pMob[conn].MaxCarry)
+		{
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+			STRUCT_ITEM Item;
+			memset(&Item, 0, sizeof(STRUCT_ITEM));
+
+			int _rd = rand() % 100;
+
+		 if (_rd < 48)
+		{
+			Item.sIndex = 419;
+			Item.stEffect[0].cEffect = 61;
+			Item.stEffect[0].cValue = 5;
+		}
+		else if (_rd < 50)
 			{
-				if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
-					continue;
-								
-				break;
+				Item.sIndex = 420; // resto ori
+				Item.stEffect[0].cEffect = 61;
+				Item.stEffect[0].cValue = 5;
 			}
+			
+			else
+				Item.sIndex = 4052; 
 
-			if (i != pMob[conn].MaxCarry)
+			PutItem(conn, &Item);
+			sprintf(temp, g_pMessageStringTable[_SN_Item_Arrived], g_pItemList[Item.sIndex].Name);
+			SendClientMessage(conn, temp);
+			break;
+		}
+
+		sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
+		SendSay(npcIndex, temp);
+	} break;
+#pragma endregion
+#pragma region GUARDA_REAL_EVT2
+	case GUARDA_REAL_EVT2:
+	{
+		int ItemReq = 4052;
+
+		int i = 0;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
+				continue;
+
+			break;
+		}
+
+		if (i != pMob[conn].MaxCarry)
+		{
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+			STRUCT_ITEM Item;
+			memset(&Item, 0, sizeof(STRUCT_ITEM));
+
+			int _rd = rand() % 100;
+
+			if (_rd < 40)
 			{
-				BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
-				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
-
-				STRUCT_ITEM Item;
-				memset(&Item, 0, sizeof(STRUCT_ITEM));
-
-				int _rd = rand()%100;
-
-				if(_rd < 25)
-					Item.sIndex = 413;
-				
-				else if(_rd < 50)
-					Item.sIndex = 412;
-				
-				else if(_rd < 75)
-					Item.sIndex = 413;
-				
-				else
-					Item.sIndex = 412;
-
-				sprintf(temp, g_pMessageStringTable[_SN_Item_Arrived], g_pItemList[Item.sIndex].Name);
-				SendClientMessage(conn, temp);
-				break;
+			Item.sIndex = 2397; // amago n
+			Item.stEffect[0].cEffect = 61;
+			Item.stEffect[0].cValue = 3;
+	    	}
+			else if (_rd < 40)
+			{
+				Item.sIndex = 2402; // amago b
+				Item.stEffect[0].cEffect = 61;
+				Item.stEffect[0].cValue = 3;
 			}
+			else if (_rd < 50)
+			{
+				Item.sIndex = 4053; 
+			
+			}
+		
+			else
+				Item.sIndex = 447;
 
-			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
-			SendSay(npcIndex, temp);
-		} break;
+			PutItem(conn, &Item);
+			sprintf(temp, g_pMessageStringTable[_SN_Item_Arrived], g_pItemList[Item.sIndex].Name);
+			SendClientMessage(conn, temp);
+			break;
+		}
+
+		sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
+		SendSay(npcIndex, temp);
+	} break;
+#pragma endregion
+#pragma region GUARDA_REAL_EVT3
+	case GUARDA_REAL_EVT3:
+	{
+		int ItemReq = 4053;
+
+		int i = 0;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
+				continue;
+
+			break;
+		}
+
+		if (i != pMob[conn].MaxCarry)
+		{
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+			STRUCT_ITEM Item;
+			memset(&Item, 0, sizeof(STRUCT_ITEM));
+
+			int _rd = rand() % 100;
+
+			if (_rd < 35)
+			{
+				Item.sIndex = 4026; // barra 1kk
+				Item.stEffect[0].cEffect = 61;
+				Item.stEffect[0].cValue = 3;
+			}
+			else if (_rd < 30)
+			{
+				Item.sIndex = 4144; // bau
+				Item.stEffect[0].cEffect = 61;
+				Item.stEffect[0].cValue = 2;
+			}
+			else if (_rd < 50)
+			{
+				Item.sIndex = 419; 
+				Item.stEffect[0].cEffect = 61;
+				Item.stEffect[0].cValue = 2;
+			}
+			else
+				Item.sIndex = 412; 
+
+			PutItem(conn, &Item);
+			sprintf(temp, g_pMessageStringTable[_SN_Item_Arrived], g_pItemList[Item.sIndex].Name);
+			SendClientMessage(conn, temp);
+			break;
+		}
+
+		sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
+		SendSay(npcIndex, temp);
+	} break;
+#pragma endregion
+#pragma region TELEPORT_EQUILIBRIO
+	case TELEPORT_EQUILIBRIO:
+	{
+		if (pMob[conn].extra.ClassMaster != MORTAL)
+		{
+			SendSay(npcIndex, "Somente mortais!");
+			break;
+		}
+
+		if (pMob[conn].MOB.CurrentScore.Level < 119 || pMob[conn].MOB.CurrentScore.Level >= 124)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
+
+		DoTeleport(conn, 1961 + rand() % 5 - 3, 1598 + rand() % 5 - 3);
+	} break;
+#pragma endregion
+#pragma region NPCEQUILIBRIO
+	case NPCEQUILIBRIO:
+	{
+		
+		int ItemReq = 4125;
+
+		int i = 0;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
+				continue;
+
+			break;
+		}
+
+		if (i != pMob[conn].MaxCarry)
+		{
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+			STRUCT_ITEM Item;
+			memset(&Item, 0, sizeof(STRUCT_ITEM));
+
+		
+			Item.sIndex = 4126;
+
+			PutItem(conn, &Item);
+			break;
+		}
+
+		sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
+		SendSay(npcIndex, temp);
+	} break;
+
+#pragma endregion
+#pragma region TELEPORT_CHANCE
+	case TELEPORT_CHANCE:
+	{
+		if (pMob[conn].extra.ClassMaster != MORTAL)
+		{
+			SendSay(npcIndex, "Somente mortais!");
+			break;
+		}
+
+		if (pMob[conn].MOB.CurrentScore.Level < 69 || pMob[conn].MOB.CurrentScore.Level >= 74)
+		{
+			SendSay(npcIndex, g_pMessageStringTable[_NN_Level_limit]);
+			break;
+		}
+
+		DoTeleport(conn, 2652 + rand() % 5 - 3, 1985 + rand() % 5 - 3);
+	} break;
+#pragma endregion
+#pragma region NPCCHANCE
+	case NPCCHANCE:
+	{
+		int ItemReq = 4123;
+
+		int i = 0;
+		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		{
+			if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
+				continue;
+
+			break;
+		}
+
+		if (i != pMob[conn].MaxCarry)
+		{
+			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
+			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
+
+			STRUCT_ITEM Item;
+			memset(&Item, 0, sizeof(STRUCT_ITEM));
+
+
+			Item.sIndex = 4124;
+
+			PutItem(conn, &Item);
+			break;
+		}
+
+		sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[ItemReq].Name);
+		SendSay(npcIndex, temp);
+	} break;
+#pragma endregion
+#pragma region UNICORNIO_PURO
+	case UNICORNIO_PURO:
+	{
+		if (pMob[conn].MOB.Equip[6].sIndex == 862)//espada curta
+		{
+			pMob[conn].MOB.Equip[6].sIndex = 939;
+			pMob[conn].MOB.Equip[6].stEffect[1].cEffect = 43;
+			pMob[conn].MOB.Equip[6].stEffect[1].cValue = 5;
+			pMob[conn].MOB.Equip[6].stEffect[2].cEffect = 2;
+			pMob[conn].MOB.Equip[6].stEffect[2].cValue = 45;
+			SendSay(npcIndex, "Tome este presente, mas não se acostume a isso...");
+			SendItem(conn, ITEM_PLACE_EQUIP, 6, &pMob[conn].MOB.Equip[6]);
+			return;
+		}
+		if (pMob[conn].MOB.Equip[6].sIndex == 817)//arco de madeira
+		{
+			pMob[conn].MOB.Equip[6].sIndex = 943;
+			pMob[conn].MOB.Equip[6].stEffect[1].cEffect = 43;
+			pMob[conn].MOB.Equip[6].stEffect[1].cValue = 5;
+			pMob[conn].MOB.Equip[6].stEffect[2].cEffect = 2;
+			pMob[conn].MOB.Equip[6].stEffect[2].cValue = 45;
+			SendSay(npcIndex, "Tome este presente, mas não se acostume a isso...");
+			SendItem(conn, ITEM_PLACE_EQUIP, 6, &pMob[conn].MOB.Equip[6]);
+			return;
+		}
+		if (pMob[conn].MOB.Equip[6].sIndex == 892)//Varinha da Guerra
+		{
+			pMob[conn].MOB.Equip[6].sIndex = 940;
+			pMob[conn].MOB.Equip[6].stEffect[1].cEffect = 43;
+			pMob[conn].MOB.Equip[6].stEffect[1].cValue = 5;
+			pMob[conn].MOB.Equip[6].stEffect[2].cEffect = 60;
+			pMob[conn].MOB.Equip[6].stEffect[2].cValue = 20;
+			SendSay(npcIndex, "Tome este presente, mas não se acostume a isso...");
+			SendItem(conn, ITEM_PLACE_EQUIP, 6, &pMob[conn].MOB.Equip[6]);
+			return;
+		}
+		if (pMob[conn].MOB.Equip[6].sIndex == 847)//Lança curva
+		{
+			pMob[conn].MOB.Equip[6].sIndex = 941;
+			pMob[conn].MOB.Equip[6].stEffect[1].cEffect = 43;
+			pMob[conn].MOB.Equip[6].stEffect[1].cValue = 5;
+			pMob[conn].MOB.Equip[6].stEffect[2].cEffect = 60;
+			pMob[conn].MOB.Equip[6].stEffect[2].cValue = 20;
+			SendSay(npcIndex, "Tome este presente, mas não se acostume a isso...");
+			SendItem(conn, ITEM_PLACE_EQUIP, 6, &pMob[conn].MOB.Equip[6]);
+			return;
+		}
+		//SendClientChat(npcIndex, "[Servidor] O Boss de Noatun acaba de aparecer.", 0xFFF89A1E);
+
+		SendSay(npcIndex, "Você? Um guerreiro? Os tempos estão perdidos.");
+	}
 #pragma endregion
 	default:
 		sprintf(temp, "etc,quest %d %d", npcMerc, npcGrade);

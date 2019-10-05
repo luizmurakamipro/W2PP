@@ -18,10 +18,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="MSG">
       <UniqueIdentifier>{b1061ab5-626e-4940-ad45-73bbdc74ae12}</UniqueIdentifier>
     </Filter>
@@ -34,26 +30,14 @@
     <Filter Include="MSG\USER_PLAY\Party">
       <UniqueIdentifier>{c2343eb8-358c-47ed-b0f5-ab634472e77c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MSG\USER_PLAY\Combine">
-      <UniqueIdentifier>{f63322bd-a8a5-461b-a2ee-6e1aa38b0de0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MSG\USER_PLAY\Trade">
       <UniqueIdentifier>{ac577f8a-3e99-4dbb-9edf-2964f2efe2ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MSG\USER_PLAY\Message">
-      <UniqueIdentifier>{f288f63e-581e-4ed5-b443-60897b5446e7}</UniqueIdentifier>
     </Filter>
     <Filter Include="MSG\USER_PLAY\Shop">
       <UniqueIdentifier>{0007ac9e-57fd-4801-b027-7eb85086cf4e}</UniqueIdentifier>
     </Filter>
     <Filter Include="MSG\USER_PLAY\Storage">
       <UniqueIdentifier>{916e0a66-9e20-4f16-99dc-518d5bdb4b55}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MSG\USER_PLAY\Guild">
-      <UniqueIdentifier>{50575fed-f46b-482d-afba-7292a1079f4f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MSG\USER_PLAY\Item">
-      <UniqueIdentifier>{e6ba3bf8-fc38-4a17-927b-42ac05d02ffd}</UniqueIdentifier>
     </Filter>
     <Filter Include="MSG\USER_PLAY\NPC">
       <UniqueIdentifier>{f9ee3784-0c0a-4f4a-925e-3cbdb0e58bdb}</UniqueIdentifier>
@@ -64,6 +48,24 @@
     <Filter Include="CWarTower">
       <UniqueIdentifier>{20b178d2-2636-48a3-8546-b50495bc17fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MSG\USER_PLAY\Item">
+      <UniqueIdentifier>{e6ba3bf8-fc38-4a17-927b-42ac05d02ffd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSG\USER_PLAY\System">
+      <UniqueIdentifier>{c37baf38-2fc6-4009-af4c-89e1a26dfc51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSG\USER_PLAY\Guild">
+      <UniqueIdentifier>{50575fed-f46b-482d-afba-7292a1079f4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSG\USER_PLAY\Quiz">
+      <UniqueIdentifier>{cd2172da-f34e-4a0a-9da6-3635d3f83acf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSG\USER_PLAY\Command">
+      <UniqueIdentifier>{f288f63e-581e-4ed5-b443-60897b5446e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CCuboQuest">
+      <UniqueIdentifier>{58544063-b66d-438c-b27f-106827fe4e4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Basedef.cpp">
@@ -71,36 +73,6 @@
     </ClCompile>
     <ClCompile Include="..\CPSock.cpp">
       <Filter>Base\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GetFunc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SendFunc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Server.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CMob.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CItem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CNPCGene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CUser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="imple.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessClientMessage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessDBMessage.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="_MSG_AccountLogin.cpp">
       <Filter>MSG\USER_SELCHAR</Filter>
@@ -120,48 +92,6 @@
     <ClCompile Include="_MSG_DeleteCharacter.cpp">
       <Filter>MSG\USER_SELCHAR</Filter>
     </ClCompile>
-    <ClCompile Include="_MSG_ApplyBonus.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_Action.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_Attack.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CapsuleInfo.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_ChangeCity.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_UpdateItem.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_SetShortSkill.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_Restart.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_ReqTeleport.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_ReqRanking.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_PutoutSeal.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_PKMode.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_NoViewMob.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_Motion.cpp">
-      <Filter>MSG\USER_PLAY</Filter>
-    </ClCompile>
     <ClCompile Include="_MSG_AcceptParty.cpp">
       <Filter>MSG\USER_PLAY\Party</Filter>
     </ClCompile>
@@ -171,33 +101,6 @@
     <ClCompile Include="_MSG_SendReqParty.cpp">
       <Filter>MSG\USER_PLAY\Party</Filter>
     </ClCompile>
-    <ClCompile Include="_MSG_CombineItem.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemAgatha.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemAilyn.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemAlquimia.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemEhre.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemExtracao.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemLindy.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemOdin.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemTiny.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
     <ClCompile Include="_MSG_Trade.cpp">
       <Filter>MSG\USER_PLAY\Trade</Filter>
     </ClCompile>
@@ -205,10 +108,10 @@
       <Filter>MSG\USER_PLAY\Trade</Filter>
     </ClCompile>
     <ClCompile Include="_MSG_MessageWhisper.cpp">
-      <Filter>MSG\USER_PLAY\Message</Filter>
+      <Filter>MSG\USER_PLAY\Command</Filter>
     </ClCompile>
     <ClCompile Include="_MSG_MessageChat.cpp">
-      <Filter>MSG\USER_PLAY\Message</Filter>
+      <Filter>MSG\USER_PLAY\Command</Filter>
     </ClCompile>
     <ClCompile Include="_MSG_Buy.cpp">
       <Filter>MSG\USER_PLAY\Shop</Filter>
@@ -270,26 +173,137 @@
     <ClCompile Include="_MSG_Challange.cpp">
       <Filter>MSG\USER_PLAY\Guild</Filter>
     </ClCompile>
-    <ClCompile Include="ProcessSecMinTimer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="_MSG_Quest.cpp">
       <Filter>MSG\USER_PLAY\NPC</Filter>
-    </ClCompile>
-    <ClCompile Include="MobKilled.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_MSG_CombineItemShany.cpp">
-      <Filter>MSG\USER_PLAY\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="CReadFiles.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CCastleZakum.cpp">
       <Filter>CCastleZakum</Filter>
     </ClCompile>
     <ClCompile Include="CWarTower.cpp">
       <Filter>CWarTower</Filter>
+    </ClCompile>
+    <ClCompile Include="CMob.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="SendFunc.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessSecMinTimer.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessDBMessage.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessClientMessage.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="MobKilled.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="GetFunc.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="CUser.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="CReadFiles.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="CItem.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItem.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemTiny.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemShany.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemOdin.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemLindy.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemExtracao.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemEhre.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemDedekinto.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemAlquimia.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemAilyn.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CombineItemAgatha.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_Action.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_ApplyBonus.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_UpdateItem.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_SetShortSkill.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_Restart.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_ReqTeleport.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_ReqRanking.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_PutoutSeal.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_PKMode.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_NoViewMob.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_Motion.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_ChangeCity.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_Attack.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_CapsuleInfo.cpp">
+      <Filter>MSG\USER_PLAY\System</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_Imple.cpp">
+      <Filter>MSG\USER_PLAY\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="CNPCGene.cpp">
+      <Filter>MSG\USER_PLAY</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_GriffinMaster.cpp">
+      <Filter>MSG\USER_PLAY\NPC</Filter>
+    </ClCompile>
+    <ClCompile Include="_MSG_Quiz.cpp">
+      <Filter>MSG\USER_PLAY\Quiz</Filter>
+    </ClCompile>
+    <ClCompile Include="CCubo.cpp">
+      <Filter>CCuboQuest</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -343,6 +357,12 @@
     </ClInclude>
     <ClInclude Include="CWarTower.h">
       <Filter>CWarTower</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessClientMessage-BYPOLLY.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCubo.h">
+      <Filter>CCuboQuest</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

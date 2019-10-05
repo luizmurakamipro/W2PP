@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #include <Windows.h>
 #include <stdio.h>
@@ -124,7 +124,7 @@ lbl_PST1:
 
 	CurrentTime = timeGetTime();
 
-	if(SecCounter % 120)
+	if (SecCounter % 120)
 		CReadFiles::ReadMacblock();
 
 	if (BILLING != 0 && BillCounter > 0 && BillServerSocket.Sock == 0)
@@ -165,7 +165,8 @@ lbl_PST1:
 	}
 	else
 		BillCounter = 0;
-	
+
+#pragma region Save User
 	if (SecCounter % 8 == 0)
 	{
 		for (int i = 0; i < MAX_USER; i++)
@@ -197,9 +198,19 @@ lbl_PST1:
 			SaveCount++;
 		}
 	}
-
+#pragma endregion
+#pragma region User Loop
 	for (int bb = 1; bb < MAX_USER; bb++)
 	{
+		if (pUser[bb].Mode == USER_PLAY)
+		{
+			if (pMobGrid[pMob[bb].TargetY][pMob[bb].TargetX] != bb)
+			{
+				sprintf(temp, "err, system user: %s pmobgrid: %d", pMob[bb].MOB.MobName, pMobGrid[pMob[bb].TargetY][pMob[bb].TargetX]);
+				Log(temp, pUser[bb].AccountName, pUser[bb].IP);
+			}
+		}
+
 		if (pUser[bb].Mode)
 		{
 			if (pUser[bb].cSock.nSendPosition)
@@ -220,287 +231,384 @@ lbl_PST1:
 			}
 		}
 
-		if(pUser[bb].Mode == USER_PLAY)
+		if (pUser[bb].Mode == USER_PLAY)
 			pMob[bb].ProcessorSecTimer();
 
 		//Celestial Lv181 dentro da zona do pesadelo
-		if((pMob[bb].TargetX/128) == 9 && (pMob[bb].TargetY/128) == 1 || (pMob[bb].TargetX/128) == 8 && (pMob[bb].TargetY/128) == 2 || (pMob[bb].TargetX/128) == 10 && (pMob[bb].TargetY/128) == 2)
+		if ((pMob[bb].TargetX / 128) == 9 && (pMob[bb].TargetY / 128) == 1 || (pMob[bb].TargetX / 128) == 8 && (pMob[bb].TargetY / 128) == 2 || (pMob[bb].TargetX / 128) == 10 && (pMob[bb].TargetY / 128) == 2)
 		{
-			if((pMob[bb].extra.ClassMaster == CELESTIAL || pMob[bb].extra.ClassMaster == CELESTIALCS || pMob[bb].extra.ClassMaster == SCELESTIAL) && pMob[bb].MOB.CurrentScore.Level >= 180)
+			if ((pMob[bb].extra.ClassMaster == CELESTIAL || pMob[bb].extra.ClassMaster == CELESTIALCS || pMob[bb].extra.ClassMaster == SCELESTIAL) && pMob[bb].MOB.CurrentScore.Level >= 180)
 				DoRecall(bb);
 		}
 
 #pragma region Pista de Runas Balrog Portais
-			int xv = (pMob[bb].TargetX) & 0xFFFC;
-			int yv = (pMob[bb].TargetY) & 0xFFFC;
+		int xv = (pMob[bb].TargetX) & 0xFFFC;
+		int yv = (pMob[bb].TargetY) & 0xFFFC;
 
-			for(int x = 0; x < 3; x++)
+		for (int x = 0; x < 3; x++)
+		{
+			if (pUser[bb].Mode != USER_PLAY || pMob[bb].MOB.CurrentScore.Hp <= 0 || Pista[5].Party[x].LeaderID == 0 || Pista[5].Party[x].LeaderID != bb || strcmp(Pista[5].Party[x].LeaderName, pMob[bb].MOB.MobName))
+				continue;
+
+			if (pMob[Pista[5].Party[x].LeaderID].Leader != -1 && pMob[Pista[5].Party[x].LeaderID].Leader)
+				continue;
+
+			int _rd = rand() % 3;
+
+			int tx = 2100;
+			int ty = 2100;
+
+			//Sala 1 Portal 1
+			if (xv == PistaBalrogPortalPos[0][0][0] && yv == PistaBalrogPortalPos[0][0][1])
 			{
-				if(pUser[bb].Mode != USER_PLAY || pMob[bb].MOB.CurrentScore.Hp <= 0 || Pista[5].Party[x].LeaderID == 0 || Pista[5].Party[x].LeaderID != bb || strcmp(Pista[5].Party[x].LeaderName, pMob[bb].MOB.MobName))
-					continue;
-
-				if (pMob[Pista[5].Party[x].LeaderID].Leader != -1 && pMob[Pista[5].Party[x].LeaderID].Leader)
-					continue;
-
-				int _rd = rand()%3;
-
-				int tx = 2100;
-				int ty = 2100;
-
-				//Sala 1 Portal 1
-				if(xv == PistaBalrogPortalPos[0][0][0] && yv == PistaBalrogPortalPos[0][0][1])
+				if (_rd <= 1)
 				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[1][0];
-						ty = PistaBalrogPos[1][1];
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[0][0];
-						ty = PistaBalrogPos[0][1];
-					}
+					tx = PistaBalrogPos[1][0];
+					ty = PistaBalrogPos[1][1];
 				}
 
-				//Sala 2 Portal 1
-				else if(xv == PistaBalrogPortalPos[1][0][0] && yv == PistaBalrogPortalPos[1][0][1])
-				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[1][0];
-						ty = PistaBalrogPos[1][1];
-					}
-					else if(_rd == 2)
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[0][0];
-						ty = PistaBalrogPos[0][1];
-					}
-				}
-
-				//Sala 2 Portal 2
-				else if(xv == PistaBalrogPortalPos[1][1][0] && yv == PistaBalrogPortalPos[1][1][1])
-				{
-					if(_rd >= 2)
-					{
-						tx = PistaBalrogPos[1][0];
-						ty = PistaBalrogPos[1][1];
-					}
-					else if(_rd == 0)
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[0][0];
-						ty = PistaBalrogPos[0][1];
-					}
-				}
-
-				//Sala 3 Portal 1
-				else if(xv == PistaBalrogPortalPos[2][0][0] && yv == PistaBalrogPortalPos[2][0][1])
-				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-					else if(_rd == 2)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[1][0];
-						ty = PistaBalrogPos[1][1];
-					}
-				}
-
-				//Sala 3 Portal 2
-				else if(xv == PistaBalrogPortalPos[2][1][0] && yv == PistaBalrogPortalPos[2][1][1])
-				{
-					if(_rd >= 2)
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-					else if(_rd == 0)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[1][0];
-						ty = PistaBalrogPos[1][1];
-					}
-				}
-
-				//Sala 3 Portal 3
-				else if(xv == PistaBalrogPortalPos[2][2][0] && yv == PistaBalrogPortalPos[2][2][1])
-				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-					else if(_rd == 2)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[1][0];
-						ty = PistaBalrogPos[1][1];
-					}
-				}
-
-				//Sala 4 Portal 1
-				else if(xv == PistaBalrogPortalPos[3][0][0] && yv == PistaBalrogPortalPos[3][0][1])
-				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-					else if(_rd == 2)
-					{
-						tx = PistaBalrogPos[4][0];
-						ty = PistaBalrogPos[4][1];
-
-						if(Pista[5].Party[0].MobCount == 0)
-							GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-				}
-
-				//Sala 4 Portal 2
-				else if(xv == PistaBalrogPortalPos[3][1][0] && yv == PistaBalrogPortalPos[3][1][1])
-				{
-					if(_rd >= 2)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-					else if(_rd == 0)
-					{
-						tx = PistaBalrogPos[4][0];
-						ty = PistaBalrogPos[4][1];
-
-						if(Pista[5].Party[0].MobCount == 0)
-							GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-				}
-
-				//Sala 4 Portal 3
-				else if(xv == PistaBalrogPortalPos[3][2][0] && yv == PistaBalrogPortalPos[3][2][1])
-				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-					else if(_rd == 2)
-					{
-						tx = PistaBalrogPos[4][0];
-						ty = PistaBalrogPos[4][1];
-
-						if(Pista[5].Party[0].MobCount == 0)
-							GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-				}
-
-				//Sala 4 Portal 4
-				else if(xv == PistaBalrogPortalPos[3][3][0] && yv == PistaBalrogPortalPos[3][3][1])
-				{
-					if(_rd <= 1)
-					{
-						tx = PistaBalrogPos[3][0];
-						ty = PistaBalrogPos[3][1];
-					}
-					else if(_rd == 2)
-					{
-						tx = PistaBalrogPos[4][0];
-						ty = PistaBalrogPos[4][1];
-
-						if(Pista[5].Party[0].MobCount == 0)
-							GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
-					}
-
-					else
-					{
-						tx = PistaBalrogPos[2][0];
-						ty = PistaBalrogPos[2][1];
-					}
-				}
 				else
-					continue;
-
-				int inv = 0;
-				for (inv = 0; inv < pMob[bb].MaxCarry && inv < MAX_CARRY; inv++)
 				{
-					if(pMob[bb].MOB.Carry[inv].sIndex == 4032)
-					{
-						BASE_ClearItem(&pMob[bb].MOB.Carry[inv]);
-						SendItem(bb, ITEM_PLACE_CARRY, inv, &pMob[bb].MOB.Carry[inv]);
-						break;
-					}
-				}
-
-				if(inv == pMob[bb].MaxCarry)
-					continue;
-
-				DoTeleport(Pista[5].Party[x].LeaderID, tx, ty);
-
-				for (int c = 0;c < MAX_PARTY; c++)
-				{
-					int partyconn = pMob[Pista[5].Party[x].LeaderID].PartyList[c];
-
-					if (partyconn > 0 && partyconn < MAX_USER && partyconn != Pista[5].Party[x].LeaderID && pUser[partyconn].Mode == USER_PLAY)
-							DoTeleport(partyconn, tx, ty);		
+					tx = PistaBalrogPos[0][0];
+					ty = PistaBalrogPos[0][1];
 				}
 			}
 
+			//Sala 2 Portal 1
+			else if (xv == PistaBalrogPortalPos[1][0][0] && yv == PistaBalrogPortalPos[1][0][1])
+			{
+				if (_rd <= 1)
+				{
+					tx = PistaBalrogPos[1][0];
+					ty = PistaBalrogPos[1][1];
+				}
+				else if (_rd == 2)
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[0][0];
+					ty = PistaBalrogPos[0][1];
+				}
+			}
+
+			//Sala 2 Portal 2
+			else if (xv == PistaBalrogPortalPos[1][1][0] && yv == PistaBalrogPortalPos[1][1][1])
+			{
+				if (_rd >= 2)
+				{
+					tx = PistaBalrogPos[1][0];
+					ty = PistaBalrogPos[1][1];
+				}
+				else if (_rd == 0)
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[0][0];
+					ty = PistaBalrogPos[0][1];
+				}
+			}
+
+			//Sala 3 Portal 1
+			else if (xv == PistaBalrogPortalPos[2][0][0] && yv == PistaBalrogPortalPos[2][0][1])
+			{
+				if (_rd <= 1)
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+				else if (_rd == 2)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[1][0];
+					ty = PistaBalrogPos[1][1];
+				}
+			}
+
+			//Sala 3 Portal 2
+			else if (xv == PistaBalrogPortalPos[2][1][0] && yv == PistaBalrogPortalPos[2][1][1])
+			{
+				if (_rd >= 2)
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+				else if (_rd == 0)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[1][0];
+					ty = PistaBalrogPos[1][1];
+				}
+			}
+
+			//Sala 3 Portal 3
+			else if (xv == PistaBalrogPortalPos[2][2][0] && yv == PistaBalrogPortalPos[2][2][1])
+			{
+				if (_rd <= 1)
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+				else if (_rd == 2)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[1][0];
+					ty = PistaBalrogPos[1][1];
+				}
+			}
+
+			//Sala 4 Portal 1
+			else if (xv == PistaBalrogPortalPos[3][0][0] && yv == PistaBalrogPortalPos[3][0][1])
+			{
+				if (_rd <= 1)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+				else if (_rd == 2)
+				{
+					tx = PistaBalrogPos[4][0];
+					ty = PistaBalrogPos[4][1];
+
+					if (Pista[5].Party[0].MobCount == 0)
+						GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+			}
+
+			//Sala 4 Portal 2
+			else if (xv == PistaBalrogPortalPos[3][1][0] && yv == PistaBalrogPortalPos[3][1][1])
+			{
+				if (_rd >= 2)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+				else if (_rd == 0)
+				{
+					tx = PistaBalrogPos[4][0];
+					ty = PistaBalrogPos[4][1];
+
+					if (Pista[5].Party[0].MobCount == 0)
+						GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+			}
+
+			//Sala 4 Portal 3
+			else if (xv == PistaBalrogPortalPos[3][2][0] && yv == PistaBalrogPortalPos[3][2][1])
+			{
+				if (_rd <= 1)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+				else if (_rd == 2)
+				{
+					tx = PistaBalrogPos[4][0];
+					ty = PistaBalrogPos[4][1];
+
+					if (Pista[5].Party[0].MobCount == 0)
+						GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+			}
+
+			//Sala 4 Portal 4
+			else if (xv == PistaBalrogPortalPos[3][3][0] && yv == PistaBalrogPortalPos[3][3][1])
+			{
+				if (_rd <= 1)
+				{
+					tx = PistaBalrogPos[3][0];
+					ty = PistaBalrogPos[3][1];
+				}
+				else if (_rd == 2)
+				{
+					tx = PistaBalrogPos[4][0];
+					ty = PistaBalrogPos[4][1];
+
+					if (Pista[5].Party[0].MobCount == 0)
+						GenerateMob(RUNEQUEST_LV5_MOB_BOSS, 0, 0);
+				}
+
+				else
+				{
+					tx = PistaBalrogPos[2][0];
+					ty = PistaBalrogPos[2][1];
+				}
+			}
+			else
+				continue;
+
+			int inv = 0;
+			for (inv = 0; inv < pMob[bb].MaxCarry && inv < MAX_CARRY; inv++)
+			{
+				if (pMob[bb].MOB.Carry[inv].sIndex == 4032)
+				{
+					BASE_ClearItem(&pMob[bb].MOB.Carry[inv]);
+					SendItem(bb, ITEM_PLACE_CARRY, inv, &pMob[bb].MOB.Carry[inv]);
+					break;
+				}
+			}
+
+			if (inv == pMob[bb].MaxCarry)
+				continue;
+
+			DoTeleport(Pista[5].Party[x].LeaderID, tx, ty);
+
+			for (int c = 0; c < MAX_PARTY; c++)
+			{
+				int partyconn = pMob[Pista[5].Party[x].LeaderID].PartyList[c];
+
+				if (partyconn > 0 && partyconn < MAX_USER && partyconn != Pista[5].Party[x].LeaderID && pUser[partyconn].Mode == USER_PLAY)
+					DoTeleport(partyconn, tx, ty);
+			}
+		}
+
 #pragma endregion
 	}
-
-	if(SecCounter % 12 == 0)
+#pragma endregion
+#pragma region Quest Verification
+	if (SecCounter % 12 == 0)
 	{
 		//Carta Sala 1
 		int Sala1 = mNPCGen.pList[SECRET_ROOM_N_SALA1_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_N_SALA1_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA1_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA1_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA1_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA1_MOB_2].CurrentNumMob;
 		int Sala2 = mNPCGen.pList[SECRET_ROOM_N_SALA2_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_N_SALA2_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA2_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA2_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA2_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA2_MOB_2].CurrentNumMob;
 		int Sala3 = mNPCGen.pList[SECRET_ROOM_N_SALA3_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_N_SALA3_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA3_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA3_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA3_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA3_MOB_2].CurrentNumMob;
 		int Sala4 = mNPCGen.pList[SECRET_ROOM_N_SALA4_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_N_SALA4_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_N_SALA4_MOB_3].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_N_SALA4_MOB_4].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA4_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA4_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA4_MOB_3].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_M_SALA4_MOB_4].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA4_MOB_1].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA4_MOB_2].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA4_MOB_3].CurrentNumMob + mNPCGen.pList[SECRET_ROOM_A_SALA4_MOB_4].CurrentNumMob;
+
+		int PesadeloA = mNPCGen.pList[Erin].CurrentNumMob +
+			mNPCGen.pList[Escuridao].CurrentNumMob +
+			mNPCGen.pList[Fenix].CurrentNumMob +
+			mNPCGen.pList[Kara].CurrentNumMob +
+			mNPCGen.pList[Kei].CurrentNumMob +
+			mNPCGen.pList[Kemi].CurrentNumMob +
+			mNPCGen.pList[Leao].CurrentNumMob +
+			mNPCGen.pList[Uie].CurrentNumMob;
+
+		int PesadeloM = mNPCGen.pList[Arnold_].CurrentNumMob +
+			mNPCGen.pList[Lainy].CurrentNumMob +
+			mNPCGen.pList[Reimers].CurrentNumMob +
+			mNPCGen.pList[RoPerion].CurrentNumMob +
+			mNPCGen.pList[Irena].CurrentNumMob +
+			mNPCGen.pList[Jeffi].CurrentNumMob +
+			mNPCGen.pList[Smith].CurrentNumMob;
+
+		int PesadeloN = mNPCGen.pList[Martin].CurrentNumMob +
+			mNPCGen.pList[Balmers].CurrentNumMob +
+			mNPCGen.pList[Rubyen].CurrentNumMob +
+			mNPCGen.pList[Naomi].CurrentNumMob +
+			mNPCGen.pList[Arnold].CurrentNumMob;
+
+		int MOBS = mNPCGen.pList[4069].CurrentNumMob +
+			mNPCGen.pList[4070].CurrentNumMob +
+			mNPCGen.pList[4071].CurrentNumMob +
+			mNPCGen.pList[4072].CurrentNumMob +
+			mNPCGen.pList[4073].CurrentNumMob +
+			mNPCGen.pList[4074].CurrentNumMob +
+			mNPCGen.pList[4075].CurrentNumMob +
+			mNPCGen.pList[4076].CurrentNumMob +
+			mNPCGen.pList[4080].CurrentNumMob +
+			mNPCGen.pList[4081].CurrentNumMob +
+			mNPCGen.pList[4082].CurrentNumMob +
+			mNPCGen.pList[4083].CurrentNumMob +
+			mNPCGen.pList[4084].CurrentNumMob +
+			mNPCGen.pList[4085].CurrentNumMob +
+			mNPCGen.pList[4086].CurrentNumMob +
+			mNPCGen.pList[4087].CurrentNumMob +
+			mNPCGen.pList[4088].CurrentNumMob +
+			mNPCGen.pList[4089].CurrentNumMob +
+			mNPCGen.pList[4090].CurrentNumMob +
+			mNPCGen.pList[4091].CurrentNumMob +
+			mNPCGen.pList[4092].CurrentNumMob +
+			mNPCGen.pList[4093].CurrentNumMob +
+			mNPCGen.pList[4094].CurrentNumMob +
+			mNPCGen.pList[4095].CurrentNumMob +
+			mNPCGen.pList[4096].CurrentNumMob +
+			mNPCGen.pList[4097].CurrentNumMob +
+			mNPCGen.pList[4098].CurrentNumMob;
+
+		int Quadra_1 = mNPCGen.pList[6076].CurrentNumMob +
+			mNPCGen.pList[6077].CurrentNumMob +
+			mNPCGen.pList[6078].CurrentNumMob +
+			mNPCGen.pList[6079].CurrentNumMob +
+			mNPCGen.pList[6080].CurrentNumMob +
+			mNPCGen.pList[6081].CurrentNumMob +
+			mNPCGen.pList[6082].CurrentNumMob +
+			mNPCGen.pList[6083].CurrentNumMob +
+			mNPCGen.pList[6084].CurrentNumMob;
+
+		int Quadra_2 = mNPCGen.pList[6086].CurrentNumMob +
+			mNPCGen.pList[6087].CurrentNumMob +
+			mNPCGen.pList[6088].CurrentNumMob +
+			mNPCGen.pList[6089].CurrentNumMob +
+			mNPCGen.pList[6090].CurrentNumMob +
+			mNPCGen.pList[6091].CurrentNumMob +
+			mNPCGen.pList[6092].CurrentNumMob +
+			mNPCGen.pList[6093].CurrentNumMob +
+			mNPCGen.pList[6094].CurrentNumMob;
+
+		int Quadra_3 = mNPCGen.pList[6096].CurrentNumMob +
+			mNPCGen.pList[6097].CurrentNumMob +
+			mNPCGen.pList[6098].CurrentNumMob +
+			mNPCGen.pList[6099].CurrentNumMob +
+			mNPCGen.pList[6100].CurrentNumMob +
+			mNPCGen.pList[6101].CurrentNumMob +
+			mNPCGen.pList[6102].CurrentNumMob +
+			mNPCGen.pList[6103].CurrentNumMob +
+			mNPCGen.pList[6104].CurrentNumMob;
+
+		int Quadra_4 = mNPCGen.pList[6106].CurrentNumMob +
+			mNPCGen.pList[6107].CurrentNumMob +
+			mNPCGen.pList[6108].CurrentNumMob +
+			mNPCGen.pList[6109].CurrentNumMob +
+			mNPCGen.pList[6110].CurrentNumMob +
+			mNPCGen.pList[6111].CurrentNumMob +
+			mNPCGen.pList[6112].CurrentNumMob +
+			mNPCGen.pList[6113].CurrentNumMob +
+			mNPCGen.pList[6114].CurrentNumMob;
+
+		int Lichs = mNPCGen.pList[LICHBOSS2].CurrentNumMob +
+			mNPCGen.pList[LICHBOSS4].CurrentNumMob;
+
+		int Users = GetUserInArea(1302, 1483, 1381, 1516, temp);
 
 		SendSignalParmArea(778, 3651, 832, 3699, ESCENE_FIELD, _MSG_MobLeft, Sala1);
 		//Carta Sala 2
@@ -510,18 +618,110 @@ lbl_PST1:
 		//Carta Sala 4
 		SendSignalParmArea(780, 3594, 832, 3645, ESCENE_FIELD, _MSG_MobLeft, Sala4);
 
+		//Pesadelo A
+		SendShortSignalParm2Area(1152, 128, 1280, 256, ESCENE_FIELD, _MSG_MobCount, PesadeloA, 8);
+
+		//Pesadelo M
+		SendShortSignalParm2Area(1024, 256, 1152, 384, ESCENE_FIELD, _MSG_MobCount, PesadeloM, 7);
+
+		//Pesadelo N
+		SendShortSignalParm2Area(1280, 256, 1408, 384, ESCENE_FIELD, _MSG_MobCount, PesadeloN, 5);
+
 		//Pista de runas +6 - Coelho
 		SendSignalParmArea(3330, 1475, 3448, 1525, ESCENE_FIELD, _MSG_MobLeft, Pista[6].Party[0].MobCount);
 
 		//RvR
 		SendShortSignalParm2Area(1017, 1911, 1290, 2183, ESCENE_FIELD, _MSG_MobCount, RvRRedPoint + 1024, RvRBluePoint + 1024);
-	}
 
-	if(SecCounter % 1200 == 0)
+		SendSignalParmArea(1302, 1483, 1381, 1516, ESCENE_FIELD, _MSG_MobLeft, Users);
+
+		// Castelo de Gelo Inteiro
+		//SendShortSignalParm2Area(3703, 2829, 3967, 2942, ESCENE_FIELD, _MSG_MobCount, MOBS, 27);
+
+#pragma region Quest Castelo de Gelo
+		if (EspelhoLive == 2)
+		{
+			if (MOBS == 0)
+			{
+				//DarkShadow
+				GenerateMob(4077, 0, 0);
+
+				EspelhoLive = 0;
+
+				SendNoticeArea(g_pMessageStringTable[_ND_GenDarkShadow], 3703, 2829, 3967, 2942);
+			}
+		}
+#pragma endregion
+#pragma region Portão Infernal // Quadras
+		if (TarantulaKilled == TRUE)
+		{
+			if (RandBoss == 1)
+			{
+				if (Quadra_1 == 0 && Lich_1 == 1)
+					GenerateMob(LICHBOSS1, 1811, 3606);
+
+				if (Quadra_2 == 0 && Lich_2 == 1)
+					GenerateMob(LICHBOSS2, 1876, 3606);
+
+				if (Quadra_3 == 0 && Lich_3 == 1)
+					GenerateMob(LICHBOSS3, 1876, 3692);
+
+				if (Quadra_4 == 0 && Lich_4 == 1)
+					GenerateMob(LICHBOSS4, 1811, 3692);
+
+				if (Lich_2 == 2 && Lich_4 == 2)
+				{
+					Lich_2 = 0;
+					Lich_4 = 0;
+					SendNoticeArea(g_pMessageStringTable[_NN_Killed_Boss], 1664, 3584, 1919, 3711);
+
+					SendNoticeArea(g_pMessageStringTable[_NN_Hell_Clear], 1664, 3584, 1919, 3711);
+
+					for (int x = PI_INITIAL6; x <= PI_END6; x++)
+						GenerateMob(x, 0, 0);
+
+					CreateMob("Aki", 1847, 3649, "npc", 0);
+				}
+			}
+
+			if (RandBoss == 2)
+			{
+				if (Quadra_1 == 0 && Lich_1 == 1)
+					GenerateMob(LICHBOSS2, 1811, 3606);
+
+				if (Quadra_2 == 0 && Lich_2 == 1)
+					GenerateMob(LICHBOSS1, 1876, 3606);
+
+				if (Quadra_3 == 0 && Lich_3 == 1)
+					GenerateMob(LICHBOSS4, 1876, 3692);
+
+				if (Quadra_4 == 0 && Lich_4 == 1)
+					GenerateMob(LICHBOSS3, 1811, 3692);
+
+				if (Lich_1 == 2 && Lich_3 == 2)
+				{
+					Lich_1 = 0;
+					Lich_3 = 0;
+					SendNoticeArea(g_pMessageStringTable[_NN_Killed_Boss], 1664, 3584, 1919, 3711);
+
+					SendNoticeArea(g_pMessageStringTable[_NN_Hell_Clear], 1664, 3584, 1919, 3711);
+
+					for (int x = PI_INITIAL6; x <= PI_END6; x++)
+						GenerateMob(x, 0, 0);
+
+					CreateMob("Aki", 1847, 3649, "npc", 0);
+				}
+			}
+		}
+#pragma endregion
+	}
+#pragma endregion
+#pragma region Other Quest Verification (20 Minutes)
+	if (SecCounter % 1200 == 0) // 20 Minutos
 	{
 		ClearAreaQuest(2379, 2076, 2426, 2133);// Coveiro
 		ClearAreaQuest(2232, 1564, 2263, 1592);// Capa Verde
-		ClearAreaQuest(2640, 1966, 2670, 2004);//Reset habilidades
+		ClearAreaQuest(2640, 1966, 2670, 2004);//Reset habilidades quest nova
 		ClearAreaQuest(2228, 1700, 2257, 1728);//Carbuncle
 		ClearAreaQuest(1950, 1586, 1988, 1614);//Reset habilidades
 		ClearAreaQuest(459, 3887, 497, 3916);//Kaizen
@@ -530,17 +730,26 @@ lbl_PST1:
 		ClearAreaQuest(793, 4046, 827, 4080);//Quest Gargula
 		ClearArea(3570, 3446, 3965, 3711);//Lanhouse
 
+		/*if (CuboN.pRoom != 0)
+		{
+			ClearArea(1664, 3968, 1792, 4096);//Cubo N
+			CuboN.pRoom = 0;
+			CuboN.Room = 0;
+		}*/
+
 		for (int x = 1; x < MAX_USER; x++)
 		{
 			if (pMob[x].QuestFlag && pUser[x].Mode == USER_PLAY)
 				pMob[x].QuestFlag = 0;
 		}
 	}
-	if(SecCounter % 120 == 0)
+#pragma endregion
+#pragma region Itens Time
+	if (SecCounter % 120 == 0)
 	{
-		for(int user = 0; user < MAX_USER; user++)
+		for (int user = 0; user < MAX_USER; user++)
 		{
-			if(pUser[user].Mode != USER_PLAY)
+			if (pUser[user].Mode != USER_PLAY)
 				continue;
 
 			if (pMob[user].MOB.Equip[14].sIndex >= 3980 && pMob[user].MOB.Equip[14].sIndex <= 3989 && BASE_CheckItemDate(&pMob[user].MOB.Equip[14]))
@@ -561,7 +770,7 @@ lbl_PST1:
 				SendItem(user, ITEM_PLACE_EQUIP, 12, &pMob[user].MOB.Equip[12]);
 			}
 
-			if(pMob[user].MOB.Equip[13].sIndex >= 3900 && pMob[user].MOB.Equip[13].sIndex <= 3913)
+			if (pMob[user].MOB.Equip[13].sIndex >= 3900 && pMob[user].MOB.Equip[13].sIndex <= 3913)
 			{
 				BASE_CheckFairyDate(&pMob[user].MOB.Equip[13]);
 				SendItem(user, ITEM_PLACE_EQUIP, 13, &pMob[user].MOB.Equip[13]);
@@ -597,7 +806,8 @@ lbl_PST1:
 			}
 		}
 	}
-
+#pragma endregion
+#pragma region Unknown Functions
 	if (SecCounter % 2 == 0)
 	{
 		for (int i = 1; i < MAX_USER; i++)
@@ -638,7 +848,8 @@ lbl_PST1:
 			}
 		}
 	}
-
+#pragma endregion
+#pragma region Boss Time
 	if (SecCounter % 2 == 0)
 	{
 		struct tm when;
@@ -646,6 +857,7 @@ lbl_PST1:
 		time(&now);
 		when = *localtime(&now);
 
+#pragma region Kefra BOSS Initialize
 		if ((when.tm_wday == 2 && when.tm_hour == 12 && when.tm_min == 0) && when.tm_sec >= 0 && when.tm_sec <= 2 && KefraLive)
 		{
 			KefraLive = 0;
@@ -653,9 +865,139 @@ lbl_PST1:
 			//Kefra
 			GenerateMob(KEFRA_BOSS, 0, 0);
 
-			for(int xx = KEFRA_MOB_INITIAL; xx <= KEFRA_MOB_END; xx++)
+			for (int xx = KEFRA_MOB_INITIAL; xx <= KEFRA_MOB_END; xx++)
 				GenerateMob(xx, 0, 0);
 		}
+#pragma endregion
+#pragma region Boss 1 Castelo de Gelo
+		if ((when.tm_hour == 12 && when.tm_min == 0) && when.tm_sec >= 0 && when.tm_sec <= 2 && (EspelhoLive == 0))
+		{
+			// BOSS PARTE 1
+			for (int w = BOSS1_INITIAL; w <= BOSS1_END; w++)
+				mNPCGen.pList[w].MinuteGenerate = -1;
+			// BOSS PARTE 2
+			for (int x = BOSS1_INITIAL2; x <= BOSS1_END2; x++)
+				mNPCGen.pList[x].MinuteGenerate = -1;
+
+			EspelhoLive = 1;
+
+			//Boss 1
+			GenerateMob(ESPELHO_RAINHAG, 0, 0);
+
+			SendNotice("Espelho RainhaG acaba de nascer em Karden!");
+		}
+#pragma endregion
+#pragma region Boss 1 Castelo de Gelo Parte 2
+		if ((when.tm_hour == 12 && when.tm_min == 20) && when.tm_sec >= 0 && when.tm_sec <= 2 && (EspelhoLive == 1))
+		{
+			// BOSS PARTE 1
+			for (int w = BOSS1_INITIAL; w <= BOSS1_END; w++)
+				mNPCGen.pList[w].MinuteGenerate = 3;
+			// BOSS PARTE 2
+			for (int x = BOSS1_INITIAL2; x <= BOSS1_END2; x++)
+				mNPCGen.pList[x].MinuteGenerate = 3;
+
+			EspelhoLive = 0;
+
+			for (int i = MAX_USER; i < MAX_MOB; i++)
+			{
+				if (!strcmp(pMob[i].MOB.MobName, "Espelho RainhaG"))
+					DeleteMob(i, 1);
+			}
+
+			SendNotice("Ninguém foi confrontar a Rainha e ela fugiu!");
+		}
+#pragma endregion
+#pragma region Boss 1 Castelo de Gelo Parte 3
+		if ((when.tm_hour == 13 && when.tm_min == 0) && when.tm_sec >= 0 && when.tm_sec <= 2)
+		{
+			for (int i = MAX_USER; i < MAX_MOB; i++)
+			{
+				if (!strcmp(pMob[i].MOB.MobName, "VeridRainhaG") || !strcmp(pMob[i].MOB.MobName, "Sombra Negra"))
+				{
+					if (mNPCGen.pList[pMob[i].GenerateIndex].CurrentNumMob > 0)
+					{
+						// BOSS PARTE 1
+						for (int w = BOSS1_INITIAL; w <= BOSS1_END; w++)
+							mNPCGen.pList[w].MinuteGenerate = 3;
+						// BOSS PARTE 2
+						for (int x = BOSS1_INITIAL2; x <= BOSS1_END2; x++)
+							mNPCGen.pList[x].MinuteGenerate = 3;
+
+						EspelhoLive = 0;
+
+						DeleteMob(i, 1);
+					}
+				}
+			}
+			SendNotice("A quest do Gelo foi resetada!");
+		}
+#pragma endregion
+#pragma region War Tower End
+		if (GTorreState == 2 && !when.tm_min && !when.tm_sec)
+		{
+			SendNotice("Guerra de Torres finalizada.");
+
+			ClearArea(2445, 1850, 2546, 1920);
+
+			for (int i = MAX_USER; i < MAX_MOB; i++)
+			{
+				if (pMob[i].GenerateIndex == GTORRE)
+					//if (!strcmp(pMob[i].MOB.MobName, "Torre"))
+				{
+					if (pMob[i].MOB.Guild)
+					{
+						int Group = ServerGroup;
+						int Server = pMob[i].MOB.Guild / MAX_GUILD;
+						int usGuild = pMob[i].MOB.Guild;
+
+						char guildname[256];
+
+						BASE_GetGuildName(Group, usGuild, guildname);
+
+						MSG_GuildInfo sm;
+
+						sm.Type = _MSG_GuildInfo;
+						sm.Size = sizeof(MSG_GuildInfo);
+						sm.ID = 0;
+
+						sm.Guild = usGuild;
+						GuildInfo[usGuild].Fame += 100;
+
+						sm.GuildInfo = GuildInfo[usGuild];
+
+						DBServerSocket.SendOneMessage((char*)&sm, sizeof(MSG_GuildInfo));
+
+						sprintf(temp, "etc,war_tower1 guild:%d guild_fame:%d", usGuild, GuildInfo[usGuild].Fame);
+						Log(temp, "-system", 0);
+					}
+
+					DeleteMob(i, 1);
+				}
+			}
+
+			GTorreState = 0;
+			GTorreGuild = 0;
+		}
+#pragma endregion
+#pragma region Portão Reset
+		if ((when.tm_min == 29 || when.tm_min == 59) && when.tm_sec == 0)
+		{
+			DeleteMobMapa(13, 28);
+			//ClearMapa(13, 28);//Portão Infernal
+			ClearArea(1664, 3584, 1919, 3711);
+			PartyPortao[0] = 0;
+			TarantulaKilled = FALSE;
+			RandBoss = 0;
+			Lich_1 = 0;
+			Lich_2 = 0;
+			Lich_3 = 0;
+			Lich_4 = 0;
+
+			sprintf(temp, "etc,portao_infernal clear -%d:%d", when.tm_hour, when.tm_min);
+			Log(temp, "-system", 0);
+		}
+#pragma endregion
 #pragma region Pesa Reset
 		if ((when.tm_min == 9 || when.tm_min == 29 || when.tm_min == 49) && when.tm_sec == 0)
 		{
@@ -696,14 +1038,14 @@ lbl_PST1:
 
 			Pista[6].Party[0].MobCount = 100;
 
-			for(int s = 0; s < 7; s++)
+			for (int s = 0; s < 7; s++)
 			{
-				for(int t = 0; t < 3; t++)
+				for (int t = 0; t < 3; t++)
 				{
-					if(Pista[s].Party[t].LeaderID == 0 || strcmp(pMob[Pista[s].Party[t].LeaderID].MOB.MobName, Pista[s].Party[t].LeaderName) != 0)
+					if (Pista[s].Party[t].LeaderID == 0 || strcmp(pMob[Pista[s].Party[t].LeaderID].MOB.MobName, Pista[s].Party[t].LeaderName) != 0)
 						continue;
 
-					if((pMob[Pista[s].Party[t].LeaderID].TargetX/128) != 25 || (pMob[Pista[s].Party[t].LeaderID].TargetY/128) != 13)
+					if ((pMob[Pista[s].Party[t].LeaderID].TargetX / 128) != 25 || (pMob[Pista[s].Party[t].LeaderID].TargetY / 128) != 13)
 						continue;
 
 					if (pMob[Pista[s].Party[t].LeaderID].Leader != -1 && pMob[Pista[s].Party[t].LeaderID].Leader)
@@ -716,45 +1058,45 @@ lbl_PST1:
 						int partyconn = pMob[Pista[s].Party[t].LeaderID].PartyList[i];
 
 						if (partyconn > 0 && partyconn < MAX_USER && partyconn != Pista[s].Party[t].LeaderID && pUser[partyconn].Mode == USER_PLAY)
-							if((pMob[partyconn].TargetX/128) == 25 && (pMob[partyconn].TargetY/128) == 13)
-								DoTeleport(partyconn, PistaPos[Pista[s].Party[t].Sala][t][0], PistaPos[Pista[s].Party[t].Sala][t][1]);		
+							if ((pMob[partyconn].TargetX / 128) == 25 && (pMob[partyconn].TargetY / 128) == 13)
+								DoTeleport(partyconn, PistaPos[Pista[s].Party[t].Sala][t][0], PistaPos[Pista[s].Party[t].Sala][t][1]);
 					}
 
 					//Pista+0 Lich
-					if(s == 0 && t == 0)
+					if (s == 0 && t == 0)
 						GenerateMob(RUNEQUEST_LV0_LICH2, 0, 0);
 
-					if(s == 0 && t == 1)
+					if (s == 0 && t == 1)
 						GenerateMob(RUNEQUEST_LV0_LICH1, 0, 0);
 
 					//Pista +1 Torre
-					if(s == 1)
+					if (s == 1)
 					{
 						GenerateMob(RUNEQUEST_LV1_TORRE1, 3358, 1582);
 						GenerateMob(RUNEQUEST_LV1_TORRE2, 3386, 1548);
 						GenerateMob(RUNEQUEST_LV1_TORRE3, 3418, 1582);
 
-						for(int generateindex = RUNEQUEST_LV1_MOB_INITIAL; generateindex <= RUNEQUEST_LV1_MOB_END; generateindex++)
+						for (int generateindex = RUNEQUEST_LV1_MOB_INITIAL; generateindex <= RUNEQUEST_LV1_MOB_END; generateindex++)
 							GenerateMob(generateindex, 0, 0);
 					}
-				
 
-					if(s == 2)
+
+					if (s == 2)
 						GenerateMob(RUNEQUEST_LV2_MOB_BOSS, 0, 0);
 
-					if(s == 4)
-						Pista[s].Party[t].MobCount = 8 + rand()%8;
+					if (s == 4)
+						Pista[s].Party[t].MobCount = 8 + rand() % 8;
 
-					if(s == 4 && t == 0)
+					if (s == 4 && t == 0)
 					{
-						for(int generateindex = RUNEQUEST_LV4_MOB_INITIAL; generateindex <= RUNEQUEST_LV4_MOB_END; generateindex++)
+						for (int generateindex = RUNEQUEST_LV4_MOB_INITIAL; generateindex <= RUNEQUEST_LV4_MOB_END; generateindex++)
 							GenerateMob(generateindex, 0, 0);
 					}
 				}
 			}
 		}
 #pragma endregion
-#pragma region Pista de runas saÃ­da
+#pragma region Pista de runas saída
 		if ((when.tm_min == 15 || when.tm_min == 35 || when.tm_min == 55) && when.tm_sec == 0)
 		{//Pista de Runas saida
 
@@ -787,24 +1129,24 @@ lbl_PST1:
 					SendScore(x);
 				}
 
-				DoTeleport(x, 3294, rand()%1 == 0 ? 1701 : 1686);
+				DoTeleport(x, 3294, rand() % 1 == 0 ? 1701 : 1686);
 			}
 
 			//Pista +1 - Torre
 
 			//Grupo 1 ganhou
-			if(Pista[1].Party[0].MobCount > Pista[1].Party[1].MobCount && Pista[1].Party[0].MobCount > Pista[1].Party[2].MobCount)
+			if (Pista[1].Party[0].MobCount > Pista[1].Party[1].MobCount && Pista[1].Party[0].MobCount > Pista[1].Party[2].MobCount)
 			{
-				if(Pista[1].Party[0].LeaderID != 0 && strcmp(pMob[Pista[1].Party[0].LeaderID].MOB.MobName, Pista[1].Party[0].LeaderName) == 0)
+				if (Pista[1].Party[0].LeaderID != 0 && strcmp(pMob[Pista[1].Party[0].LeaderID].MOB.MobName, Pista[1].Party[0].LeaderName) == 0)
 				{
 					STRUCT_ITEM Runa;
 					memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-					Runa.sIndex = PistaRune[1][rand()%5];
+					Runa.sIndex = PistaRune[1][rand() % 5];
 
 					if (Pista[1].Party[0].LeaderID > 0 && Pista[1].Party[0].LeaderID < MAX_USER)
 						PutItem(Pista[1].Party[0].LeaderID, &Runa);
-					
+
 					for (int i = 0; i < MAX_PARTY; i++)
 					{
 						int partymember = pMob[Pista[1].Party[0].LeaderID].PartyList[i];
@@ -812,7 +1154,7 @@ lbl_PST1:
 						if (pUser[partymember].Mode != USER_PLAY)
 							continue;
 
-						Runa.sIndex = PistaRune[1][rand()%5];
+						Runa.sIndex = PistaRune[1][rand() % 5];
 						PutItem(partymember, &Runa);
 					}
 
@@ -831,18 +1173,18 @@ lbl_PST1:
 			}
 
 			//Grupo 2 ganhou
-			else if(Pista[1].Party[1].MobCount > Pista[1].Party[0].MobCount && Pista[1].Party[1].MobCount > Pista[1].Party[2].MobCount)
+			else if (Pista[1].Party[1].MobCount > Pista[1].Party[0].MobCount && Pista[1].Party[1].MobCount > Pista[1].Party[2].MobCount)
 			{
-				if(Pista[1].Party[1].LeaderID != 0 && strcmp(pMob[Pista[1].Party[1].LeaderID].MOB.MobName, Pista[1].Party[1].LeaderName) == 0)
+				if (Pista[1].Party[1].LeaderID != 0 && strcmp(pMob[Pista[1].Party[1].LeaderID].MOB.MobName, Pista[1].Party[1].LeaderName) == 0)
 				{
 					STRUCT_ITEM Runa;
 					memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-					Runa.sIndex = PistaRune[1][rand()%5];
+					Runa.sIndex = PistaRune[1][rand() % 5];
 
 					if (Pista[1].Party[1].LeaderID > 0 && Pista[1].Party[1].LeaderID < MAX_USER)
 						PutItem(Pista[1].Party[1].LeaderID, &Runa);
-					
+
 					for (int i = 0; i < MAX_PARTY; i++)
 					{
 						int partymember = pMob[Pista[1].Party[1].LeaderID].PartyList[i];
@@ -850,7 +1192,7 @@ lbl_PST1:
 						if (pUser[partymember].Mode != USER_PLAY)
 							continue;
 
-						Runa.sIndex = PistaRune[1][rand()%5];
+						Runa.sIndex = PistaRune[1][rand() % 5];
 						PutItem(partymember, &Runa);
 					}
 
@@ -869,18 +1211,18 @@ lbl_PST1:
 			}
 
 			//Grupo 3 ganhou
-			else if(Pista[1].Party[2].MobCount > Pista[1].Party[0].MobCount && Pista[1].Party[2].MobCount > Pista[1].Party[1].MobCount)
+			else if (Pista[1].Party[2].MobCount > Pista[1].Party[0].MobCount && Pista[1].Party[2].MobCount > Pista[1].Party[1].MobCount)
 			{
-				if(Pista[1].Party[2].LeaderID != 0 && strcmp(pMob[Pista[1].Party[2].LeaderID].MOB.MobName, Pista[1].Party[2].LeaderName) == 0)
+				if (Pista[1].Party[2].LeaderID != 0 && strcmp(pMob[Pista[1].Party[2].LeaderID].MOB.MobName, Pista[1].Party[2].LeaderName) == 0)
 				{
 					STRUCT_ITEM Runa;
 					memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-					Runa.sIndex = PistaRune[1][rand()%5];
+					Runa.sIndex = PistaRune[1][rand() % 5];
 
 					if (Pista[1].Party[2].LeaderID > 0 && Pista[1].Party[2].LeaderID < MAX_USER)
 						PutItem(Pista[1].Party[0].LeaderID, &Runa);
-					
+
 					for (int i = 0; i < MAX_PARTY; i++)
 					{
 						int partymember = pMob[Pista[1].Party[2].LeaderID].PartyList[i];
@@ -888,7 +1230,7 @@ lbl_PST1:
 						if (pUser[partymember].Mode != USER_PLAY)
 							continue;
 
-						Runa.sIndex = PistaRune[1][rand()%5];
+						Runa.sIndex = PistaRune[1][rand() % 5];
 						PutItem(partymember, &Runa);
 					}
 
@@ -909,18 +1251,18 @@ lbl_PST1:
 			//Pista +3 - Sulrang
 
 			//Grupo 1 ganhou
-			if(Pista[3].Party[0].MobCount > Pista[3].Party[1].MobCount && Pista[3].Party[0].MobCount > Pista[3].Party[2].MobCount)
+			if (Pista[3].Party[0].MobCount > Pista[3].Party[1].MobCount && Pista[3].Party[0].MobCount > Pista[3].Party[2].MobCount)
 			{
-				if(Pista[3].Party[0].LeaderID != 0 && strcmp(pMob[Pista[3].Party[0].LeaderID].MOB.MobName, Pista[3].Party[0].LeaderName) == 0)
+				if (Pista[3].Party[0].LeaderID != 0 && strcmp(pMob[Pista[3].Party[0].LeaderID].MOB.MobName, Pista[3].Party[0].LeaderName) == 0)
 				{
 					STRUCT_ITEM Runa;
 					memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-					Runa.sIndex = PistaRune[3][rand()%5];
+					Runa.sIndex = PistaRune[3][rand() % 5];
 
 					if (Pista[3].Party[0].LeaderID > 0 && Pista[3].Party[0].LeaderID < MAX_USER)
 						PutItem(Pista[3].Party[0].LeaderID, &Runa);
-					
+
 					for (int i = 0; i < MAX_PARTY; i++)
 					{
 						int partymember = pMob[Pista[3].Party[0].LeaderID].PartyList[i];
@@ -928,7 +1270,7 @@ lbl_PST1:
 						if (pUser[partymember].Mode != USER_PLAY)
 							continue;
 
-						Runa.sIndex = PistaRune[3][rand()%5];
+						Runa.sIndex = PistaRune[3][rand() % 5];
 						PutItem(partymember, &Runa);
 					}
 
@@ -947,18 +1289,18 @@ lbl_PST1:
 			}
 
 			//Grupo 2 ganhou
-			else if(Pista[3].Party[1].MobCount > Pista[3].Party[0].MobCount && Pista[3].Party[1].MobCount > Pista[3].Party[2].MobCount)
+			else if (Pista[3].Party[1].MobCount > Pista[3].Party[0].MobCount && Pista[3].Party[1].MobCount > Pista[3].Party[2].MobCount)
 			{
-				if(Pista[3].Party[1].LeaderID != 0 && strcmp(pMob[Pista[3].Party[1].LeaderID].MOB.MobName, Pista[3].Party[1].LeaderName) == 0)
+				if (Pista[3].Party[1].LeaderID != 0 && strcmp(pMob[Pista[3].Party[1].LeaderID].MOB.MobName, Pista[3].Party[1].LeaderName) == 0)
 				{
 					STRUCT_ITEM Runa;
 					memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-					Runa.sIndex = PistaRune[3][rand()%5];
+					Runa.sIndex = PistaRune[3][rand() % 5];
 
 					if (Pista[3].Party[1].LeaderID > 0 && Pista[3].Party[1].LeaderID < MAX_USER)
 						PutItem(Pista[3].Party[1].LeaderID, &Runa);
-					
+
 					for (int i = 0; i < MAX_PARTY; i++)
 					{
 						int partymember = pMob[Pista[3].Party[1].LeaderID].PartyList[i];
@@ -966,7 +1308,7 @@ lbl_PST1:
 						if (pUser[partymember].Mode != USER_PLAY)
 							continue;
 
-						Runa.sIndex = PistaRune[3][rand()%5];
+						Runa.sIndex = PistaRune[3][rand() % 5];
 						PutItem(partymember, &Runa);
 					}
 
@@ -985,18 +1327,18 @@ lbl_PST1:
 			}
 
 			//Grupo 3 ganhou
-			else if(Pista[3].Party[2].MobCount > Pista[3].Party[0].MobCount && Pista[3].Party[2].MobCount > Pista[3].Party[1].MobCount)
+			else if (Pista[3].Party[2].MobCount > Pista[3].Party[0].MobCount && Pista[3].Party[2].MobCount > Pista[3].Party[1].MobCount)
 			{
-				if(Pista[3].Party[2].LeaderID != 0 && strcmp(pMob[Pista[3].Party[2].LeaderID].MOB.MobName, Pista[3].Party[2].LeaderName) == 0)
+				if (Pista[3].Party[2].LeaderID != 0 && strcmp(pMob[Pista[3].Party[2].LeaderID].MOB.MobName, Pista[3].Party[2].LeaderName) == 0)
 				{
 					STRUCT_ITEM Runa;
 					memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-					Runa.sIndex = PistaRune[3][rand()%5];
+					Runa.sIndex = PistaRune[3][rand() % 5];
 
 					if (Pista[3].Party[2].LeaderID > 0 && Pista[3].Party[2].LeaderID < MAX_USER)
 						PutItem(Pista[3].Party[2].LeaderID, &Runa);
-					
+
 					for (int i = 0; i < MAX_PARTY; i++)
 					{
 						int partymember = pMob[Pista[3].Party[2].LeaderID].PartyList[i];
@@ -1004,7 +1346,7 @@ lbl_PST1:
 						if (pUser[partymember].Mode != USER_PLAY)
 							continue;
 
-						Runa.sIndex = PistaRune[3][rand()%5];
+						Runa.sIndex = PistaRune[3][rand() % 5];
 						PutItem(partymember, &Runa);
 					}
 
@@ -1022,9 +1364,9 @@ lbl_PST1:
 				}
 			}
 
-			for(int x = 0;x < 7; x++)
+			for (int x = 0; x < 7; x++)
 			{
-				for(int z = 0; z < 3;z ++)
+				for (int z = 0; z < 3; z++)
 				{
 					Pista[x].Party[z].LeaderID = 0;
 					strncpy(Pista[x].Party[z].LeaderName, " ", 16);
@@ -1035,7 +1377,46 @@ lbl_PST1:
 
 		}
 #pragma endregion
+#pragma region Portão Infernal Start
+		if (GetUserInArea(1664, 3584, 1919, 3711, temp) && (when.tm_min == 4 && when.tm_sec == 2 || when.tm_min == 34 && when.tm_sec == 2))
+		{
+			MSG_STANDARDPARM sm;
+			memset(&sm, 0, sizeof(MSG_STANDARDPARM));
 
+			sm.Type = _MSG_StartTime;
+			sm.ID = ESCENE_FIELD;
+			sm.Size = sizeof(MSG_STANDARDPARM);
+			sm.Parm = 1500;
+
+			MapaMulticast(13, 28, (MSG_STANDARD*)&sm, 0);
+
+			int _rand = rand() % 100;
+			int __rand = rand() % 100;
+			int ___rand = rand() % 100;
+
+			if (_rand < 50)
+				CreateMob("Tarantula", TarantulaPos[0][0][0], TarantulaPos[0][0][1], "npc", 0);
+			else
+				CreateMob("Tarantula", TarantulaPos[0][1][0], TarantulaPos[0][1][1], "npc", 0);
+
+			if (__rand < 50)
+				CreateMob("Tarantula", TarantulaPos[1][0][0], TarantulaPos[1][0][1], "npc", 0);
+			else
+				CreateMob("Tarantula", TarantulaPos[1][1][0], TarantulaPos[1][1][1], "npc", 0);
+
+			if (___rand < 25)
+				GenerateMob(CTARANTULA, CTarantulaPos[0][0], CTarantulaPos[0][1]);
+			else if (___rand >= 25 && ___rand < 50)
+				GenerateMob(CTARANTULA, CTarantulaPos[1][0], CTarantulaPos[1][1]);
+			else if (___rand >= 50 && ___rand < 75)
+				GenerateMob(CTARANTULA, CTarantulaPos[2][0], CTarantulaPos[2][1]);
+			else
+				GenerateMob(CTARANTULA, CTarantulaPos[3][0], CTarantulaPos[3][1]);
+
+			sprintf(temp, "etc,infernal door started");
+			Log(temp, "-system", 0);
+		}
+#pragma endregion
 #pragma region Pesa Start
 		if (GetUserInArea(1152, 128, 1280, 256, temp) && (when.tm_min == 14 && when.tm_sec == 0 || when.tm_min == 34 && when.tm_sec == 0 || when.tm_min == 54 && when.tm_sec == 0))
 		{
@@ -1048,7 +1429,7 @@ lbl_PST1:
 			sm.Parm = 900;
 
 			MapaMulticast(9, 1, (MSG_STANDARD*)&sm, 0);
-			
+
 			//Pesa A
 			for (int i = NIGHTMARE_A_INITIAL; i <= NIGHTMARE_A_END; i++)
 				GenerateMob(i, 0, 0);
@@ -1067,8 +1448,9 @@ lbl_PST1:
 			sm.Size = sizeof(MSG_STANDARDPARM);
 			sm.Parm = 900;
 
-			MapaMulticast(8, 2, (MSG_STANDARD*)&sm, 0);//Pesa M
+			MapaMulticast(8, 2, (MSG_STANDARD*)&sm, 0);
 
+			//Pesa M
 			for (int i = NIGHTMARE_M_INITIAL; i <= NIGHTMARE_M_END; i++)
 				GenerateMob(i, 0, 0);
 
@@ -1097,8 +1479,9 @@ lbl_PST1:
 		}
 #pragma endregion
 	}
-
-	if((SecCounter % 2) == 0)
+#pragma endregion
+#pragma region Item Decay and Quest Event Time
+	if ((SecCounter % 2) == 0)
 		ProcessDecayItem();
 
 	int UsersDie = 0;
@@ -1138,14 +1521,14 @@ lbl_PST1:
 
 			if (CartaSala == 1)
 				ClearAreaTeleport(778, 3652, 832, 3698, CartaPos[1][0], CartaPos[1][1]);
-			
+
 			else if (CartaSala == 2)
 				ClearAreaTeleport(836, 3652, 890, 3698, CartaPos[2][0], CartaPos[2][1]);
-			
+
 			else if (CartaSala == 3)
 				ClearAreaTeleport(834, 3595, 889, 3645, CartaPos[3][0], CartaPos[3][1]);
-			
-		
+
+
 			if (CartaSala == 4)
 			{
 				ClearArea(776, 3595, 834, 3648);
@@ -1155,7 +1538,7 @@ lbl_PST1:
 				sprintf(temp, "etc,clear secretroom");
 				Log(temp, "-system", 0);
 			}
-			
+
 			else
 				CartaSala++;
 
@@ -1164,18 +1547,21 @@ lbl_PST1:
 			sm.Type = _MSG_StartTime;
 			sm.ID = ESCENE_FIELD;
 			sm.Size = sizeof(MSG_STANDARDPARM);
-			sm.Parm = CartaTime*2;
+			sm.Parm = CartaTime * 2;
 
 			MapaMulticast(6, 28, (MSG_STANDARD*)&sm, 0);
 		}
 	}
+#pragma endregion
+
 	CCastleZakum::ProcessSecTimer();
+	//CCubo::ProcessSecTimer();
 
 	int Sec16 = SecCounter % 16;
 	int Sec32 = SecCounter % 32;
 
 	int i = 0;
-	
+
 	for (i = 1; i < MAX_USER; i++)
 	{
 		if (i % 32 == Sec32 && pUser[i].Mode && pUser[i].Mode != USER_SAVING4QUIT)
@@ -1231,7 +1617,7 @@ lbl_PST1:
 	}
 
 
-	if(SecCounter % 6 == 0)
+	if (SecCounter % 6 == 0)
 	{
 		SendEnvEffectKingdom(1050, 2108, 1070, 2146, 32, 0, REINO_BLUE);
 		SendEnvEffectKingdom(1066, 2133, 1098, 2146, 32, 0, REINO_BLUE);
@@ -1244,7 +1630,7 @@ lbl_PST1:
 		SendDamageKingdom(1204, 1948, 1231, 1962, REINO_RED);
 	}
 
-	if(SecCounter % 5 == 0)
+	if (SecCounter % 5 == 0)
 	{
 		SendEnvEffectLeader(3436, 1285, 3450, 1299, 32, 0);
 		SendDamageLeader(3436, 1285, 3450, 1299);
@@ -1348,8 +1734,6 @@ lbl_PST1:
 			GenerateMob(pMobMerc[k].GenerateIndex, 0, 0);
 	}
 
-	// CEncampment::ProcessSecTimer();
-
 	int Sec6 = SecCounter % 6;
 
 #pragma region Movimento / fala dos NPCS 
@@ -1365,7 +1749,7 @@ lbl_PST1:
 			{
 				if (pMob[index].MOB.CurrentScore.Hp <= 0)
 				{
-					Log("err,standingby processer delete hp zero mob", "-system", 0);
+					//Log("err,standingby processer delete hp zero mob", "-system", 0);
 					DeleteMob(index, 1);
 					continue;
 				}
@@ -1376,20 +1760,21 @@ lbl_PST1:
 			if (Mode == MOB_PEACE)
 			{
 				int chp = pMob[index].MOB.CurrentScore.Hp;
+
 				if (chp <= 0)
 				{
-					Log("err,standingby processer delete hp zero mob", "-system", 0);
+					//Log("err,standingby processer delete hp zero mob", "-system", 0);
 					DeleteMob(index, 1);
 					continue;
 				}
 
 				ProcessAffect(index);
 
-				if(pMob[index].GenerateIndex != RUNEQUEST_LV6_MOB_BOSS && pMob[index].TargetX >= 3423 && pMob[index].TargetX <= 3442 && pMob[index].TargetY >= 1492 && pMob[index].TargetY <= 1511)
+				if (pMob[index].GenerateIndex != RUNEQUEST_LV6_MOB_BOSS && pMob[index].TargetX >= 3423 && pMob[index].TargetX <= 3442 && pMob[index].TargetY >= 1492 && pMob[index].TargetY <= 1511)
 				{
-					if(pMob[index].GenerateIndex >= RUNEQUEST_LV6_MOB_INITIAL2 && pMob[index].GenerateIndex <= RUNEQUEST_LV6_MOB_END2)
+					if (pMob[index].GenerateIndex >= RUNEQUEST_LV6_MOB_INITIAL2 && pMob[index].GenerateIndex <= RUNEQUEST_LV6_MOB_END2)
 					{
-						if(Pista[6].Party[0].MobCount < 100 && Pista[6].Party[0].MobCount != 0)
+						if (Pista[6].Party[0].MobCount < 100 && Pista[6].Party[0].MobCount != 0)
 							Pista[6].Party[0].MobCount++;
 					}
 
@@ -1406,12 +1791,13 @@ lbl_PST1:
 				int Processor = pMob[index].StandingByProcessor();
 
 				if (Processor & 0x10000000)
-				{		
+				{
 					int Target = Processor & 0xFFFFFFF;
 
 					SetBattle(index, Processor & 0xFFFFFFF);
 
 					int Leader = pMob[index].Leader;
+
 					if (Leader <= 0)
 						Leader = index;
 
@@ -1430,6 +1816,25 @@ lbl_PST1:
 									DeleteMob(party, 1);
 
 								pMob[Leader].PartyList[l] = 0;
+							}
+						}
+					}
+
+					for (int l = 0; l < MAX_PARTY; ++l)
+					{
+						int party = pMob[Leader].Evocations[l];
+
+						if (party > MAX_USER)
+						{
+							if (pMob[party].Mode && pMob[party].MOB.CurrentScore.Hp > 0)
+								SetBattle(party, Target);
+
+							else
+							{
+								if (pMob[party].Mode)
+									DeleteMob(party, 1);
+
+								pMob[Leader].Evocations[l] = 0;
 							}
 						}
 					}
@@ -1458,12 +1863,31 @@ lbl_PST1:
 								}
 							}
 						}
+
+						for (int n = 0; n < MAX_PARTY; n++)
+						{
+							int party = pMob[leader].Evocations[n];
+							if (party > MAX_USER)
+							{
+								if (pMob[party].Mode && pMob[party].MOB.CurrentScore.Hp > 0)
+									SetBattle(party, index);
+
+								else
+								{
+									if (pMob[party].Mode)
+										DeleteMob(party, 1);
+
+									pMob[leader].Evocations[n] = 0;
+								}
+							}
+						}
 					}
 				}
 				else
 				{
 					if (Processor & 1)
 					{
+						//SendSay(index, "Processor 0x1");
 						MSG_Action sm;
 
 						if (GetEmptyMobGrid(index, &pMob[index].NextX, &pMob[index].NextY) == FALSE)
@@ -1495,6 +1919,7 @@ lbl_PST1:
 					}
 					if (Processor & 0x10)
 					{
+						//SendSay(index, "Processor 0x10");
 						int progres = pMob[index].SegmentProgress;
 
 						if (Progress != progres)
@@ -1512,6 +1937,7 @@ lbl_PST1:
 						}
 						if (Processor & 0x1000)
 						{
+							//SendSay(index, "Processor 0x1000");
 							pMob[index].GetRandomPos();
 
 							if (pMob[index].NextX == pMob[index].TargetX && pMob[index].NextY == pMob[index].TargetY)
@@ -1522,7 +1948,6 @@ lbl_PST1:
 							if (GetEmptyMobGrid(index, &pMob[index].NextX, &pMob[index].NextY) == FALSE)
 								continue;
 
-
 							GetAction(index, pMob[index].NextX, pMob[index].NextY, (MSG_Action*)&sm);
 
 							sm.Speed = BASE_GetSpeed(&pMob[index].MOB.CurrentScore);
@@ -1530,14 +1955,16 @@ lbl_PST1:
 
 							GridMulticast(index, pMob[index].NextX, pMob[index].NextY, (MSG_STANDARD*)&sm);
 						}
+
 						if (Processor & 2)
 							DoTeleport(index, pMob[index].NextX, pMob[index].NextY);
 
 						if (Processor & 0x10000)
 						{
-							if(pMob[index].GenerateIndex >= RUNEQUEST_LV6_MOB_INITIAL && pMob[index].GenerateIndex <= RUNEQUEST_LV6_MOB_END)
+							//SendSay(index, "Processor 0x10000");
+							if (pMob[index].GenerateIndex >= RUNEQUEST_LV6_MOB_INITIAL && pMob[index].GenerateIndex <= RUNEQUEST_LV6_MOB_END)
 							{
-								if(Pista[6].Party[0].MobCount < 100 && Pista[6].Party[0].MobCount != 0)
+								if (Pista[6].Party[0].MobCount < 100 && Pista[6].Party[0].MobCount != 0)
 									Pista[6].Party[0].MobCount++;
 							}
 
@@ -1553,7 +1980,7 @@ lbl_PST1:
 
 	Sec4 = SecCounter % 4;
 
-#pragma region Ataque / fala em aÃ§Ã£o dos mobs
+#pragma region Ataque / fala em ação dos mobs
 	for (int index = Sec4 + MAX_USER; index < MAX_MOB; index += 4)
 	{
 		if (pMob[index].Mode != MOB_COMBAT)
@@ -1567,10 +1994,10 @@ lbl_PST1:
 		if (pMob[index].MOB.CurrentScore.Hp <= 0)
 		{
 			pMob[index].MOB.CurrentScore.Hp = 0;
-			
+
 			sprintf(temp, "err, battleprocessor delete hp 0 idx:%d leader:%d fol0:%d fol1:%d", index, pMob[index].Leader, pMob[index].PartyList[0], pMob[index].PartyList[1]);
 			Log(temp, "-system", NULL);
-			
+
 			DeleteMob(index, 1);
 			continue;
 		}
@@ -1578,11 +2005,11 @@ lbl_PST1:
 		if (index % 16 == Sec16)
 			ProcessAffect(index);
 
-		if(pMob[index].GenerateIndex != RUNEQUEST_LV6_MOB_BOSS && pMob[index].TargetX >= 3423 && pMob[index].TargetX <= 3442 && pMob[index].TargetY >= 1492 && pMob[index].TargetY <= 1511)
+		if (pMob[index].GenerateIndex != RUNEQUEST_LV6_MOB_BOSS && pMob[index].TargetX >= 3423 && pMob[index].TargetX <= 3442 && pMob[index].TargetY >= 1492 && pMob[index].TargetY <= 1511)
 		{
-			if(pMob[index].GenerateIndex >= RUNEQUEST_LV6_MOB_INITIAL2 && pMob[index].GenerateIndex <= RUNEQUEST_LV6_MOB_END2)
+			if (pMob[index].GenerateIndex >= RUNEQUEST_LV6_MOB_INITIAL2 && pMob[index].GenerateIndex <= RUNEQUEST_LV6_MOB_END2)
 			{
-				if(Pista[6].Party[0].MobCount < 100 && Pista[6].Party[0].MobCount != 0)
+				if (Pista[6].Party[0].MobCount < 100 && Pista[6].Party[0].MobCount != 0)
 					Pista[6].Party[0].MobCount++;
 			}
 
@@ -1599,7 +2026,7 @@ lbl_PST1:
 				leader = index;
 
 			int targetLeader = pMob[Target].Leader;
-			
+
 			if (targetLeader == MOB_EMPTY)
 				targetLeader = Target;
 
@@ -1617,9 +2044,9 @@ lbl_PST1:
 			if (leader == targetLeader || indexguild == targetguild)
 				pMob[index].RemoveEnemyList(Target);
 		}
-		
+
 		int BattleMode = pMob[index].BattleProcessor();
-		
+
 		if (BattleMode & 0x20)
 		{
 			DeleteMob(index, 3);
@@ -1628,16 +2055,18 @@ lbl_PST1:
 
 		if (BattleMode & 0x1000)
 		{
+			if (pMob[index].MOB.Equip[0].sIndex == 206)
+				pMob[index].CitizenDrop = 0;
+
+			//SendSay(index, "BattleMode 0x1000");
+
 			if (Target <= MOB_EMPTY || Target >= MAX_MOB)
 				continue;
 
-			
 			if (pMob[Target].MOB.CurrentScore.Hp <= 0)
 				continue;
 
 			MSG_AttackOne sm;
-
-			//
 
 			int village = BASE_GetVillage(pMob[Target].TargetX, pMob[Target].TargetY);
 
@@ -1657,8 +2086,6 @@ lbl_PST1:
 				}
 			}
 
-			//
-
 			GetAttack(index, Target, &sm);
 
 			sm.FlagLocal = 0;
@@ -1667,66 +2094,66 @@ lbl_PST1:
 
 			Target = sm.Dam[0].TargetID;
 
-			if (GetInHalf(Target, index) == 0)
+			/*if (GetInHalf(Target, index) == 0)
 			{
-				FILE *fp = NULL;
+			FILE *fp = NULL;
 
-				fp = fopen("Gethalf.txt", "a+");
+			fp = fopen("Gethalf.txt", "a+");
 
-				if (fp != NULL)
-				{
-					fprintf(fp, "Attacker(%s, %d, %d, %d, %d, %d, %d) Targetbackup(%s, %d, %d, %d, %d, %d, %d) Target(%s, %d, %d, %d, %d, %d, %d)\n",
-						pMob[index].MOB.MobName, index, pMob[index].TargetX, pMob[index].TargetY, targetbackup, Target, pMob[index].CurrentTarget,
-						pMob[targetbackup].MOB.MobName, targetbackup, pMob[targetbackup].TargetX, pMob[targetbackup].TargetY, index, Target, pMob[targetbackup].CurrentTarget,
-						pMob[Target].MOB.MobName, Target, pMob[Target].TargetX, pMob[Target].TargetY, targetbackup, Target, pMob[Target].CurrentTarget);
-					
-					int sx1 = pMob[index].TargetX - HALFGRIDX;
-					int sy1 = pMob[index].TargetY - HALFGRIDY;
-					int sx2 = pMob[index].TargetX + HALFGRIDX;
-					int sy2 = pMob[index].TargetY + HALFGRIDY;
+			if (fp != NULL)
+			{
+			fprintf(fp, "Attacker(%s, %d, %d, %d, %d, %d, %d) Targetbackup(%s, %d, %d, %d, %d, %d, %d) Target(%s, %d, %d, %d, %d, %d, %d)\n",
+			pMob[index].MOB.MobName, index, pMob[index].TargetX, pMob[index].TargetY, targetbackup, Target, pMob[index].CurrentTarget,
+			pMob[targetbackup].MOB.MobName, targetbackup, pMob[targetbackup].TargetX, pMob[targetbackup].TargetY, index, Target, pMob[targetbackup].CurrentTarget,
+			pMob[Target].MOB.MobName, Target, pMob[Target].TargetX, pMob[Target].TargetY, targetbackup, Target, pMob[Target].CurrentTarget);
 
-					for (int y = sy1; y < sy2; y++)
-					{
-						for (int x = sx1; x < sx2; x++)
-						{
-							if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
-								continue;
+			int sx1 = pMob[index].TargetX - HALFGRIDX;
+			int sy1 = pMob[index].TargetY - HALFGRIDY;
+			int sx2 = pMob[index].TargetX + HALFGRIDX;
+			int sy2 = pMob[index].TargetY + HALFGRIDY;
 
-							int tmob = pMobGrid[y][x];
+			for (int y = sy1; y < sy2; y++)
+			{
+			for (int x = sx1; x < sx2; x++)
+			{
+			if (x < 0 || x >= MAX_GRIDX || y < 0 || y >= MAX_GRIDY)
+			continue;
 
-							if (tmob <= 0 || tmob >= MAX_MOB)
-								continue;
+			int tmob = pMobGrid[y][x];
 
-							fprintf(fp, "\tindex:%d nome:%s \r\n", tmob, pMob[tmob].MOB.MobName);
-						}
-					}
+			if (tmob <= 0 || tmob >= MAX_MOB)
+			continue;
 
-					fclose(fp);
-				}
-
-				continue;
+			fprintf(fp, "\tindex:%d nome:%s \r\n", tmob, pMob[tmob].MOB.MobName);
 			}
+			}
+
+			fclose(fp);
+			}
+
+			continue;
+			}*/
 
 			int skill = sm.SkillIndex;
 
 			//109 : Raio Vermelho
-			//110 : EmpurrÃ£o
-			//111 : ChÃ£o de espinhos
-			if(skill == 109 || skill == 110 || skill == 111)
+			//110 : Empurrão
+			//111 : Chão de espinhos
+			if (skill == 109 || skill == 110 || skill == 111)
 				goto KefraAttackLabel;
-			
+
 			if (skill >= 0 && skill < MAX_SKILLINDEX && sm.SkillParm == 0)
 			{
 				if (skill == 33)
 					sm.Motion = 253;
 
 				int kind = ((skill % MAX_SKILL / 8) + 1);
-				
+
 				if (kind >= 1 && kind <= 3)
 				{
 					int special = pMob[index].MOB.CurrentScore.Special[kind];
 					BOOL NeedUpdate = FALSE;
-					
+
 					if (SetAffect(Target, skill, 100, special))
 						NeedUpdate = TRUE;
 
@@ -1768,7 +2195,7 @@ lbl_PST1:
 			}
 
 			int TargetLeader = pMob[Target].Leader;
-			
+
 			if (sm.Dam[0].Damage > 0)
 			{
 				if (TargetLeader <= MOB_EMPTY)
@@ -1801,8 +2228,30 @@ lbl_PST1:
 					SetBattle(index, partyconn);
 				}
 
+				for (int z = 0; z < MAX_PARTY; z++)
+				{
+					int partyconn = pMob[TargetLeader].Evocations[z];
+					if (partyconn <= MAX_USER)
+						continue;
+
+					if (pMob[partyconn].Mode == MOB_EMPTY || pMob[partyconn].MOB.CurrentScore.Hp <= 0)
+					{
+						if (pMob[partyconn].Mode != MOB_EMPTY)
+						{
+							pMob[partyconn].MOB.CurrentScore.Hp = 0;
+							DeleteMob(partyconn, 1);
+						}
+
+						pMob[TargetLeader].Evocations[z] = MOB_EMPTY;
+						continue;
+					}
+
+					SetBattle(partyconn, index);
+					SetBattle(index, partyconn);
+				}
+
 				int Summoner = pMob[index].Summoner;
-				
+
 				if (pMob[index].MOB.Clan == 4 && Target >= MAX_USER && Summoner > 0 && Summoner < MAX_USER && pUser[Summoner].Mode == USER_PLAY)
 				{
 					int posX = pMob[Summoner].TargetX;
@@ -1816,7 +2265,7 @@ lbl_PST1:
 					{
 						if (pMob[Target].MOB.CurrentScore.Hp < sm.Dam[0].Damage)
 							summdam = pMob[Target].MOB.CurrentScore.Hp;
-						
+
 						else
 							summdam = sm.Dam[0].Damage;
 					}
@@ -1871,7 +2320,7 @@ lbl_PST1:
 				if (pMob[Target].MOB.Equip[13].sIndex == 786)
 				{
 					int sanc = pMob[Target].MOB.Equip[13].stEffect[0].cValue;
-					
+
 					if (sanc < 2)
 						sanc = 2;
 
@@ -1882,7 +2331,7 @@ lbl_PST1:
 				else if (pMob[Target].MOB.Equip[13].sIndex == 1936)
 				{
 					int sanc = pMob[Target].MOB.Equip[13].stEffect[0].cValue;
-					
+
 					if (sanc < 2)
 						sanc = 2;
 
@@ -1893,7 +2342,7 @@ lbl_PST1:
 				else if (pMob[Target].MOB.Equip[13].sIndex == 1937)
 				{
 					int sanc = pMob[Target].MOB.Equip[13].stEffect[0].cValue;
-					
+
 					if (sanc < 2)
 						sanc = 2;
 
@@ -1936,7 +2385,7 @@ lbl_PST1:
 			if (pMob[Target].MOB.CurrentScore.Hp <= 0)
 			{
 				pMob[Target].MOB.CurrentScore.Hp = 0;
-				
+
 				MobKilled(Target, index, 0, 0);
 			}
 		}
@@ -1944,7 +2393,7 @@ lbl_PST1:
 		//Kefra
 		if (0 == 1)
 		{
-KefraAttackLabel:
+		KefraAttackLabel:
 			MSG_Attack sm;
 			memset(&sm, 0, sizeof(MSG_Attack));
 
@@ -1961,6 +2410,7 @@ KefraAttackLabel:
 				continue;
 
 			MSG_Action sm;
+
 			if (GetEmptyMobGrid(index, &pMob[index].NextX, &pMob[index].NextY) == FALSE)
 				continue;
 
@@ -1974,6 +2424,7 @@ KefraAttackLabel:
 
 		if (BattleMode & 1)
 		{
+			//SendSay(index, "BattleMode 0x1");
 			Target = pMob[index].CurrentTarget;
 			pMob[index].GetTargetPos(Target);
 
@@ -1981,6 +2432,7 @@ KefraAttackLabel:
 				continue;
 
 			MSG_Action sm;
+
 			if (GetEmptyMobGrid(index, &pMob[index].NextX, &pMob[index].NextY) == FALSE)
 				continue;
 
@@ -1997,8 +2449,9 @@ KefraAttackLabel:
 
 		if (BattleMode & 0x10)
 		{
+			//SendSay(index, "BattleMode 0x10");
 			MSG_Action sm;
-			
+
 			if (GetEmptyMobGrid(index, &pMob[index].NextX, &pMob[index].NextY) == FALSE)
 				continue;
 
@@ -2042,8 +2495,6 @@ void ProcessMinTimer()
 
 		else if (NewbieEventServer == 1 && ServerIndex != NewbieServerID)
 		{
-			// CEncampment::ChangeNewBieChannel();
-
 			for (int i = 1; i < MAX_USER; i++)
 			{
 				if (pUser[i].Mode == USER_EMPTY || pUser[i].cSock.Sock == 0)
@@ -2056,27 +2507,29 @@ void ProcessMinTimer()
 			NewbieEventServer = 0;
 		}
 
+		if (timeinfo->tm_wday == 0) // Domingo
+			CastleServer = 1;
 
-		if (1 != 0) // Likely to be a debug flag of sorts.. TODO: Check and decide if it stays
+		/*if (1 != 0) // Likely to be a debug flag of sorts.. TODO: Check and decide if it stays
 		{
-			int wNum = BASE_GetWeekNumber();
-			int wMod = wNum % 7;
-			int wDay = wNum / 7;
+		int wNum = BASE_GetWeekNumber();
+		int wMod = wNum % 7;
+		int wDay = wNum / 7;
 
-			if (wMod == 0 && ((wDay % 2) == (ServerIndex % 2)))
-				CastleServer = 1;
-			else
-				CastleServer = 0;
+		if (wMod == 0 && ((wDay % 2) == (ServerIndex % 2)))
+		CastleServer = 1;
+		else
+		CastleServer = 0;
 
-		}
+		}*/
 	}
 
-	for(int i = 0; i < MAX_GUILDZONE; i++)
+	for (int i = 0; i < MAX_GUILDZONE; i++)
 	{
-		if(GuildImpostoID[i] == 0)
+		if (GuildImpostoID[i] == 0)
 			continue;
 
-		if(pMob[GuildImpostoID[i]].MOB.CurrentScore.Hp <= 0)
+		if (pMob[GuildImpostoID[i]].MOB.CurrentScore.Hp <= 0)
 			continue;
 
 		strcpy(temp, "./npc/");
@@ -2085,15 +2538,16 @@ void ProcessMinTimer()
 
 		sprintf(name, "%s", pMob[GuildImpostoID[i]].MOB.MobName);
 
-		for(int j = 0; j < NAME_LENGTH; j++)
+		for (int j = 0; j < NAME_LENGTH; j++)
 		{
-			if(name[j] == ' ')
+			if (name[j] == ' ')
 				name[j] = '_';
 		}
 
 		strcat(temp, name);
 
 		int handle = _open(temp, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+
 		if (handle == -1)
 		{
 			Log("-system", "fail - save npc imposto file", 0);
@@ -2139,71 +2593,145 @@ void ProcessMinTimer()
 	CurrentTime = timeGetTime();
 
 #pragma region Close Gates
-	for (int i = 17; i < g_dwInitItem; i++)
+	if (BigCubo == 1)
 	{
-		int ipx = g_pInitItem[i].PosX; // Item Pos X
-		int ipy = g_pInitItem[i].PosY; // Item Pos Y
-		int ipg = pItemGrid[ipy][ipx]; // Item Pos Grid
-
-		if (pItem[ipg].ITEM.sIndex <= 0 || pItem[ipg].ITEM.sIndex >= MAX_ITEMLIST)
-			continue;
-
-		CItem *tItem = &pItem[ipg];
-
-		int iKey = BASE_GetItemAbility(&pItem[ipg].ITEM, 39);
-
-		if (iKey != 0)
+		for (int i = 17; i < g_dwInitItem - 10; i++)
 		{
-			if (pItem[ipg].State == STATE_OPEN && iKey < 15)
+			int ipx = g_pInitItem[i].PosX; // Item Pos X
+			int ipy = g_pInitItem[i].PosY; // Item Pos Y
+			int ipg = pItemGrid[ipy][ipx]; // Item Pos Grid
+
+			if (pItem[ipg].ITEM.sIndex <= 0 || pItem[ipg].ITEM.sIndex >= MAX_ITEMLIST)
+				continue;
+
+			CItem *tItem = &pItem[ipg];
+
+			int iKey = BASE_GetItemAbility(&pItem[ipg].ITEM, 39);
+
+			if (iKey != 0)
 			{
-				if (pItem[ipg].Delay == 0)
+				if (pItem[ipg].State == STATE_OPEN && iKey < 15)
 				{
-					pItem[ipg].Delay = 1;
+					if (pItem[ipg].Delay == 0)
+					{
+						pItem[ipg].Delay = 1;
 
-					continue;
+						continue;
+					}
+
+					UpdateItem(ipg, 3, &pItem[ipg].Height);
+					/*
+					MSG_UpdateItem sm;
+
+					sm.ID = ESCENE_FIELD;
+					sm.Type = _MSG_UpdateItem;
+
+					sm.ItemID = ipg + 10000;
+
+					sm.Size = sizeof(MSG_UpdateItem);
+
+					//sm.Height = pItem[ipg].Height;
+					*/
+					pItem[ipg].State = STATE_LOCKED;
+					/*
+					sm.State = pItem[ipg].State;
+
+					GridMulticast(ipx, ipy, (MSG_STANDARD*)&sm, 0);
+					*/
+					pItem[ipg].Delay = 0;
+
+					MSG_CreateItem sm;
+
+					sm.Type = _MSG_CreateItem;
+					sm.Size = sizeof(MSG_CreateItem);
+					sm.ID = ESCENE_FIELD;
+
+					sm.ItemID = ipg + 10000;
+
+					memcpy(&sm.Item, &pItem[ipg].ITEM, sizeof(STRUCT_ITEM));
+
+					sm.GridX = ipx;
+					sm.GridY = ipy;
+
+					sm.Rotate = pItem[ipg].Rotate;
+					sm.State = pItem[ipg].State;
+					//sm.Create = Create;
+
+					//sm.Height = pItem[empty].Height;
+
+					GridMulticast(ipx, ipy, (MSG_STANDARD*)&sm, 0);
 				}
+			}
+		}
+	}
+	else
+	{
+		for (int i = 17; i < g_dwInitItem; i++)
+		{
+			int ipx = g_pInitItem[i].PosX; // Item Pos X
+			int ipy = g_pInitItem[i].PosY; // Item Pos Y
+			int ipg = pItemGrid[ipy][ipx]; // Item Pos Grid
 
-				UpdateItem(ipg, 3, &pItem[ipg].Height);
-				/*
-				MSG_UpdateItem sm;
+			if (pItem[ipg].ITEM.sIndex <= 0 || pItem[ipg].ITEM.sIndex >= MAX_ITEMLIST)
+				continue;
 
-				sm.ID = ESCENE_FIELD;
-				sm.Type = _MSG_UpdateItem;
+			CItem *tItem = &pItem[ipg];
 
-				sm.ItemID = ipg + 10000;
+			int iKey = BASE_GetItemAbility(&pItem[ipg].ITEM, 39);
 
-				sm.Size = sizeof(MSG_UpdateItem);
+			if (iKey != 0)
+			{
+				if (pItem[ipg].State == STATE_OPEN && iKey < 15)
+				{
+					if (pItem[ipg].Delay == 0)
+					{
+						pItem[ipg].Delay = 1;
 
-				//sm.Height = pItem[ipg].Height;
-				*/
-				pItem[ipg].State = STATE_LOCKED;
-				/*
-				sm.State = pItem[ipg].State;
+						continue;
+					}
 
-				GridMulticast(ipx, ipy, (MSG_STANDARD*)&sm, 0);
-				*/
-				pItem[ipg].Delay = 0;
+					UpdateItem(ipg, 3, &pItem[ipg].Height);
+					/*
+					MSG_UpdateItem sm;
 
-				MSG_CreateItem sm;
+					sm.ID = ESCENE_FIELD;
+					sm.Type = _MSG_UpdateItem;
 
-				sm.Type = _MSG_CreateItem;
-				sm.Size = sizeof(MSG_CreateItem);
-				sm.ID = ESCENE_FIELD;
+					sm.ItemID = ipg + 10000;
 
-				sm.ItemID = ipg + 10000;
+					sm.Size = sizeof(MSG_UpdateItem);
 
-				memcpy(&sm.Item, &pItem[ipg].ITEM, sizeof(STRUCT_ITEM));
+					//sm.Height = pItem[ipg].Height;
+					*/
+					pItem[ipg].State = STATE_LOCKED;
+					/*
+					sm.State = pItem[ipg].State;
 
-				sm.GridX = ipx;
-				sm.GridY = ipy;
+					GridMulticast(ipx, ipy, (MSG_STANDARD*)&sm, 0);
+					*/
+					pItem[ipg].Delay = 0;
 
-				sm.Rotate = pItem[ipg].Rotate;
-				sm.State = pItem[ipg].State;
-				//sm.Create = Create;
+					MSG_CreateItem sm;
 
-				//sm.Height = pItem[empty].Height;
+					sm.Type = _MSG_CreateItem;
+					sm.Size = sizeof(MSG_CreateItem);
+					sm.ID = ESCENE_FIELD;
 
-				GridMulticast(ipx, ipy, (MSG_STANDARD*)&sm, 0);
+					sm.ItemID = ipg + 10000;
+
+					memcpy(&sm.Item, &pItem[ipg].ITEM, sizeof(STRUCT_ITEM));
+
+					sm.GridX = ipx;
+					sm.GridY = ipy;
+
+					sm.Rotate = pItem[ipg].Rotate;
+					sm.State = pItem[ipg].State;
+					//sm.Create = Create;
+
+					//sm.Height = pItem[empty].Height;
+
+					GridMulticast(ipx, ipy, (MSG_STANDARD*)&sm, 0);
+				}
 			}
 		}
 	}
@@ -2217,14 +2745,13 @@ void ProcessMinTimer()
 		{
 			if (MinuteGenerate <= 0)
 				continue;
-			
 
 			int mod = i % MinuteGenerate;
 
 			if (MinCounter % MinuteGenerate == mod)
 			{
 				GenerateMob(i, 0, 0);
-				
+
 				if (MinuteGenerate >= 500 && MinuteGenerate < 1000)
 				{
 					mNPCGen.pList[i].MinuteGenerate = rand() % 500 + 500;
@@ -2274,7 +2801,7 @@ void ProcessMinTimer()
 						}
 					}
 				}
-				
+
 			}
 		}
 	}
@@ -2309,6 +2836,6 @@ void ProcessMinTimer()
 			SendWeather();
 		}
 	}
- 
+
 	GuildProcess();
 }

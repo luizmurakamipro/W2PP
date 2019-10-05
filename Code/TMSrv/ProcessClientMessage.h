@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
+*   Copyright (C) {2015}  {Victor Klafke, Charles TheHouse}
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
-*   Contact at:
+*   Contact at: victor.klafke@ecomp.ufsm.br
 */
 #pragma once
 
@@ -41,6 +41,7 @@
 #include "CReadFiles.h"
 #include "CCastleZakum.h"
 #include "CWarTower.h"
+#include "CCubo.h"
 
 // Externs
 
@@ -113,9 +114,12 @@ void Exec_MSG_CombineItem(int conn, char *pMsg);
 void Exec_MSG_ReqRanking(int conn, char *pMsg);
 void Exec_MSG_CombineItemEhre(int conn, char *pMsg);
 void Exec_MSG_CombineItemTiny(int conn, char *pMsg);
+void Exec_MSG_MestreGrifo(int conn, char *pMsg);
 void Exec_MSG_CombineItemAilyn(int conn, char *pMsg);
 void Exec_MSG_CombineItemAgatha(int conn, char *pMsg);
 void Exec_MSG_CombineItemOdin(int conn, char *pMsg);
+void Exec_MSG_CombineDedekinto(int conn, char *pMsg);
+void Exec_MSG_CombineDedekinto2(int conn, char *pMsg);
 void Exec_MSG_DeleteItem(int conn, char *pMsg);
 void Exec_MSG_InviteGuild(int conn, char *pMsg);
 void Exec_MSG_SplitItem(int conn, char *pMsg);
@@ -129,4 +133,5 @@ void Exec_MSG_CapsuleInfo(int conn, char *pMsg);
 void Exec_MSG_PutoutSeal(int conn, char *pMsg);
 void Exec_MSG_TradingItem(int conn, char *pMsg);
 void Exec_MSG_Quest(int conn, char *pMsg);
+void Exec_MSG_Quiz(int conn, char *pMsg);
 //**************************************************************************************************

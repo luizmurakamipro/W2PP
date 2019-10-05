@@ -1,23 +1,176 @@
-/*
-*   Copyright (C) {2015}  {VK, Charles TheHouse}
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see [http://www.gnu.org/licenses/].
-*
-*   Contact at:
-*/
+
 #include "ProcessClientMessage.h"
 
+void Exec_MSG_CombineItemAgatha(int conn, char *pMsg)
+{
+	MSG_CombineItem *m = (MSG_CombineItem*)pMsg;
+
+	if (conn < 0 || conn > MAX_USER)
+		return;
+
+	int item1unique = g_pItemList[m->Item[0].sIndex].nUnique;
+	int item2unique = g_pItemList[m->Item[1].sIndex].nUnique;
+	int item2grade = g_pItemList[m->Item[1].sIndex].Grade;
+
+	short luz_count = 0;
+
+	for (short i = 2; i < 6; i++)
+	{
+		if (m->Item[i].sIndex == 3140)
+			luz_count++;
+	}
+
+	if (luz_count != 4)
+	{
+		SendClientMessage(conn, "Você precisa de 4 unidades da pedra da luz.");
+		SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+		return;
+	}
+	if (g_pItemList[m->Item[0].sIndex].nPos != g_pItemList[m->Item[1].sIndex].nPos)
+	{
+		SendClientMessage(conn, "Os dois itens precisam ser do mesmo tipo.");
+		SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+		return;
+	}
+	if (item1unique == 9 || item1unique == 19 || item1unique == 29 || item1unique == 39)//Somente itens arch
+	{
+		bool cango = false;
+		int chancebase = 0;
+
+		//item D dourado
+		if (item2unique == (item1unique - 1))
+		{
+			cango = true;
+			if (item2grade == 1)
+				chancebase += 12;
+			else if (item2grade == 2)
+				chancebase += 18;
+			else if (item2grade == 3)
+				chancebase += 24;
+			else if (item2grade == 4)
+				chancebase += 30;
+		}
+		//Item E
+		else if (item2unique == (item1unique + 1))
+		{
+			cango = true;
+			if (item2grade == 1)
+				chancebase += 26;
+			else if (item2grade == 4)
+				chancebase += 32;
+		}
+		//Item D normal
+		else if (item2unique == (item1unique - 2))
+		{
+			cango = true;
+			if (item2grade == 1)
+				chancebase += 4;
+			else if (item2grade == 2)
+				chancebase += 8;
+			else if (item2grade == 3)
+				chancebase += 12;
+			else if (item2grade == 4)
+				chancebase += 16;
+		}
+		else{
+			SendClientMessage(conn, "Somente itens [D] ou [E].");
+			SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+			return;
+		}
+		if (cango == true)
+		{
+			int refid = 0, refval = 0;
+			for (short i = 0; i < sizeof(ref); i++)
+			{
+				if (m->Item[1].stEffect[0].cEffect == ref[i]){
+					refid = 1;
+					refval = m->Item[1].stEffect[0].cValue;
+					break;
+				}
+				else if (m->Item[1].stEffect[1].cEffect == ref[i]){
+					refid = 2;
+					refval = m->Item[1].stEffect[1].cValue;
+					break;
+				}
+				else if (m->Item[1].stEffect[2].cEffect == ref[i]){
+					refid = 3;
+					refval = m->Item[1].stEffect[2].cValue;
+					break;
+				}
+			}
+			if (refval >= 230 && refval <= 233){
+				chancebase += 18;
+			}
+			else if (refval >= 234 && refval <= 237){
+				chancebase += 26;
+			}
+			int chance = rand() % 100;
+			if (chance <= chancebase)//Sucesso
+			{
+				STRUCT_ITEM nitem;
+				nitem.sIndex = m->Item[0].sIndex;
+				nitem.stEffect[0].cEffect = 43;
+				nitem.stEffect[0].cValue = 7;
+
+				if (refid == 1){
+					nitem.stEffect[1].cEffect = m->Item[1].stEffect[1].cEffect;
+					nitem.stEffect[2].cEffect = m->Item[1].stEffect[2].cEffect;
+					nitem.stEffect[1].cValue = m->Item[1].stEffect[1].cValue;
+					nitem.stEffect[2].cValue = m->Item[1].stEffect[2].cValue;
+				}
+				else if (refid == 2){
+					nitem.stEffect[1].cEffect = m->Item[1].stEffect[0].cEffect;
+					nitem.stEffect[2].cEffect = m->Item[1].stEffect[2].cEffect;
+					nitem.stEffect[1].cValue = m->Item[1].stEffect[0].cValue;
+					nitem.stEffect[2].cValue = m->Item[1].stEffect[2].cValue;
+				}
+				else if (refid == 3){
+					nitem.stEffect[1].cEffect = m->Item[1].stEffect[1].cEffect;
+					nitem.stEffect[2].cEffect = m->Item[1].stEffect[0].cEffect;
+					nitem.stEffect[1].cValue = m->Item[1].stEffect[1].cValue;
+					nitem.stEffect[2].cValue = m->Item[1].stEffect[0].cValue;
+				}
+				for (short i = 0; i < 6; i++)
+				{
+					memset(&pMob[conn].MOB.Carry[m->InvenPos[i]], 0, sizeof(STRUCT_ITEM));
+					SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[i], &pMob[conn].MOB.Carry[m->InvenPos[i]]);
+				}
+				memcpy(&pMob[conn].MOB.Carry[m->InvenPos[0]], &nitem, sizeof(STRUCT_ITEM));
+				SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[0], &pMob[conn].MOB.Carry[m->InvenPos[0]]);
+				char msg[200];
+				sprintf(msg, "Obteve sucesso na composição do item [%s].", g_pItemList[pMob[conn].MOB.Carry[m->InvenPos[0]].sIndex].Name);
+				SendClientMessage(conn, msg);
+				SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+				return;
+			}
+			else{
+				//Deleta tudo menos o item 1 que é o item arch
+				for (short i = 0; i < 6; i++)
+				{
+					if (i != 1)
+					{
+						memset(&pMob[conn].MOB.Carry[m->InvenPos[i]], 0, sizeof(STRUCT_ITEM));
+						SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[i], &pMob[conn].MOB.Carry[m->InvenPos[i]]);
+					}
+				}
+				SendClientMessage(conn, "Falha na composição.");
+				SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+				return;
+			}
+		}
+		else{
+			SendClientMessage(conn, "Há algo errado na composição.");
+			SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+			return;
+		}
+	}
+	else{
+		SendClientMessage(conn, "Há algo errado na composição.");
+		SendClientSignalParm(conn, 0x7530, 0x3A7, 2);
+		return;
+	}
+}
+/*
 void Exec_MSG_CombineItemAgatha(int conn, char *pMsg)
 {
 	MSG_CombineItem *m = (MSG_CombineItem*)pMsg;
@@ -37,7 +190,6 @@ void Exec_MSG_CombineItemAgatha(int conn, char *pMsg)
 
 		if (memcmp(&pMob[conn].MOB.Carry[invPos], &m->Item[i], sizeof(STRUCT_ITEM)))
 		{
-			ItemLog("err,msg_CombineAgatha - item remove or changed.", pUser[conn].AccountName, pUser[conn].IP);
 			SendClientSignalParm(conn, ESCENE_FIELD, _MSG_CombineComplete, 0);
 			return;
 		}
@@ -64,21 +216,18 @@ void Exec_MSG_CombineItemAgatha(int conn, char *pMsg)
 		SendItem(conn, ITEM_PLACE_CARRY, m->InvenPos[i], &pMob[conn].MOB.Carry[m->InvenPos[i]]);
 	}
 
-	ItemLog("*** Item combine agatha. ***", pUser[conn].AccountName, pUser[conn].IP);
 
 	for (int i = 0; i < MAX_COMBINE; i++)
 	{
 		if (m->Item[i].sIndex)
 		{
 			char itemlog[2048];
-									 
+
 			BASE_GetItemCode(&m->Item[i], itemlog);
-									 
+
 			strcat(temp, itemlog);
 		}
 	}
-	ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
-	ItemLog("*** ------------------- ***", pUser[conn].AccountName, pUser[conn].IP);
 
 	int _rand = rand() % 115;
 	if (_rand >= 100)
@@ -112,7 +261,6 @@ void Exec_MSG_CombineItemAgatha(int conn, char *pMsg)
 		BASE_GetItemCode(&pMob[conn].MOB.Carry[ipos], tt);
 		strcat(temp, tt);
 
-		ItemLog(temp, "**combine agatha sucess ***", pUser[conn].IP);
 		SendItem(conn, ITEM_PLACE_CARRY, ipos, &pMob[conn].MOB.Carry[ipos]);
 
 		return;
@@ -123,8 +271,7 @@ void Exec_MSG_CombineItemAgatha(int conn, char *pMsg)
 		SendClientMessage(conn, temp);
 
 		SendClientSignalParm(conn, ESCENE_FIELD, _MSG_CombineComplete, 2);
-		ItemLog("*** Combine agatha fail ***", pUser[conn].AccountName, pUser[conn].IP);
 
 		return;
 	}
-}
+}*/
