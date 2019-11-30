@@ -18,18 +18,62 @@
 */
 #include "ProcessClientMessage.h"
 
-void Exec_MSG_SetShortSkill(int conn, char *pMsg)
+void Exec_MSG_SetShortSkill(int conn, char* pMsg)
 {
-	MSG_SetShortSkill *m = (MSG_SetShortSkill*)pMsg;
+	MSG_SetShortSkill* m = (MSG_SetShortSkill*)pMsg;
 
-	memcpy(pMob[conn].MOB.SkillBar, m->Skill1, 4);
-	memcpy(pUser[conn].CharShortSkill, m->Skill2, 16);
+	if (pMob[conn].MOB.Class == 1 && pMob[conn].MOB.Equip[0].sIndex % 10 == 7)
+	{
+		for (int o = 0; o < 4; o++)
+		{
+			switch (m->Skill1[o])
+			{
+			case 106:
+				pMob[conn].MOB.SkillBar[o] = 118;
+				break;
+
+			case 109:
+				pMob[conn].MOB.SkillBar[o] = 121;
+				break;
+
+			case 114:
+				pMob[conn].MOB.SkillBar[o] = 126;
+				break;
+
+			default:
+				pMob[conn].MOB.SkillBar[o] = m->Skill1[o];
+			}
+		}
+	}
+	else
+		memcpy(pMob[conn].MOB.SkillBar, m->Skill1, 4);
+
+	if (pMob[conn].MOB.Class == 1 && pMob[conn].MOB.Equip[0].sIndex % 10 == 7)
+	{
+		for (int i = 0; i < 16; i++)
+		{
+			switch (m->Skill2[i])
+			{
+			case 106:
+				pUser[conn].CharShortSkill[i] = 118;
+				break;
+
+			case 109:
+				pUser[conn].CharShortSkill[i] = 121;
+				break;
+
+			case 114:
+				pUser[conn].CharShortSkill[i] = 126;
+				break;
+
+			default:
+				pUser[conn].CharShortSkill[i] = m->Skill2[i];
+			}
+		}
+	}
+	else
+		memcpy(pUser[conn].CharShortSkill, m->Skill2, 16);
 }
-
-/*Bom, pra voces praticarem programação deixarei um desafio :)*/
-/*Logo abaixo terá uma tabela das id's da 9ª a 12ª skill que ficam no skillbar*/
-/*O desafio de vocês é fazer um for concertando a skillbar, Boa sorte a Todos*/
-/*By Swedka :D*/
 
 /* // All new skill's Index //
 105 106 107 108 TK
